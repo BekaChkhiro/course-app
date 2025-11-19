@@ -1,0 +1,400 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ChapterContentType {
+  VIDEO
+  TEXT
+  PDF
+  QUIZ
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  name                  String
+  surname               String
+  phone                 String?   @unique
+  role                  UserRole  @default(STUDENT)
+  avatar                String?
+  bio                   String?
+  isActive              Boolean   @default(true)
+  emailVerified         Boolean   @default(false)
+  verificationToken     String?   @unique
+  resetPasswordToken    String?   @unique
+  resetPasswordExpires  DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  purchases      Purchase[]
+  progress       Progress[]
+  comments       Comment[]
+  reviews        Review[]
+  deviceSessions DeviceSession[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([verificationToken])
+  @@index([resetPasswordToken])
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  courses Course[]
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String
+  thumbnail   String?
+  price       Decimal      @db.Decimal(10, 2)
+  status      CourseStatus @default(DRAFT)
+  categoryId  String
+  authorId    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  versions       CourseVersion[]
+  purchases      Purchase[]
+  reviews        Review[]
+  activeVersionId String?        @unique
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([status])
+  @@map("courses")
+}
+
+model CourseVersion {
+  id          String   @id @default(cuid())
+  courseId    String
+  version     Int
+  title       String
+  description String
+  isActive    Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  course   Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  chapters Chapter[]
+  progress Progress[]
+
+  @@unique([courseId, version])
+  @@index([courseId])
+  @@index([isActive])
+  @@map("course_versions")
+}
+
+model Chapter {
+  id              String   @id @default(cuid())
+  courseVersionId String
+  title           String
+  description     String?
+  order           Int
+  isFree          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  courseVersion CourseVersion    @relation(fields: [courseVersionId], references: [id], onDelete: Cascade)
+  contents      ChapterContent[]
+  comments      Comment[]
+  progress      Progress[]
+
+  @@index([courseVersionId])
+  @@index([order])
+  @@map("chapters")
+}
+
+model ChapterContent {
+  id          String             @id @default(cuid())
+  chapterId   String
+  type        ChapterContentType
+  title       String
+  content     String             @db.Text // URL for video/pdf, HTML for text
+  duration    Int? // Duration in seconds for video content
+  fileSize    Int? // File size in bytes
+  mimeType    String?
+  order       Int
+  isFree      Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  // Relations
+  chapter  Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  quiz     Quiz?
+
+  @@index([chapterId])
+  @@index([type])
+  @@index([order])
+  @@map("chapter_contents")
+}
+
+model Quiz {
+  id               String   @id @default(cuid())
+  chapterContentId String   @unique
+  title            String
+  description      String?
+  passingScore     Int      @default(70) // Percentage
+  maxAttempts      Int?
+  timeLimit        Int? // Time limit in minutes
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  chapterContent ChapterContent @relation(fields: [chapterContentId], references: [id], onDelete: Cascade)
+  questions      QuizQuestion[]
+  submissions    QuizSubmission[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id        String   @id @default(cuid())
+  quizId    String
+  question  String   @db.Text
+  order     Int
+  points    Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+  userAnswers QuizUserAnswer[]
+
+  @@index([quizId])
+  @@index([order])
+  @@map("quiz_questions")
+}
+
+model QuizAnswer {
+  id         String   @id @default(cuid())
+  questionId String
+  answer     String   @db.Text
+  isCorrect  Boolean  @default(false)
+  order      Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  question QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userAnswers QuizUserAnswer[]
+
+  @@index([questionId])
+  @@map("quiz_answers")
+}
+
+model QuizSubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  score       Decimal  @db.Decimal(5, 2)
+  passed      Boolean
+  attemptNumber Int
+  startedAt   DateTime
+  completedAt DateTime @default(now())
+
+  // Relations
+  quiz        Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userAnswers QuizUserAnswer[]
+
+  @@index([userId])
+  @@index([quizId])
+  @@map("quiz_submissions")
+}
+
+model QuizUserAnswer {
+  id           String @id @default(cuid())
+  submissionId String
+  questionId   String
+  answerId     String
+
+  // Relations
+  submission QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question   QuizQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answer     QuizAnswer     @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, questionId])
+  @@index([submissionId])
+  @@map("quiz_user_answers")
+}
+
+model Purchase {
+  id          String        @id @default(cuid())
+  userId      String
+  courseId    String
+  amount      Decimal       @db.Decimal(10, 2)
+  finalAmount Decimal       @db.Decimal(10, 2) // After discount
+  status      PaymentStatus @default(PENDING)
+  promoCodeId String?
+  stripePaymentId String?   @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  promoCode PromoCode? @relation(fields: [promoCodeId], references: [id])
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+  @@map("purchases")
+}
+
+model Progress {
+  id              String   @id @default(cuid())
+  userId          String
+  courseVersionId String
+  chapterId       String
+  isCompleted     Boolean  @default(false)
+  lastPosition    Int? // Last video position in seconds
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  courseVersion CourseVersion @relation(fields: [courseVersionId], references: [id], onDelete: Cascade)
+  chapter       Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+  @@index([courseVersionId])
+  @@map("progress")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  chapterId String
+  content   String   @db.Text
+  parentId  String? // For nested comments
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([userId])
+  @@index([chapterId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  rating    Int // 1-5 stars
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model PromoCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  description String?
+  discount    Decimal   @db.Decimal(5, 2) // Percentage (0-100)
+  validFrom   DateTime
+  validUntil  DateTime
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  purchases Purchase[]
+
+  @@index([code])
+  @@index([validFrom, validUntil])
+  @@map("promo_codes")
+}
+
+model DeviceSession {
+  id                String   @id @default(cuid())
+  userId            String
+  deviceName        String
+  deviceType        String // mobile, tablet, desktop
+  deviceFingerprint String
+  browser           String?
+  ipAddress         String
+  userAgent         String   @db.Text
+  refreshToken      String   @unique @db.Text
+  isActive          Boolean  @default(true)
+  lastActiveAt      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  expiresAt         DateTime
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceFingerprint])
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([refreshToken])
+  @@map("device_sessions")
+}

@@ -1,0 +1,53 @@
+{
+  "name": "course-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E-learning platform monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:api": "turbo run dev --filter=api",
+    "build": "turbo run build",
+    "build:web": "turbo run build --filter=web",
+    "build:api": "turbo run build --filter=api",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "db:migrate": "turbo run db:migrate",
+    "db:studio": "turbo run db:studio",
+    "db:seed": "turbo run db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "prepare": "husky install || true"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.3",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "packageManager": "npm@10.2.5"
+}
