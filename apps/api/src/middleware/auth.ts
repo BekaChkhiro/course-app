@@ -64,7 +64,7 @@ export const verifyToken = async (
       }
 
       req.userId = user.id;
-      req.user = user;
+      req.user = user as any;
       next();
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
