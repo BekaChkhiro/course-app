@@ -42,7 +42,7 @@ export function generateDeviceFingerprint(req: Request): string {
  */
 export function parseDeviceInfo(req: Request): DeviceInfo {
   const userAgent = req.headers['user-agent'] || '';
-  const parser = new UAParser(userAgent);
+  const parser = new (UAParser as any)(userAgent);
   const result = parser.getResult();
 
   // Determine device type
