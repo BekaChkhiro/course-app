@@ -96,7 +96,7 @@ export const requireEmailVerified = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.user?.emailVerified) {
+  if (!(req.user as any)?.emailVerified) {
     return res.status(403).json({
       success: false,
       message: 'Email verification required',
