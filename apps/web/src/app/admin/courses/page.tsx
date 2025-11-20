@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, Edit, Copy, Trash2, Download, MoreVertical } from 'lucide-react';
@@ -28,6 +29,7 @@ type Course = {
 };
 
 export default function CoursesPage() {
+  const router = useRouter();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -225,10 +227,7 @@ export default function CoursesPage() {
           data={courses}
           searchKey="title"
           searchPlaceholder="Search courses..."
-          onRowClick={(course) => {
-            setSelectedCourse(course);
-            setIsEditModalOpen(true);
-          }}
+          onRowClick={(course) => router.push(`/admin/courses/${course.id}`)}
         />
       </div>
 
