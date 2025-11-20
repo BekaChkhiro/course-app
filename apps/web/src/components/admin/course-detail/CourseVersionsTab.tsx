@@ -224,7 +224,18 @@ function VersionModal({
     discountPercentage: ''
   });
 
+  const [copyFromVersion, setCopyFromVersion] = useState(false);
+  const [selectedVersionId, setSelectedVersionId] = useState('');
+
   const queryClient = useQueryClient();
+
+  // Get all versions for the course
+  const { data: versionsData } = useQuery({
+    queryKey: ['versions', courseId],
+    queryFn: () => versionApi.getByCourse(courseId).then(res => res.data)
+  });
+
+  const availableVersions = versionsData?.versions || [];
 
   // Update form when version changes
   useEffect(() => {
@@ -236,6 +247,8 @@ function VersionModal({
         upgradePrice: version.upgradePrice?.toString() || '',
         discountPercentage: version.discountPercentage?.toString() || ''
       });
+      setCopyFromVersion(false);
+      setSelectedVersionId('');
     } else {
       setFormData({
         title: '',
@@ -244,6 +257,8 @@ function VersionModal({
         upgradePrice: '',
         discountPercentage: ''
       });
+      setCopyFromVersion(false);
+      setSelectedVersionId('');
     }
   }, [version]);
 
@@ -276,7 +291,11 @@ function VersionModal({
     if (version) {
       updateMutation.mutate(formData);
     } else {
-      createMutation.mutate(formData);
+      const data = {
+        ...formData,
+        ...(copyFromVersion && selectedVersionId && { copyFromVersionId: selectedVersionId })
+      };
+      createMutation.mutate(data);
     }
   };
 
@@ -312,6 +331,58 @@ function VersionModal({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        {/* Copy from previous version - only show when creating new version */}
+        {!version && availableVersions.length > 0 && (
+          <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="copyFromVersion"
+                checked={copyFromVersion}
+                onChange={(e) => {
+                  setCopyFromVersion(e.target.checked);
+                  if (!e.target.checked) setSelectedVersionId('');
+                }}
+                className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <label htmlFor="copyFromVersion" className="block text-sm font-medium text-gray-900 cursor-pointer">
+                  დააკოპირე თავები წინა ვერსიიდან
+                </label>
+                <p className="text-xs text-gray-600 mt-1">
+                  თუ მონიშნავთ, ყველა თავი დაკოპირდება არჩეული ვერსიიდან და შემდეგ შეგიძლიათ მხოლოდ საჭირო ცვლილებების შეტანა
+                </p>
+              </div>
+            </div>
+
+            {copyFromVersion && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  აირჩიეთ ვერსია
+                </label>
+                <select
+                  value={selectedVersionId}
+                  onChange={(e) => setSelectedVersionId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required={copyFromVersion}
+                >
+                  <option value="">აირჩიეთ ვერსია...</option>
+                  {availableVersions.map((v: any) => (
+                    <option key={v.id} value={v.id}>
+                      v{v.version} - {v.title} ({v._count.chapters} თავი)
+                    </option>
+                  ))}
+                </select>
+                {selectedVersionId && (
+                  <p className="text-xs text-green-600 mt-2">
+                    ✓ {availableVersions.find((v: any) => v.id === selectedVersionId)?._count.chapters || 0} თავი დაკოპირდება
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
