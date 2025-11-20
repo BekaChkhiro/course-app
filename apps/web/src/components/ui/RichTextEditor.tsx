@@ -36,7 +36,10 @@ export default function RichTextEditor({
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Exclude link from StarterKit to avoid duplicate
+        link: false
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
