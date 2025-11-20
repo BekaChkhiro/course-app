@@ -18,12 +18,12 @@ import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { name: 'Courses', href: '/admin/courses', icon: BookOpen },
-  { name: 'Categories', href: '/admin/categories', icon: FolderTree },
-  { name: 'Students', href: '/admin/students', icon: Users },
-  { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  { name: 'Settings', href: '/admin/settings', icon: Settings }
+  { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
+  { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
+  { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
+  { name: 'სტუდენტები', href: '/admin/students', icon: Users },
+  { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'პარამეტრები', href: '/admin/settings', icon: Settings }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b">
           <Link href="/admin" className="text-xl font-bold text-gray-900">
-            Admin Panel
+            ადმინ პანელი
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -103,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            გასვლა
           </button>
         </div>
       </aside>

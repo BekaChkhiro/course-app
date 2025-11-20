@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileText, GitBranch, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { courseApi } from '@/lib/api/adminApi';
@@ -30,14 +30,14 @@ export default function CourseDetailPage() {
   });
 
   if (isLoading) return <PageLoader />;
-  if (!courseData) return <div>Course not found</div>;
+  if (!courseData) return <div>კურსი ვერ მოიძებნა</div>;
 
   const course = courseData.course;
 
   const tabs = [
-    { id: 'info' as Tab, label: 'ზოგადი ინფორმაცია', icon: '📝' },
-    { id: 'versions' as Tab, label: 'ვერსიები', icon: '🔄', count: course.versions?.length },
-    { id: 'chapters' as Tab, label: 'თავები', icon: '📚' }
+    { id: 'info' as Tab, label: 'ზოგადი ინფორმაცია', icon: FileText },
+    { id: 'versions' as Tab, label: 'ვერსიები', icon: GitBranch, count: course.versions?.length },
+    { id: 'chapters' as Tab, label: 'თავები', icon: BookOpen }
   ];
 
   return (
@@ -62,29 +62,32 @@ export default function CourseDetailPage() {
         {/* Tabs */}
         <div className="border-b border-gray-200">
           <nav className="flex gap-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  relative py-4 px-1 font-medium text-sm transition-colors
-                  ${activeTab === tab.id
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                  }
-                `}
-              >
-                <span className="flex items-center gap-2">
-                  <span>{tab.icon}</span>
-                  {tab.label}
-                  {tab.count !== undefined && (
-                    <span className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">
-                      {tab.count}
-                    </span>
-                  )}
-                </span>
-              </button>
-            ))}
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    relative py-4 px-1 font-medium text-sm transition-colors
+                    ${activeTab === tab.id
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }
+                  `}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                    {tab.count !== undefined && (
+                      <span className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">
+                        {tab.count}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </nav>
         </div>
 

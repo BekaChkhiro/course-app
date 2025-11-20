@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, CheckCircle, ArrowRight } from 'lucide-react';
+import { Plus, Edit, Trash2, CheckCircle, ArrowRight, BookOpen, Users, Calendar, DollarSign } from 'lucide-react';
 import { versionApi } from '@/lib/api/adminApi';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
@@ -121,13 +121,25 @@ export default function CourseVersionsTab({ courseId, onVersionSelect }: CourseV
                   <p className="text-gray-600 mb-4">{version.description}</p>
 
                   <div className="flex items-center gap-6 text-sm text-gray-500">
-                    <span>📚 {version._count.chapters} თავი</span>
-                    <span>👥 {version._count.progress} სტუდენტი</span>
+                    <span className="flex items-center gap-1">
+                      <BookOpen className="w-4 h-4" />
+                      {version._count.chapters} თავი
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {version._count.progress} სტუდენტი
+                    </span>
                     {version.publishedAt && (
-                      <span>📅 {formatDate(version.publishedAt)}</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {formatDate(version.publishedAt)}
+                      </span>
                     )}
                     {version.upgradePrice && (
-                      <span>💰 Upgrade: {formatCurrency(version.upgradePrice)}</span>
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        განახლება: {formatCurrency(version.upgradePrice)}
+                      </span>
                     )}
                   </div>
                 </div>

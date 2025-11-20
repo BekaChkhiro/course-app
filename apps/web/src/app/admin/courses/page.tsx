@@ -54,10 +54,10 @@ export default function CoursesPage() {
     mutationFn: (id: string) => courseApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast.success('Course deleted successfully');
+      toast.success('კურსი წაიშალა');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to delete course');
+      toast.error(error.response?.data?.error || 'კურსის წაშლა ვერ მოხერხდა');
     }
   });
 
@@ -67,10 +67,10 @@ export default function CoursesPage() {
       courseApi.duplicate(id, { title, slug }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast.success('Course duplicated successfully');
+      toast.success('კურსი დუბლირებულია');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to duplicate course');
+      toast.error(error.response?.data?.error || 'კურსის დუბლირება ვერ მოხერხდა');
     }
   });
 
@@ -78,13 +78,13 @@ export default function CoursesPage() {
   const categories = categoriesData?.categories || [];
 
   const handleDelete = (course: Course) => {
-    if (confirm(`Are you sure you want to delete "${course.title}"?`)) {
+    if (confirm(`დარწმუნებული ხართ რომ გსურთ "${course.title}" წაშლა?`)) {
       deleteMutation.mutate(course.id);
     }
   };
 
   const handleDuplicate = (course: Course) => {
-    const title = `${course.title} (Copy)`;
+    const title = `${course.title} (ასლი)`;
     const slug = slugify(title);
     duplicateMutation.mutate({ id: course.id, title, slug });
   };
@@ -197,9 +197,9 @@ export default function CoursesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
+            <h1 className="text-3xl font-bold text-gray-900">კურსები</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage your course catalog
+              მართეთ თქვენი კურსების კატალოგი
             </p>
           </div>
 
@@ -209,14 +209,14 @@ export default function CoursesPage() {
               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              CSV ექსპორტი
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Plus className="w-4 h-4" />
-              Create Course
+              ახალი კურსი
             </button>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function CoursesPage() {
           columns={columns}
           data={courses}
           searchKey="title"
-          searchPlaceholder="Search courses..."
+          searchPlaceholder="კურსის ძიება..."
           onRowClick={(course) => router.push(`/admin/courses/${course.id}`)}
         />
       </div>
