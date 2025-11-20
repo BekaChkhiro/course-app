@@ -1,208 +1,169 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
-import {
-  TrendingUp,
-  Users,
   BookOpen,
-  DollarSign,
-  MessageSquare,
-  Award
+  FolderTree,
+  ArrowRight,
+  TrendingUp
 } from 'lucide-react';
+import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { analyticsApi } from '@/lib/api/adminApi';
-import LoadingSpinner, { PageLoader } from '@/components/ui/LoadingSpinner';
-import Badge from '@/components/ui/Badge';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { courseApi, categoryApi } from '@/lib/api/adminApi';
+import { PageLoader } from '@/components/ui/LoadingSpinner';
 
 export default function AdminDashboard() {
-  const [period, setPeriod] = useState(30);
-
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats', period],
-    queryFn: () => analyticsApi.getDashboard({ period }).then(res => res.data)
+  const { data: coursesData, isLoading: coursesLoading } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => courseApi.getAll().then(res => res.data)
   });
 
-  if (isLoading) return <PageLoader />;
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoryApi.getAll().then(res => res.data)
+  });
 
-  const revenue = stats?.revenue || {};
-  const students = stats?.students || {};
-  const courses = stats?.courses || {};
-  const engagement = stats?.engagement || {};
+  if (coursesLoading || categoriesLoading) return <PageLoader />;
 
-  const statCards = [
+  const courses = coursesData?.courses || [];
+  const categories = categoriesData?.categories || [];
+
+  const publishedCourses = courses.filter((c: any) => c.status === 'PUBLISHED').length;
+  const draftCourses = courses.filter((c: any) => c.status === 'DRAFT').length;
+  const totalEnrollments = courses.reduce((sum: number, c: any) => sum + (c._count?.purchases || 0), 0);
+
+  const quickActions = [
     {
-      title: 'Total Revenue',
-      value: formatCurrency(revenue.total || 0),
-      change: `${revenue.purchases || 0} purchases`,
-      icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      title: 'Active Students',
-      value: students.active || 0,
-      change: `${students.growth || 0}% of total`,
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Published Courses',
-      value: courses.byStatus?.published || 0,
-      change: `${courses.byStatus?.draft || 0} drafts`,
+      title: 'კურსების მართვა',
+      description: 'შექმენი, რედაქტირება და მართე კურსები',
       icon: BookOpen,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      href: '/admin/courses',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      stats: `${courses.length} კურსი`
     },
     {
-      title: 'Recent Comments',
-      value: engagement.recentComments || 0,
-      change: 'Last 30 days',
-      icon: MessageSquare,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      title: 'კატეგორიების მართვა',
+      description: 'ორგანიზება და მართე კურსების კატეგორიები',
+      icon: FolderTree,
+      href: '/admin/categories',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      stats: `${categories.length} კატეგორია`
     }
+  ];
+
+  const statsCards = [
+    { label: 'სულ კურსები', value: courses.length },
+    { label: 'გამოქვეყნებული', value: publishedCourses },
+    { label: 'დრაფტი', value: draftCourses },
+    { label: 'ჩარიცხვები', value: totalEnrollments }
   ];
 
   return (
     <AdminLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Overview of your e-learning platform
-            </p>
-          </div>
-
-          {/* Period selector */}
-          <select
-            value={period}
-            onChange={(e) => setPeriod(Number(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
-          </select>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">მთავარი გვერდი</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            კეთილი იყოს თქვენი მობრძანება ადმინისტრატორის პანელში
+          </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.title}
-                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-center justify-between">
-                  <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="mt-1 text-sm text-gray-600">{stat.change}</p>
-                </div>
+          {statsCards.map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white rounded-lg border border-gray-200 p-6"
+            >
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-gray-400" />
+                <h3 className="text-sm font-medium text-gray-500">{stat.label}</h3>
               </div>
-            );
-          })}
+              <p className="mt-2 text-3xl font-bold text-gray-900">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Revenue Trend */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trend</h3>
-            {revenue.trend && revenue.trend.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenue.trend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(date) => formatDate(date)}
-                  />
-                  <YAxis />
-                  <Tooltip
-                    labelFormatter={(date) => formatDate(date)}
-                    formatter={(value: any) => formatCurrency(value)}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    name="Revenue"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                No data available
-              </div>
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">სწრაფი წვდომა</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Link
+                  key={action.title}
+                  href={action.href}
+                  className="block bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow group"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`p-3 rounded-lg ${action.bgColor}`}>
+                          <Icon className={`w-6 h-6 ${action.color}`} />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {action.title}
+                          </h3>
+                          <p className="text-sm text-gray-500">{action.stats}</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mt-2">{action.description}</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent Courses */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">ბოლო კურსები</h2>
+            <Link
+              href="/admin/courses"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              ყველას ნახვა
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {courses.slice(0, 5).map((course: any) => (
+              <Link
+                key={course.id}
+                href={`/admin/courses/${course.id}`}
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">{course.title}</p>
+                  <p className="text-sm text-gray-500">{course.category.name}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${
+                    course.status === 'PUBLISHED'
+                      ? 'bg-green-100 text-green-800'
+                      : course.status === 'DRAFT'
+                      ? 'bg-gray-100 text-gray-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {course.status}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-gray-400" />
+                </div>
+              </Link>
+            ))}
+            {courses.length === 0 && (
+              <p className="text-center py-8 text-gray-500">
+                კურსები არ არის. შექმენი პირველი კურსი!
+              </p>
             )}
           </div>
-
-          {/* Popular Courses */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Courses</h3>
-            <div className="space-y-4">
-              {courses.popular && courses.popular.length > 0 ? (
-                courses.popular.map((course: any) => (
-                  <div key={course.id} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{course.title}</p>
-                      <p className="text-sm text-gray-500">{course.category}</p>
-                    </div>
-                    <Badge variant="info">{course.purchases} enrollments</Badge>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500 text-center py-8">No courses yet</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Course Completion Rates */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Course Completion Rates
-          </h3>
-          {engagement.completionRates && engagement.completionRates.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={engagement.completionRates}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="title" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="completion_rate" fill="#10b981" name="Completion Rate %" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-gray-500">
-              No completion data yet
-            </div>
-          )}
         </div>
       </div>
     </AdminLayout>
