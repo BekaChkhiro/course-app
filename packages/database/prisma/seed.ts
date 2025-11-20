@@ -14,8 +14,10 @@ async function main() {
     create: {
       email: 'admin@example.com',
       password: adminPassword,
-      name: 'Admin User',
+      name: 'Admin',
+      surname: 'User',
       role: UserRole.ADMIN,
+      emailVerified: true,
     },
   })
   console.log('✅ Admin user created')
@@ -28,8 +30,10 @@ async function main() {
     create: {
       email: 'student@example.com',
       password: studentPassword,
-      name: 'Student User',
+      name: 'Student',
+      surname: 'User',
       role: UserRole.STUDENT,
+      emailVerified: true,
     },
   })
   console.log('✅ Student user created')
