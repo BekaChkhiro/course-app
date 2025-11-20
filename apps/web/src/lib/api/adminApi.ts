@@ -11,6 +11,12 @@ const adminApi = axios.create({
 adminApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
+    console.log('🔐 [API Request]', {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN'
+    });
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -21,21 +27,37 @@ adminApi.interceptors.request.use(
 
 // Response interceptor for token refresh
 adminApi.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ [API Response]', {
+      url: response.config.url,
+      status: response.status
+    });
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
+    console.log('❌ [API Error]', {
+      url: originalRequest.url,
+      status: error.response?.status,
+      message: error.message,
+      retry: originalRequest._retry
+    });
+
     if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log('🔄 [Token Refresh] Attempting to refresh token...');
       originalRequest._retry = true;
 
       try {
         const { data } = await axios.post(`${API_URL}/api/auth/refresh`, {}, {
           withCredentials: true
         });
+        console.log('✅ [Token Refresh] Success! New token received');
         localStorage.setItem('accessToken', data.accessToken);
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return adminApi(originalRequest);
       } catch (refreshError) {
+        console.log('❌ [Token Refresh] Failed! Redirecting to login...', refreshError);
         localStorage.removeItem('accessToken');
         window.location.href = '/auth/login';
         return Promise.reject(refreshError);
