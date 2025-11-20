@@ -6,6 +6,12 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import path from 'path'
 import authRoutes from './routes/authRoutes'
+import uploadRoutes from './routes/uploadRoutes'
+import categoryRoutes from './routes/categoryRoutes'
+import courseRoutes from './routes/courseRoutes'
+import chapterRoutes from './routes/chapterRoutes'
+import versionRoutes from './routes/versionRoutes'
+import analyticsRoutes from './routes/analyticsRoutes'
 
 // Load environment variables from the correct path
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
@@ -35,6 +41,9 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+
 // Health check
 app.get('/health', (req: Request, res: Response) => {
   res.json({
@@ -54,6 +63,24 @@ app.get('/api', (req: Request, res: Response) => {
 
 // Authentication routes
 app.use('/api/auth', authRoutes)
+
+// Upload routes
+app.use('/api/upload', uploadRoutes)
+
+// Category routes
+app.use('/api/categories', categoryRoutes)
+
+// Course routes
+app.use('/api/courses', courseRoutes)
+
+// Chapter routes
+app.use('/api/chapters', chapterRoutes)
+
+// Version routes
+app.use('/api/versions', versionRoutes)
+
+// Analytics routes
+app.use('/api/analytics', analyticsRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

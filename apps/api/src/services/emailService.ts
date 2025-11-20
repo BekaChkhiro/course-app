@@ -1,11 +1,11 @@
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 
-// Initialize SendGrid with API key
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+// Initialize Resend with API key
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@courseplatform.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 interface SendEmailOptions {
@@ -20,31 +20,40 @@ export class EmailService {
    * Send a generic email
    */
   static async sendEmail(options: SendEmailOptions): Promise<boolean> {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.warn('SendGrid API key not configured. Email not sent:', options);
+    if (!resend) {
+      console.warn('Resend API key not configured. Email not sent:', {
+        to: options.to,
+        subject: options.subject,
+      });
       // In development, log the email instead of throwing an error
       if (process.env.NODE_ENV === 'development') {
-        console.log('Email Details:', {
+        console.log('📧 Email Details (Development):', {
           to: options.to,
           subject: options.subject,
           html: options.html,
         });
         return true;
       }
-      throw new Error('SendGrid API key not configured');
+      throw new Error('Resend API key not configured');
     }
 
     try {
-      await sgMail.send({
-        to: options.to,
+      const { data, error } = await resend.emails.send({
         from: FROM_EMAIL,
+        to: options.to,
         subject: options.subject,
         html: options.html,
-        text: options.text,
       });
+
+      if (error) {
+        console.error('Resend email error:', error);
+        throw new Error('Failed to send email');
+      }
+
+      console.log('✅ Email sent successfully:', data?.id);
       return true;
     } catch (error) {
-      console.error('SendGrid email error:', error);
+      console.error('Resend email error:', error);
       throw new Error('Failed to send email');
     }
   }
