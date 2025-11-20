@@ -7,9 +7,6 @@ import {
   LayoutDashboard,
   BookOpen,
   FolderTree,
-  Users,
-  BarChart3,
-  Settings,
   Menu,
   X,
   LogOut
@@ -20,10 +17,7 @@ import Toast from '../ui/Toast';
 const navigation = [
   { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
   { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
-  { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
-  { name: 'სტუდენტები', href: '/admin/students', icon: Users },
-  { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 },
-  { name: 'პარამეტრები', href: '/admin/settings', icon: Settings }
+  { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
