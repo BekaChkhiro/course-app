@@ -7,8 +7,6 @@ import {
   LayoutDashboard,
   BookOpen,
   FolderTree,
-  FileText,
-  GitBranch,
   Users,
   BarChart3,
   Settings,
@@ -23,8 +21,6 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Courses', href: '/admin/courses', icon: BookOpen },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
-  { name: 'Chapters', href: '/admin/chapters', icon: FileText },
-  { name: 'Versions', href: '/admin/versions', icon: GitBranch },
   { name: 'Students', href: '/admin/students', icon: Users },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings }
@@ -75,7 +71,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+            // Fix active state: Dashboard only active on exact match, others on prefix match
+            const isActive = item.href === '/admin'
+              ? pathname === '/admin'
+              : pathname === item.href || pathname?.startsWith(item.href + '/');
             const Icon = item.icon;
 
             return (
