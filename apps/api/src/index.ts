@@ -21,6 +21,9 @@ if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
 const app: Application = express()
 const PORT = process.env.PORT || 4000
 
+// Trust proxy for Railway deployment
+app.set('trust proxy', 1)
+
 // Middleware
 app.use(helmet())
 app.use(cors({
