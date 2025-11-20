@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit, Trash2, CheckCircle, ArrowRight, BookOpen, Users, Calendar, DollarSign } from 'lucide-react';
+import Link from 'next/link';
 import { versionApi } from '@/lib/api/adminApi';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
@@ -12,7 +13,6 @@ import toast from 'react-hot-toast';
 
 interface CourseVersionsTabProps {
   courseId: string;
-  onVersionSelect?: (versionId: string) => void;
 }
 
 type Version = {
@@ -28,7 +28,7 @@ type Version = {
   _count: { chapters: number; progress: number };
 };
 
-export default function CourseVersionsTab({ courseId, onVersionSelect }: CourseVersionsTabProps) {
+export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<Version | null>(null);
@@ -101,89 +101,69 @@ export default function CourseVersionsTab({ courseId, onVersionSelect }: CourseV
       ) : (
         <div className="space-y-4">
           {versions.map((version) => (
-            <div
-              key={version.id}
-              className="p-6 border rounded-lg hover:shadow-md transition-shadow bg-white"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl font-mono font-bold text-gray-900">
-                      v{version.version}
-                    </span>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {version.title}
-                    </h3>
-                    {version.isActive && (
-                      <Badge variant="success">აქტიური</Badge>
-                    )}
-                  </div>
-                  <p className="text-gray-600 mb-4">{version.description}</p>
+            <div key={version.id} className="relative group">
+              <Link
+                href={`/admin/courses/${courseId}/versions/${version.id}`}
+                className="block p-6 border rounded-lg hover:shadow-md hover:border-blue-300 transition-all bg-white"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl font-mono font-bold text-gray-900">
+                        v{version.version}
+                      </span>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {version.title}
+                      </h3>
+                      {version.isActive && (
+                        <Badge variant="success">აქტიური</Badge>
+                      )}
+                    </div>
+                    <p className="text-gray-600 mb-4">{version.description}</p>
 
-                  <div className="flex items-center gap-6 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="w-4 h-4" />
-                      {version._count.chapters} თავი
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {version._count.progress} სტუდენტი
-                    </span>
-                    {version.publishedAt && (
+                    <div className="flex items-center gap-6 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        {formatDate(version.publishedAt)}
+                        <BookOpen className="w-4 h-4" />
+                        {version._count.chapters} თავი
                       </span>
-                    )}
-                    {version.upgradePrice && (
                       <span className="flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
-                        განახლება: {formatCurrency(version.upgradePrice)}
+                        <Users className="w-4 h-4" />
+                        {version._count.progress} სტუდენტი
                       </span>
-                    )}
+                      {version.publishedAt && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {formatDate(version.publishedAt)}
+                        </span>
+                      )}
+                      {version.upgradePrice && (
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="w-4 h-4" />
+                          განახლება: {formatCurrency(version.upgradePrice)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
                   </div>
                 </div>
+              </Link>
 
-                <div className="flex items-center gap-2">
-                  {onVersionSelect && (
-                    <button
-                      onClick={() => onVersionSelect(version.id)}
-                      className="p-2 hover:bg-blue-50 rounded text-blue-600"
-                      title="თავების მართვა"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
-                  )}
-
-                  {!version.isActive && (
-                    <button
-                      onClick={() => activateMutation.mutate(version.id)}
-                      className="p-2 hover:bg-green-50 rounded text-green-600"
-                      title="გააქტიურება"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setSelectedVersion(version);
-                      setIsEditModalOpen(true);
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded"
-                    title="რედაქტირება"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(version)}
-                    className="p-2 hover:bg-red-100 rounded text-red-600"
-                    title="წაშლა"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
+              {/* Action buttons - positioned absolutely to prevent link interference */}
+              <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDelete(version);
+                  }}
+                  className="p-2 bg-white hover:bg-red-100 rounded border border-gray-200 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="წაშლა"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))}

@@ -3,23 +3,21 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, GitBranch, BookOpen } from 'lucide-react';
+import { ArrowLeft, FileText, GitBranch } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { courseApi } from '@/lib/api/adminApi';
 import toast from 'react-hot-toast';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CourseVersionsTab from '@/components/admin/course-detail/CourseVersionsTab';
-import CourseChaptersTab from '@/components/admin/course-detail/CourseChaptersTab';
 import CourseInfoTab from '@/components/admin/course-detail/CourseInfoTab';
 
-type Tab = 'info' | 'versions' | 'chapters';
+type Tab = 'info' | 'versions';
 
 export default function CourseDetailPage() {
   const params = useParams();
-  const courseId = params.id as string;
+  const courseId = params.courseId as string;
   const [activeTab, setActiveTab] = useState<Tab>('info');
-  const [selectedVersionId, setSelectedVersionId] = useState<string>('');
 
   const queryClient = useQueryClient();
 
@@ -36,8 +34,7 @@ export default function CourseDetailPage() {
 
   const tabs = [
     { id: 'info' as Tab, label: 'ზოგადი ინფორმაცია', icon: FileText },
-    { id: 'versions' as Tab, label: 'ვერსიები', icon: GitBranch, count: course.versions?.length },
-    { id: 'chapters' as Tab, label: 'თავები', icon: BookOpen }
+    { id: 'versions' as Tab, label: 'ვერსიები', icon: GitBranch, count: course.versions?.length }
   ];
 
   return (
@@ -96,21 +93,7 @@ export default function CourseDetailPage() {
           {activeTab === 'info' && <CourseInfoTab course={course} />}
 
           {activeTab === 'versions' && (
-            <CourseVersionsTab
-              courseId={courseId}
-              onVersionSelect={(versionId) => {
-                setSelectedVersionId(versionId);
-                setActiveTab('chapters');
-              }}
-            />
-          )}
-
-          {activeTab === 'chapters' && (
-            <CourseChaptersTab
-              courseId={courseId}
-              selectedVersionId={selectedVersionId}
-              onVersionChange={setSelectedVersionId}
-            />
+            <CourseVersionsTab courseId={courseId} />
           )}
         </div>
       </div>
