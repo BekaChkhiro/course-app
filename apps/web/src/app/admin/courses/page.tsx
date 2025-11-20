@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
@@ -275,7 +275,7 @@ function CourseModal({
   const queryClient = useQueryClient();
 
   // Initialize form with course data when editing
-  useState(() => {
+  useEffect(() => {
     if (course) {
       setFormData({
         title: course.title,
@@ -290,8 +290,23 @@ function CourseModal({
         metaKeywords: '',
         status: course.status
       });
+    } else {
+      // Reset form when creating new course
+      setFormData({
+        title: '',
+        slug: '',
+        description: '',
+        thumbnail: '',
+        thumbnailPath: '',
+        price: '',
+        categoryId: '',
+        metaTitle: '',
+        metaDescription: '',
+        metaKeywords: '',
+        status: 'DRAFT'
+      });
     }
-  });
+  }, [course]);
 
   const createMutation = useMutation({
     mutationFn: (data: any) => courseApi.create(data),

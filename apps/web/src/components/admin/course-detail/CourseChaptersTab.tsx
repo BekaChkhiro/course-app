@@ -303,16 +303,41 @@ function ChapterModal({
   versionId: string;
 }) {
   const [formData, setFormData] = useState({
-    title: chapter?.title || '',
-    description: chapter?.description || '',
-    videoUrl: chapter?.videoUrl || '',
-    theory: chapter?.theory || '',
-    assignmentFile: chapter?.assignmentFile || '',
-    answerFile: chapter?.answerFile || '',
-    isFree: chapter?.isFree || false
+    title: '',
+    description: '',
+    videoUrl: '',
+    theory: '',
+    assignmentFile: '',
+    answerFile: '',
+    isFree: false
   });
 
   const queryClient = useQueryClient();
+
+  // Update form when chapter changes
+  useEffect(() => {
+    if (chapter) {
+      setFormData({
+        title: chapter.title,
+        description: chapter.description || '',
+        videoUrl: chapter.videoUrl || '',
+        theory: chapter.theory || '',
+        assignmentFile: chapter.assignmentFile || '',
+        answerFile: chapter.answerFile || '',
+        isFree: chapter.isFree
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        videoUrl: '',
+        theory: '',
+        assignmentFile: '',
+        answerFile: '',
+        isFree: false
+      });
+    }
+  }, [chapter]);
 
   const createMutation = useMutation({
     mutationFn: (data: any) => chapterApi.create({ ...data, courseVersionId: versionId }),

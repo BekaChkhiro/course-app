@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit, Trash2, CheckCircle, ArrowRight, BookOpen, Users, Calendar, DollarSign } from 'lucide-react';
 import { versionApi } from '@/lib/api/adminApi';
@@ -217,14 +217,35 @@ function VersionModal({
   courseId: string;
 }) {
   const [formData, setFormData] = useState({
-    title: version?.title || '',
-    description: version?.description || '',
-    changelog: version?.changelog || '',
-    upgradePrice: version?.upgradePrice || '',
-    discountPercentage: version?.discountPercentage || ''
+    title: '',
+    description: '',
+    changelog: '',
+    upgradePrice: '',
+    discountPercentage: ''
   });
 
   const queryClient = useQueryClient();
+
+  // Update form when version changes
+  useEffect(() => {
+    if (version) {
+      setFormData({
+        title: version.title,
+        description: version.description,
+        changelog: version.changelog || '',
+        upgradePrice: version.upgradePrice?.toString() || '',
+        discountPercentage: version.discountPercentage?.toString() || ''
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        changelog: '',
+        upgradePrice: '',
+        discountPercentage: ''
+      });
+    }
+  }, [version]);
 
   const createMutation = useMutation({
     mutationFn: (data: any) => versionApi.create({ ...data, courseId }),
