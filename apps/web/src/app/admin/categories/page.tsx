@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, Edit, Trash2, GripVertical } from 'lucide-react';
@@ -30,27 +30,9 @@ export default function CategoriesPage() {
 
   const queryClient = useQueryClient();
 
-  // Log auth status on mount (client-side only)
-  useEffect(() => {
-    console.log('📋 [Categories Page] Component mounted', {
-      hasAccessToken: !!localStorage.getItem('accessToken'),
-      tokenPreview: localStorage.getItem('accessToken')?.substring(0, 20) + '...'
-    });
-  }, []);
-
   const { data: categoriesData, isLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: async () => {
-      console.log('📋 [Categories Page] Fetching categories...');
-      try {
-        const res = await categoryApi.getAll();
-        console.log('📋 [Categories Page] Categories fetched successfully:', res.data);
-        return res.data;
-      } catch (error) {
-        console.error('📋 [Categories Page] Failed to fetch categories:', error);
-        throw error;
-      }
-    }
+    queryFn: () => categoryApi.getAll().then(res => res.data)
   });
 
   const deleteMutation = useMutation({
