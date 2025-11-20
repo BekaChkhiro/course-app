@@ -107,7 +107,6 @@ export default function VersionDetailPage() {
             <CourseChaptersTab
               courseId={courseId}
               selectedVersionId={versionId}
-              onVersionChange={() => {}} // Not needed here since we're already on a specific version
             />
           )}
         </div>

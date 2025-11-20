@@ -20,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Plus, Edit, Trash2, GripVertical, Video, FileText, File } from 'lucide-react';
-import { chapterApi, versionApi, uploadApi } from '@/lib/api/adminApi';
+import { chapterApi, uploadApi } from '@/lib/api/adminApi';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import FileUpload from '@/components/ui/FileUpload';
@@ -30,7 +30,6 @@ import toast from 'react-hot-toast';
 interface CourseChaptersTabProps {
   courseId: string;
   selectedVersionId: string;
-  onVersionChange: (versionId: string) => void;
 }
 
 type Chapter = {
@@ -48,8 +47,7 @@ type Chapter = {
 
 export default function CourseChaptersTab({
   courseId,
-  selectedVersionId,
-  onVersionChange
+  selectedVersionId
 }: CourseChaptersTabProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -65,13 +63,7 @@ export default function CourseChaptersTab({
     })
   );
 
-  // Fetch versions for dropdown
-  const { data: versionsData } = useQuery({
-    queryKey: ['versions', courseId],
-    queryFn: () => versionApi.getByCourse(courseId).then(res => res.data)
-  });
-
-  // Fetch chapters for selected version
+  // Fetch chapters for this version
   const { data: chaptersData, isLoading } = useQuery({
     queryKey: ['chapters', selectedVersionId],
     queryFn: () => chapterApi.getByVersion(selectedVersionId).then(res => res.data),
@@ -131,34 +123,14 @@ export default function CourseChaptersTab({
     }
   };
 
-  const versions = versionsData?.versions || [];
-
   return (
     <div className="space-y-6">
-      {/* Header with Version Selector */}
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex-1 max-w-md">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            აირჩიეთ ვერსია
-          </label>
-          <select
-            value={selectedVersionId}
-            onChange={(e) => onVersionChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">აირჩიეთ ვერსია...</option>
-            {versions.map((version: any) => (
-              <option key={version.id} value={version.id}>
-                v{version.version} - {version.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
+        <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          disabled={!selectedVersionId}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
           ახალი თავი
@@ -168,10 +140,6 @@ export default function CourseChaptersTab({
       {/* Chapters List */}
       {isLoading ? (
         <div className="text-center py-8 text-gray-500">იტვირთება...</div>
-      ) : !selectedVersionId ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <p className="text-gray-500">აირჩიეთ ვერსია თავების სანახავად</p>
-        </div>
       ) : chapters.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <p className="text-gray-500 mb-4">თავები არ არის</p>
