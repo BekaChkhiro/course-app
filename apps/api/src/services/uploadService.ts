@@ -1,7 +1,7 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 // Ensure upload directories exist
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
@@ -44,7 +44,7 @@ const createStorage = (destinationDir: string) => {
       cb(null, destinationDir);
     },
     filename: (req, file, cb) => {
-      const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
+      const uniqueName = `${randomUUID()}${path.extname(file.originalname)}`;
       cb(null, uniqueName);
     }
   });
