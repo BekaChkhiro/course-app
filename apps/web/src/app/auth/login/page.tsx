@@ -53,7 +53,16 @@ export default function LoginPage() {
 
     try {
       await login(formData);
-      router.push('/dashboard');
+
+      // Get user from store after successful login
+      const { user } = useAuthStore.getState();
+
+      // Redirect based on user role
+      if (user?.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       // Error is handled by the store
       console.error('Login failed:', err);
