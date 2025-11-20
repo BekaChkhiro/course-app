@@ -212,8 +212,13 @@ export class AuthController {
   static async refresh(req: AuthRequest, res: Response) {
     try {
       const refreshToken = req.cookies.refreshToken;
+      console.log('🔄 [Refresh Token API] Request received', {
+        hasRefreshToken: !!refreshToken,
+        cookies: Object.keys(req.cookies)
+      });
 
       if (!refreshToken) {
+        console.log('❌ [Refresh Token API] No refresh token in cookies');
         return res.status(401).json({
           success: false,
           message: 'Refresh token not found',
@@ -262,6 +267,11 @@ export class AuthController {
 
       // Generate new access token
       const accessToken = TokenService.generateAccessToken(user.id, user.email);
+      console.log('✅ [Refresh Token API] New access token generated', {
+        userId: user.id,
+        hasAccessToken: !!accessToken,
+        tokenPreview: accessToken.substring(0, 20) + '...'
+      });
 
       // Set new refresh token in cookie
       res.cookie('refreshToken', rotated.newRefreshToken, {
@@ -271,6 +281,7 @@ export class AuthController {
         maxAge: COOKIE_MAX_AGE,
       });
 
+      console.log('📤 [Refresh Token API] Sending response with accessToken');
       return res.status(200).json({
         success: true,
         message: 'Token refreshed successfully',

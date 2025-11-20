@@ -52,9 +52,21 @@ adminApi.interceptors.response.use(
         const { data } = await axios.post(`${API_URL}/api/auth/refresh`, {}, {
           withCredentials: true
         });
-        console.log('✅ [Token Refresh] Success! New token received');
+        console.log('✅ [Token Refresh] Success! New token received', {
+          hasAccessToken: !!data.accessToken,
+          tokenPreview: data.accessToken?.substring(0, 20) + '...'
+        });
+
+        if (!data.accessToken) {
+          console.error('❌ [Token Refresh] No accessToken in response!', data);
+          throw new Error('No accessToken in refresh response');
+        }
+
         localStorage.setItem('accessToken', data.accessToken);
+        console.log('💾 [Token Refresh] Token saved to localStorage');
+
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        console.log('🔄 [Token Refresh] Retrying original request with new token');
         return adminApi(originalRequest);
       } catch (refreshError) {
         console.log('❌ [Token Refresh] Failed! Redirecting to login...', refreshError);
