@@ -14,6 +14,7 @@ import versionRoutes from './routes/versionRoutes'
 import analyticsRoutes from './routes/analyticsRoutes'
 import videoRoutes from './routes/video.routes'
 import progressRoutes from './routes/progress.routes'
+import quizRoutes from './routes/quiz.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -92,6 +93,9 @@ app.use('/api/videos', videoRoutes)
 
 // Progress routes
 app.use('/api/progress', progressRoutes)
+
+// Quiz routes
+app.use('/api/quizzes', quizRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
