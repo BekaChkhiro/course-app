@@ -1,4 +1,4 @@
-import { prisma } from '@types/database';
+import { prisma } from '../config/database';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 

@@ -576,6 +576,7 @@ model VideoAnalytics {
   // Relations
   video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
+  @@unique([videoId, userId, sessionId])
   @@index([videoId])
   @@index([userId])
   @@index([sessionId])

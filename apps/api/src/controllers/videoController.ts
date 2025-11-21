@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
-import { prisma } from '@types/database';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
+import { prisma } from '../config/database';
 import multer from 'multer';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -44,7 +45,7 @@ export const uploadMiddleware = upload.single('video');
 /**
  * Upload video
  */
-export const uploadVideo = async (req: Request, res: Response) => {
+export const uploadVideo = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -152,7 +153,7 @@ export const uploadVideo = async (req: Request, res: Response) => {
 /**
  * Get video processing status
  */
-export const getProcessingStatus = async (req: Request, res: Response) => {
+export const getProcessingStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { videoId } = req.params;
 
@@ -196,7 +197,7 @@ export const getProcessingStatus = async (req: Request, res: Response) => {
 /**
  * Generate video access token
  */
-export const generateVideoAccessToken = async (req: Request, res: Response) => {
+export const generateVideoAccessToken = async (req: AuthRequest, res: Response) => {
   try {
     const { videoId } = req.params;
     const userId = req.user?.id;
@@ -282,7 +283,7 @@ export const generateVideoAccessToken = async (req: Request, res: Response) => {
 /**
  * Stream video with token validation
  */
-export const streamVideo = async (req: Request, res: Response) => {
+export const streamVideo = async (req: AuthRequest, res: Response) => {
   try {
     const { token } = req.query;
     const ipAddress = (req.ip || req.socket.remoteAddress || '').replace('::ffff:', '');
@@ -339,7 +340,7 @@ export const streamVideo = async (req: Request, res: Response) => {
 /**
  * Track video analytics
  */
-export const trackAnalytics = async (req: Request, res: Response) => {
+export const trackAnalytics = async (req: AuthRequest, res: Response) => {
   try {
     const { videoId } = req.params;
     const { sessionId, watchDuration, completionRate, quality, bandwidthUsed } = req.body;
@@ -400,7 +401,7 @@ export const trackAnalytics = async (req: Request, res: Response) => {
 /**
  * Get video thumbnails
  */
-export const getVideoThumbnails = async (req: Request, res: Response) => {
+export const getVideoThumbnails = async (req: AuthRequest, res: Response) => {
   try {
     const { videoId } = req.params;
 
@@ -432,7 +433,7 @@ export const getVideoThumbnails = async (req: Request, res: Response) => {
 /**
  * Delete video
  */
-export const deleteVideo = async (req: Request, res: Response) => {
+export const deleteVideo = async (req: AuthRequest, res: Response) => {
   try {
     const { videoId } = req.params;
 
@@ -488,7 +489,7 @@ export const deleteVideo = async (req: Request, res: Response) => {
 /**
  * Replace video (keeps progress data)
  */
-export const replaceVideo = async (req: Request, res: Response) => {
+export const replaceVideo = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({

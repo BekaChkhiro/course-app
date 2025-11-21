@@ -10,7 +10,7 @@ import {
   deleteVideo,
   replaceVideo,
 } from '../controllers/videoController';
-import { requireAuth, requireAdmin } from '../middleware/authMiddleware';
+import { requireAuth, requireAdmin } from '../middleware/auth';
 
 const router = express.Router();
 

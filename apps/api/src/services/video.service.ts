@@ -5,7 +5,7 @@ import { createReadStream, createWriteStream, promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import r2Service from './r2.service';
-import { prisma } from '@types/database';
+import { prisma } from '../config/database';
 
 // Set FFmpeg paths
 if (ffmpegPath) {
@@ -290,9 +290,8 @@ class VideoService {
           console.log('FFmpeg command:', cmdLine);
         })
         .on('progress', (progress) => {
-          if (onProgress && duration) {
-            const percent = (progress.timemark / duration) * 100;
-            onProgress(Math.min(percent, 100));
+          if (onProgress && duration && progress.percent) {
+            onProgress(Math.min(progress.percent, 100));
           }
         })
         .on('end', () => {

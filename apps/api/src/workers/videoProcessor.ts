@@ -1,5 +1,5 @@
 import { Job } from 'bull';
-import { prisma } from '@types/database';
+import { prisma } from '../config/database';
 import queueService from '../services/queue.service';
 import videoService from '../services/video.service';
 import r2Service from '../services/r2.service';

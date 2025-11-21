@@ -7,7 +7,7 @@ import {
   resetProgress,
   getUserStats,
 } from '../controllers/progressController';
-import { requireAuth } from '../middleware/authMiddleware';
+import { requireAuth } from '../middleware/auth';
 
 const router = express.Router();
 

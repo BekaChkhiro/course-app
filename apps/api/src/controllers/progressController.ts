@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
-import { prisma } from '@types/database';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth';
+import { prisma } from '../config/database';
 
 /**
  * Update video progress (called every 30 seconds from player)
  */
-export const updateProgress = async (req: Request, res: Response) => {
+export const updateProgress = async (req: AuthRequest, res: Response) => {
   try {
     const { chapterId } = req.params;
     const { currentPosition, totalDuration, watchPercentage } = req.body;
@@ -110,7 +111,7 @@ export const updateProgress = async (req: Request, res: Response) => {
 /**
  * Get progress for a chapter
  */
-export const getProgress = async (req: Request, res: Response) => {
+export const getProgress = async (req: AuthRequest, res: Response) => {
   try {
     const { chapterId } = req.params;
     const userId = req.user?.id;
@@ -170,7 +171,7 @@ export const getProgress = async (req: Request, res: Response) => {
 /**
  * Get course progress overview
  */
-export const getCourseProgress = async (req: Request, res: Response) => {
+export const getCourseProgress = async (req: AuthRequest, res: Response) => {
   try {
     const { courseId } = req.params;
     const userId = req.user?.id;
@@ -261,7 +262,7 @@ export const getCourseProgress = async (req: Request, res: Response) => {
 /**
  * Mark chapter as completed manually (for non-video content)
  */
-export const markAsCompleted = async (req: Request, res: Response) => {
+export const markAsCompleted = async (req: AuthRequest, res: Response) => {
   try {
     const { chapterId } = req.params;
     const userId = req.user?.id;
@@ -327,7 +328,7 @@ export const markAsCompleted = async (req: Request, res: Response) => {
 /**
  * Reset chapter progress
  */
-export const resetProgress = async (req: Request, res: Response) => {
+export const resetProgress = async (req: AuthRequest, res: Response) => {
   try {
     const { chapterId } = req.params;
     const userId = req.user?.id;
@@ -371,7 +372,7 @@ export const resetProgress = async (req: Request, res: Response) => {
 /**
  * Get user's overall learning statistics
  */
-export const getUserStats = async (req: Request, res: Response) => {
+export const getUserStats = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
 
