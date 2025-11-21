@@ -35,6 +35,20 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum VideoProcessingStatus {
+  PENDING
+  UPLOADING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum VideoQuality {
+  QUALITY_480P
+  QUALITY_720P
+  QUALITY_1080P
+}
+
 model User {
   id                    String    @id @default(cuid())
   email                 String    @unique
@@ -160,7 +174,7 @@ model Chapter {
   isFree          Boolean  @default(false)
 
   // Chapter components
-  videoUrl        String? // Video URL
+  videoUrl        String? // Video URL (legacy)
   theory          String?  @db.Text // Rich text theory content
   assignmentFile  String? // Assignment file URL
   answerFile      String? // Answer file URL
@@ -173,6 +187,7 @@ model Chapter {
   contents      ChapterContent[]
   comments      Comment[]
   progress      Progress[]
+  videos        Video[]
 
   @@index([courseVersionId])
   @@index([order])
@@ -323,7 +338,11 @@ model Progress {
   courseVersionId String
   chapterId       String
   isCompleted     Boolean  @default(false)
-  lastPosition    Int? // Last video position in seconds
+  lastPosition    Int?     @default(0) // Last video position in seconds
+  watchPercentage Decimal  @default(0) @db.Decimal(5, 2) // Percentage watched (0-100)
+  totalWatchTime  Int      @default(0) // Total seconds watched
+  canSkipAhead    Boolean  @default(false) // Whether user can skip ahead (after first complete watch)
+  firstWatchCompleted Boolean @default(false) // Has completed first full watch
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -335,6 +354,7 @@ model Progress {
   @@unique([userId, chapterId])
   @@index([userId])
   @@index([courseVersionId])
+  @@index([isCompleted])
   @@map("progress")
 }
 
@@ -423,4 +443,142 @@ model DeviceSession {
   @@index([userId, isActive])
   @@index([refreshToken])
   @@map("device_sessions")
+}
+
+model Video {
+  id              String                 @id @default(cuid())
+  chapterId       String
+  originalName    String
+  originalSize    Int // Size in bytes
+  mimeType        String
+  duration        Int? // Duration in seconds
+  width           Int?
+  height          Int?
+
+  // R2 Storage
+  r2Key           String                 @unique // Path in R2 bucket
+  r2Bucket        String
+
+  // HLS Outputs
+  hlsMasterUrl    String? // Master playlist URL
+  hls480pUrl      String? // 480p variant URL
+  hls720pUrl      String? // 720p variant URL
+  hls1080pUrl     String? // 1080p variant URL
+
+  // Encryption
+  encryptionKey   String? // AES-128 encryption key
+  encryptionIv    String? // Initialization vector
+  keyRotationAt   DateTime? // When to rotate encryption key
+
+  // Processing
+  processingStatus VideoProcessingStatus @default(PENDING)
+  processingJobId  String?
+  processingError  String?                @db.Text
+  processingProgress Int?                 @default(0) // 0-100
+
+  // Metadata
+  metadata        Json? // Additional video metadata
+
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  processedAt     DateTime?
+
+  // Relations
+  chapter         Chapter                @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  thumbnails      VideoThumbnail[]
+  accessTokens    VideoAccessToken[]
+  analytics       VideoAnalytics[]
+  processingJobs  VideoProcessingJob[]
+
+  @@index([chapterId])
+  @@index([processingStatus])
+  @@index([r2Key])
+  @@map("videos")
+}
+
+model VideoThumbnail {
+  id          String   @id @default(cuid())
+  videoId     String
+  r2Key       String   @unique
+  url         String
+  timeOffset  Int // Time in seconds where thumbnail was captured
+  width       Int
+  height      Int
+  createdAt   DateTime @default(now())
+
+  // Relations
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+  @@index([timeOffset])
+  @@map("video_thumbnails")
+}
+
+model VideoProcessingJob {
+  id            String                 @id @default(cuid())
+  videoId       String
+  jobType       String // "hls_conversion", "thumbnail_generation", "metadata_extraction"
+  quality       VideoQuality?
+  status        VideoProcessingStatus  @default(PENDING)
+  progress      Int                    @default(0) // 0-100
+  error         String?                @db.Text
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  // Relations
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+  @@index([status])
+  @@map("video_processing_jobs")
+}
+
+model VideoAccessToken {
+  id          String   @id @default(cuid())
+  videoId     String
+  userId      String
+  token       String   @unique
+  ipAddress   String
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  accessCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  lastAccessedAt DateTime?
+
+  // Relations
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("video_access_tokens")
+}
+
+model VideoAnalytics {
+  id             String   @id @default(cuid())
+  videoId        String
+  userId         String
+  sessionId      String // Unique session identifier
+  watchDuration  Int      @default(0) // Total seconds watched
+  completionRate Decimal  @db.Decimal(5, 2) // Percentage watched
+  quality        VideoQuality? // Quality viewed
+  bandwidthUsed  Int?     @default(0) // Bytes transferred
+  ipAddress      String
+  userAgent      String   @db.Text
+  deviceType     String?
+  browser        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("video_analytics")
 }

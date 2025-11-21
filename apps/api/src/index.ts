@@ -12,6 +12,11 @@ import courseRoutes from './routes/courseRoutes'
 import chapterRoutes from './routes/chapterRoutes'
 import versionRoutes from './routes/versionRoutes'
 import analyticsRoutes from './routes/analyticsRoutes'
+import videoRoutes from './routes/video.routes'
+import progressRoutes from './routes/progress.routes'
+
+// Initialize video processor worker
+import './workers/videoProcessor'
 
 // Load environment variables from the correct path
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
@@ -81,6 +86,12 @@ app.use('/api/versions', versionRoutes)
 
 // Analytics routes
 app.use('/api/analytics', analyticsRoutes)
+
+// Video routes
+app.use('/api/videos', videoRoutes)
+
+// Progress routes
+app.use('/api/progress', progressRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
