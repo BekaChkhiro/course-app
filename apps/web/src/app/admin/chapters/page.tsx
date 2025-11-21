@@ -25,7 +25,6 @@ import Modal, { ModalFooter } from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import FileUpload from '@/components/ui/FileUpload';
 import RichTextEditor from '@/components/ui/RichTextEditor';
-import VideoUpload from '@/components/admin/VideoUpload';
 import { chapterApi, versionApi, courseApi, uploadApi } from '@/lib/api/adminApi';
 import toast from 'react-hot-toast';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
@@ -411,65 +410,21 @@ function ChapterModal({
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">📹 ვიდეო</h3>
 
-          {chapter ? (
-            // Edit Mode - Show VideoUpload
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  HLS ვიდეოს ატვირთვა (რეკომენდებული)
-                </label>
-                <VideoUpload
-                  chapterId={chapter.id}
-                  onUploadComplete={(videoId) => {
-                    toast.success('ვიდეო წარმატებით აიტვირთა და მუშავდება!');
-                    queryClient.invalidateQueries({ queryKey: ['chapters', versionId] });
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <div className="flex-1 border-t border-gray-300"></div>
-                <span>ან</span>
-                <div className="flex-1 border-t border-gray-300"></div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  გარე ვიდეო URL (YouTube, Vimeo)
-                </label>
-                <input
-                  type="url"
-                  value={formData.videoUrl}
-                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  placeholder="https://youtube.com/watch?v=..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  ℹ️ გამოიყენეთ მხოლოდ თუ არ ატვირთავთ HLS ვიდეოს
-                </p>
-              </div>
-            </div>
-          ) : (
-            // Create Mode - Show info message
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-600 mt-1">
-                  <Video className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-blue-900 mb-1">
-                    ვიდეოს ატვირთვა
-                  </h4>
-                  <p className="text-sm text-blue-700 mb-2">
-                    HLS ვიდეოს ატვირთვა შესაძლებელი იქნება Chapter-ის შექმნის შემდეგ.
-                  </p>
-                  <p className="text-xs text-blue-600">
-                    💡 ნაბიჯები: შექმენით Chapter → Edit → ატვირთეთ ვიდეო
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              ვიდეო URL (YouTube, Vimeo)
+            </label>
+            <input
+              type="url"
+              value={formData.videoUrl}
+              onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+              placeholder="https://youtube.com/watch?v=... ან https://vimeo.com/..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              ℹ️ ჩასვით YouTube ან Vimeo ვიდეოს ბმული
+            </p>
+          </div>
         </div>
 
         <div>
