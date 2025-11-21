@@ -455,6 +455,37 @@ function ChapterModal({
           />
         </div>
 
+        {/* Quiz Section */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 ქვიზი</h3>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-blue-800">
+              💡 <strong>ქვიზის დამატება:</strong> გადადით{' '}
+              <a href="/admin/quizzes" className="underline font-medium">
+                Quiz Management
+              </a>{' '}
+              გვერდზე, შექმენით ქვიზი და მიუთითეთ ეს Chapter.
+            </p>
+            <p className="text-xs text-blue-600 mt-2">
+              ან გამოიყენეთ API: <code className="bg-blue-100 px-1 rounded">chapterContentId: "{chapter?.id}"</code>
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600">
+              <strong>როგორ ჩაამატოთ ქვიზი:</strong>
+            </p>
+            <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1 ml-2">
+              <li>შექმენით Chapter-ი (Save)</li>
+              <li>გადადით <strong>Admin → Quizzes</strong></li>
+              <li>შექმენით ქვიზი</li>
+              <li>დაამატეთ კითხვები</li>
+              <li>სტუდენტები ნახავენ ქვიზს ამ Chapter-ში</li>
+            </ol>
+          </div>
+        </div>
+
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
