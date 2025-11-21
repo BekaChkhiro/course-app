@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import {
   DndContext,
   closestCenter,
@@ -20,11 +21,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Plus, Edit, Trash2, GripVertical, Video, FileText, File } from 'lucide-react';
-import { chapterApi, uploadApi } from '@/lib/api/adminApi';
-import Modal, { ModalFooter } from '@/components/ui/Modal';
+import { chapterApi } from '@/lib/api/adminApi';
 import Badge from '@/components/ui/Badge';
-import FileUpload from '@/components/ui/FileUpload';
-import RichTextEditor from '@/components/ui/RichTextEditor';
 import toast from 'react-hot-toast';
 
 interface CourseChaptersTabProps {
@@ -49,9 +47,7 @@ export default function CourseChaptersTab({
   courseId,
   selectedVersionId
 }: CourseChaptersTabProps) {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const router = useRouter();
   const [chapters, setChapters] = useState<Chapter[]>([]);
 
   const queryClient = useQueryClient();
@@ -123,13 +119,21 @@ export default function CourseChaptersTab({
     }
   };
 
+  const handleEdit = (chapterId: string) => {
+    router.push(`/admin/courses/${courseId}/versions/${selectedVersionId}/chapters/${chapterId}/edit`);
+  };
+
+  const handleCreate = () => {
+    router.push(`/admin/courses/${courseId}/versions/${selectedVersionId}/chapters/new`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
         <button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={handleCreate}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
@@ -144,7 +148,7 @@ export default function CourseChaptersTab({
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <p className="text-gray-500 mb-4">თავები არ არის</p>
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={handleCreate}
             className="text-blue-600 hover:text-blue-700 font-medium"
           >
             დაამატე პირველი თავი
@@ -158,10 +162,7 @@ export default function CourseChaptersTab({
                 <SortableChapterItem
                   key={chapter.id}
                   chapter={chapter}
-                  onEdit={() => {
-                    setSelectedChapter(chapter);
-                    setIsEditModalOpen(true);
-                  }}
+                  onEdit={() => handleEdit(chapter.id)}
                   onDelete={() => handleDelete(chapter)}
                 />
               ))}
@@ -169,18 +170,6 @@ export default function CourseChaptersTab({
           </SortableContext>
         </DndContext>
       )}
-
-      {/* Create/Edit Modal */}
-      <ChapterModal
-        isOpen={isCreateModalOpen || isEditModalOpen}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setIsEditModalOpen(false);
-          setSelectedChapter(null);
-        }}
-        chapter={selectedChapter}
-        versionId={selectedVersionId}
-      />
     </div>
   );
 }
@@ -255,193 +244,5 @@ function SortableChapterItem({
         </button>
       </div>
     </div>
-  );
-}
-
-// Chapter Modal
-function ChapterModal({
-  isOpen,
-  onClose,
-  chapter,
-  versionId
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  chapter: Chapter | null;
-  versionId: string;
-}) {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    videoUrl: '',
-    theory: '',
-    assignmentFile: '',
-    answerFile: '',
-    isFree: false
-  });
-
-  const queryClient = useQueryClient();
-
-  // Update form when chapter changes
-  useEffect(() => {
-    if (chapter) {
-      setFormData({
-        title: chapter.title,
-        description: chapter.description || '',
-        videoUrl: chapter.videoUrl || '',
-        theory: chapter.theory || '',
-        assignmentFile: chapter.assignmentFile || '',
-        answerFile: chapter.answerFile || '',
-        isFree: chapter.isFree
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        videoUrl: '',
-        theory: '',
-        assignmentFile: '',
-        answerFile: '',
-        isFree: false
-      });
-    }
-  }, [chapter]);
-
-  const createMutation = useMutation({
-    mutationFn: (data: any) => chapterApi.create({ ...data, courseVersionId: versionId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapters', versionId] });
-      toast.success('თავი შეიქმნა');
-      onClose();
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'შეცდომა');
-    }
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (data: any) => chapterApi.update(chapter!.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapters', versionId] });
-      toast.success('თავი განახლდა');
-      onClose();
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'შეცდომა');
-    }
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (chapter) {
-      updateMutation.mutate(formData);
-    } else {
-      createMutation.mutate(formData);
-    }
-  };
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={chapter ? 'თავის რედაქტირება' : 'ახალი თავი'}
-      size="xl"
-    >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">თავის სათაური *</label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">აღწერა</label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">ვიდეო URL</label>
-          <input
-            type="url"
-            value={formData.videoUrl}
-            onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-            placeholder="https://youtube.com/watch?v=..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">თეორია</label>
-          <RichTextEditor
-            content={formData.theory}
-            onChange={(html) => setFormData({ ...formData, theory: html })}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FileUpload
-            label="დავალება"
-            accept=".pdf,.doc,.docx"
-            onUpload={(file) => uploadApi.assignment(file).then(res => res.data.file)}
-            value={formData.assignmentFile}
-            onChange={(url) => setFormData({ ...formData, assignmentFile: url })}
-            preview={false}
-          />
-
-          <FileUpload
-            label="პასუხი"
-            accept=".pdf,.doc,.docx"
-            onUpload={(file) => uploadApi.answer(file).then(res => res.data.file)}
-            value={formData.answerFile}
-            onChange={(url) => setFormData({ ...formData, answerFile: url })}
-            preview={false}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="isFree"
-            checked={formData.isFree}
-            onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-          />
-          <label htmlFor="isFree" className="text-sm font-medium text-gray-700">
-            უფასო თავი (preview)
-          </label>
-        </div>
-
-        <ModalFooter>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            გაუქმება
-          </button>
-          <button
-            type="submit"
-            disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {createMutation.isPending || updateMutation.isPending
-              ? 'შენახვა...'
-              : chapter
-              ? 'განახლება'
-              : 'შექმნა'}
-          </button>
-        </ModalFooter>
-      </form>
-    </Modal>
   );
 }

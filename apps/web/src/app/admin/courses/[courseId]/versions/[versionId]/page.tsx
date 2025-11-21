@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Info, BookOpen } from 'lucide-react';
+import { ArrowLeft, Info, BookOpen, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { versionApi } from '@/lib/api/adminApi';
@@ -11,8 +11,9 @@ import { PageLoader } from '@/components/ui/LoadingSpinner';
 import Badge from '@/components/ui/Badge';
 import CourseChaptersTab from '@/components/admin/course-detail/CourseChaptersTab';
 import VersionInfoTab from '@/components/admin/version-detail/VersionInfoTab';
+import FinalExamTab from '@/components/admin/version-detail/FinalExamTab';
 
-type Tab = 'info' | 'chapters';
+type Tab = 'info' | 'chapters' | 'finalExam';
 
 export default function VersionDetailPage() {
   const params = useParams();
@@ -34,7 +35,8 @@ export default function VersionDetailPage() {
 
   const tabs = [
     { id: 'info' as Tab, label: 'ვერსიის ინფორმაცია', icon: Info },
-    { id: 'chapters' as Tab, label: 'თავები', icon: BookOpen, count: version.chapters?.length || 0 }
+    { id: 'chapters' as Tab, label: 'თავები', icon: BookOpen, count: version.chapters?.length || 0 },
+    { id: 'finalExam' as Tab, label: 'საფინალო გამოცდა', icon: Trophy }
   ];
 
   return (
@@ -107,6 +109,13 @@ export default function VersionDetailPage() {
             <CourseChaptersTab
               courseId={courseId}
               selectedVersionId={versionId}
+            />
+          )}
+
+          {activeTab === 'finalExam' && (
+            <FinalExamTab
+              courseId={courseId}
+              versionId={versionId}
             />
           )}
         </div>

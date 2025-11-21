@@ -174,9 +174,10 @@ model CourseVersion {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  course   Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  chapters Chapter[]
-  progress Progress[]
+  course     Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  chapters   Chapter[]
+  progress   Progress[]
+  finalExams Quiz[]     // Final exams for this version
 
   @@unique([courseId, version])
   @@index([courseId])
@@ -240,6 +241,7 @@ model ChapterContent {
 model Quiz {
   id               String   @id @default(cuid())
   chapterContentId String?  @unique // Optional for standalone quizzes
+  courseVersionId  String?  // For final exams linked to course versions
   title            String
   description      String?  @db.Text
   type             QuizType @default(CHAPTER_QUIZ)
@@ -281,12 +283,14 @@ model Quiz {
 
   // Relations
   chapterContent ChapterContent? @relation(fields: [chapterContentId], references: [id], onDelete: Cascade)
+  courseVersion  CourseVersion?  @relation(fields: [courseVersionId], references: [id], onDelete: Cascade)
   questions      QuizQuestion[]
   attempts       QuizAttempt[]
   analytics      QuizAnalytics[]
 
   @@index([type])
   @@index([isTemplate])
+  @@index([courseVersionId])
   @@map("quizzes")
 }
 
