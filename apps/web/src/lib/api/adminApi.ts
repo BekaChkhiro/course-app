@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-production-6b6d.up.railway.app';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+// Log environment configuration
+console.log('🌍 Admin API Environment Configuration:');
+console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+console.log('API_URL (used):', API_URL);
+console.log('---');
 
 const adminApi = axios.create({
   baseURL: `${API_URL}/api`,
