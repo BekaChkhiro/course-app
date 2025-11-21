@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   BookOpen,
@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
+import { useAuthStore } from '@/store/authStore';
+import { PageLoader } from '../ui/LoadingSpinner';
 
 const navigation = [
   { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
@@ -22,12 +24,58 @@ const navigation = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, fetchProfile, logout } = useAuthStore();
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    window.location.href = '/auth/login';
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('accessToken');
+
+      if (!token) {
+        // No token, redirect to login
+        router.push(`/auth/login?redirect=${pathname}`);
+        return;
+      }
+
+      // Fetch user profile if not already loaded
+      if (!user) {
+        await fetchProfile();
+      }
+
+      setIsChecking(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  // Check if user has admin role
+  useEffect(() => {
+    if (!isChecking && user) {
+      if (user.role !== 'ADMIN') {
+        // User is authenticated but not admin, redirect to home or show error
+        router.push('/');
+        return;
+      }
+    }
+  }, [isChecking, user, router]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
   };
+
+  // Show loader while checking authentication
+  if (isChecking) {
+    return <PageLoader />;
+  }
+
+  // Don't render admin layout if not authenticated or not admin
+  if (!isAuthenticated || !user || user.role !== 'ADMIN') {
+    return <PageLoader />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
