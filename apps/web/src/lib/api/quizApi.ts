@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
+// Log environment configuration
+console.log('🌍 Quiz API Environment Configuration:');
+console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+console.log('API_URL (used):', API_URL);
+console.log('---');
+
 // TypeScript Interfaces
 export enum QuestionType {
   SINGLE_CHOICE = 'SINGLE_CHOICE',
@@ -135,7 +141,7 @@ export interface QuizAnalytics {
 // Helper to get auth token
 const getAuthToken = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  return localStorage.getItem('accessToken'); // Fixed: should be 'accessToken' not 'token'
 };
 
 // Axios instance with auth
@@ -143,13 +149,48 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
+// Request interceptor with detailed logging
 api.interceptors.request.use((config) => {
   const token = getAuthToken();
+
+  console.group('🚀 Quiz API Request');
+  console.log('URL:', config.baseURL + config.url);
+  console.log('Method:', config.method?.toUpperCase());
+  console.log('Token exists:', !!token);
+  console.log('Token (first 20 chars):', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+  console.log('Headers:', config.headers);
+  console.log('Data:', config.data);
+  console.groupEnd();
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    console.warn('⚠️ No auth token found in localStorage!');
   }
   return config;
 });
+
+// Response interceptor with detailed logging
+api.interceptors.response.use(
+  (response) => {
+    console.group('✅ Quiz API Response Success');
+    console.log('URL:', response.config.url);
+    console.log('Status:', response.status);
+    console.log('Data:', response.data);
+    console.groupEnd();
+    return response;
+  },
+  (error) => {
+    console.group('❌ Quiz API Response Error');
+    console.log('URL:', error.config?.url);
+    console.log('Status:', error.response?.status);
+    console.log('Error Message:', error.response?.data?.message || error.message);
+    console.log('Full Error:', error.response?.data);
+    console.log('Request Headers:', error.config?.headers);
+    console.groupEnd();
+    return Promise.reject(error);
+  }
+);
 
 // Admin API - Quiz Management
 export const quizApi = {

@@ -32,20 +32,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Check authentication on mount
   useEffect(() => {
     const checkAuth = async () => {
+      console.group('🔒 Admin Layout - Auth Check');
+      console.log('Current pathname:', pathname);
+      console.log('Current user from store:', user);
+      console.log('Is authenticated:', isAuthenticated);
+
       const token = localStorage.getItem('accessToken');
+      console.log('Token exists in localStorage:', !!token);
+      if (token) {
+        console.log('Token (first 30 chars):', token.substring(0, 30) + '...');
+      }
+
+      // Log all localStorage keys for debugging
+      console.log('All localStorage keys:', Object.keys(localStorage));
+      console.log('localStorage contents:', {
+        accessToken: !!localStorage.getItem('accessToken'),
+        'auth-storage': localStorage.getItem('auth-storage'),
+      });
 
       if (!token) {
         // No token, redirect to login
+        console.warn('⚠️ No token found, redirecting to login');
+        console.groupEnd();
         router.push(`/auth/login?redirect=${pathname}`);
         return;
       }
 
       // Fetch user profile if not already loaded
       if (!user) {
+        console.log('📡 Fetching user profile...');
         await fetchProfile();
       }
 
       setIsChecking(false);
+      console.log('✅ Auth check complete');
+      console.groupEnd();
     };
 
     checkAuth();
@@ -54,11 +75,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Check if user has admin role
   useEffect(() => {
     if (!isChecking && user) {
+      console.log('👤 User role check:', user.role);
       if (user.role !== 'ADMIN') {
         // User is authenticated but not admin, redirect to home or show error
+        console.warn('⚠️ User is not admin, redirecting to home');
         router.push('/');
         return;
       }
+      console.log('✅ User has ADMIN role');
     }
   }, [isChecking, user, router]);
 
