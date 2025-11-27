@@ -134,9 +134,24 @@ export const addQuestion = async (req: AuthRequest, res: Response) => {
   try {
     const { quizId } = req.params;
 
+    console.log('Adding question to quiz:', quizId);
+    console.log('Question data:', JSON.stringify(req.body, null, 2));
+
+    // Validate answers have order field
+    const answersWithOrder = (req.body.answers || []).map((a: any, index: number) => ({
+      answer: a.answer,
+      isCorrect: a.isCorrect,
+      order: a.order ?? index,
+    }));
+
     const question = await quizService.addQuestion({
-      ...req.body,
       quizId,
+      type: req.body.type,
+      question: req.body.question,
+      explanation: req.body.explanation,
+      points: req.body.points || 1,
+      order: req.body.order ?? 0,
+      answers: answersWithOrder,
     });
 
     res.json({
@@ -146,6 +161,7 @@ export const addQuestion = async (req: AuthRequest, res: Response) => {
     });
   } catch (error) {
     console.error('Add question error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : error);
     res.status(500).json({
       success: false,
       message: 'Failed to add question',
