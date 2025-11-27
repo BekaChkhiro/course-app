@@ -3,6 +3,31 @@ import { AuthRequest } from '../middleware/auth';
 import quizService from '../services/quiz.service';
 
 /**
+ * Get all quizzes (admin)
+ */
+export const getAllQuizzes = async (req: AuthRequest, res: Response) => {
+  try {
+    const { type, includeQuestions } = req.query;
+
+    const quizzes = await quizService.getAllQuizzes({
+      type: type as any,
+      includeQuestions: includeQuestions === 'true',
+    });
+
+    res.json({
+      success: true,
+      data: quizzes,
+    });
+  } catch (error) {
+    console.error('Get all quizzes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get quizzes',
+    });
+  }
+};
+
+/**
  * Create a new quiz
  */
 export const createQuiz = async (req: AuthRequest, res: Response) => {

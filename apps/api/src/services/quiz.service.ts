@@ -97,6 +97,35 @@ class QuizService {
   }
 
   /**
+   * Get all quizzes
+   */
+  async getAllQuizzes(options?: { type?: QuizType; includeQuestions?: boolean }) {
+    const quizzes = await prisma.quiz.findMany({
+      where: options?.type ? { type: options.type } : undefined,
+      include: {
+        questions: options?.includeQuestions
+          ? {
+              include: {
+                answers: true,
+              },
+            }
+          : {
+              select: { id: true },
+            },
+        _count: {
+          select: {
+            questions: true,
+            attempts: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return quizzes;
+  }
+
+  /**
    * Get quiz by ID
    */
   async getQuizById(quizId: string, includeQuestions: boolean = true) {

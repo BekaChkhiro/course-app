@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, Play, BarChart } from 'lucide-react';
+import { Plus, Edit, Trash2, Play, BarChart, Copy, Eye, FileQuestion } from 'lucide-react';
 import { quizApi, Quiz, QuizType, QuestionType } from '@/lib/api/quizApi';
 import Modal from '@/components/ui/Modal';
 import toast from 'react-hot-toast';
@@ -15,6 +15,14 @@ export default function QuizzesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+
+  // Fetch all quizzes
+  const { data: quizzesData, isLoading } = useQuery({
+    queryKey: ['quizzes'],
+    queryFn: () => quizApi.getAll(),
+  });
+
+  const quizzes = quizzesData?.data || [];
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -129,6 +137,43 @@ export default function QuizzesPage() {
     toast.success('ქვიზი მზადაა! შეგიძლიათ სტუდენტებმა გაიარონ.');
   };
 
+  // Delete quiz mutation
+  const deleteQuizMutation = useMutation({
+    mutationFn: (quizId: string) => quizApi.delete(quizId),
+    onSuccess: () => {
+      toast.success('ქვიზი წაიშალა');
+      queryClient.invalidateQueries({ queryKey: ['quizzes'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'შეცდომა წაშლისას');
+    },
+  });
+
+  const handleDeleteQuiz = (quiz: Quiz) => {
+    if (confirm(`დარწმუნებული ხართ რომ გინდათ "${quiz.title}" წაშლა?`)) {
+      deleteQuizMutation.mutate(quiz.id);
+    }
+  };
+
+  const copyQuizLink = (quizId: string) => {
+    const url = `${window.location.origin}/quiz/${quizId}`;
+    navigator.clipboard.writeText(url);
+    toast.success('ლინკი დაკოპირდა!');
+  };
+
+  const getQuizTypeLabel = (type: QuizType) => {
+    switch (type) {
+      case 'CHAPTER_QUIZ':
+        return { label: 'თავის ქვიზი', color: 'bg-blue-100 text-blue-800' };
+      case 'FINAL_EXAM':
+        return { label: 'ფინალური გამოცდა', color: 'bg-red-100 text-red-800' };
+      case 'PRACTICE_QUIZ':
+        return { label: 'პრაქტიკა', color: 'bg-green-100 text-green-800' };
+      default:
+        return { label: type, color: 'bg-gray-100 text-gray-800' };
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -163,11 +208,120 @@ export default function QuizzesPage() {
           </ol>
         </div>
 
-        {/* Quiz List Placeholder */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-500 text-center">
-            ქვიზები გამოჩნდება აქ შექმნის შემდეგ
-          </p>
+        {/* Quiz List */}
+        <div className="bg-white rounded-lg shadow">
+          {isLoading ? (
+            <div className="p-6 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-500">იტვირთება...</p>
+            </div>
+          ) : quizzes.length === 0 ? (
+            <div className="p-6 text-center">
+              <FileQuestion className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">ქვიზები არ არის შექმნილი</p>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="mt-3 text-blue-600 hover:underline"
+              >
+                შექმენით პირველი ქვიზი
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      სახელი
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      ტიპი
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      კითხვები
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      მცდელობები
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      შექმნის თარიღი
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                      მოქმედებები
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {quizzes.map((quiz: any) => {
+                    const typeInfo = getQuizTypeLabel(quiz.type);
+                    return (
+                      <tr key={quiz.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-gray-900">{quiz.title}</div>
+                          {quiz.description && (
+                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                              {quiz.description}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${typeInfo.color}`}
+                          >
+                            {typeInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {quiz._count?.questions || quiz.questions?.length || 0}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {quiz._count?.attempts || 0}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {new Date(quiz.createdAt).toLocaleDateString('ka-GE')}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => copyQuizLink(quiz.id)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                              title="ლინკის კოპირება"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => window.open(`/quiz/${quiz.id}`, '_blank')}
+                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded"
+                              title="ნახვა"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedQuiz(quiz);
+                                setIsQuestionModalOpen(true);
+                              }}
+                              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded"
+                              title="კითხვების დამატება"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteQuiz(quiz)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                              title="წაშლა"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

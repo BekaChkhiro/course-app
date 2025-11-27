@@ -45,6 +45,9 @@ router.get('/:quizId', quizController.getQuiz);
 // Admin routes - require admin role
 router.use(requireAdmin);
 
+// Get all quizzes (admin)
+router.get('/', quizController.getAllQuizzes);
+
 // Create quiz
 router.post('/', quizController.createQuiz);
 

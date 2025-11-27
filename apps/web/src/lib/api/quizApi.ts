@@ -134,6 +134,12 @@ export interface QuizAnalytics {
 
 // Admin API - Quiz Management
 export const quizApi = {
+  // Get all quizzes
+  async getAll(params?: { type?: QuizType; includeQuestions?: boolean }) {
+    const response = await apiClient.get('/quizzes', { params });
+    return response.data;
+  },
+
   // Create quiz
   async create(data: Partial<Quiz>) {
     const response = await apiClient.post('/quizzes', data);
