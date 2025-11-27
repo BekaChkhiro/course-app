@@ -38,9 +38,11 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
   const { data: quizzesData, isLoading } = useQuery({
     queryKey: ['version-final-exam', versionId],
     queryFn: async () => {
-      const response = await quizApi.getAll();
-      const exams = response.data.quizzes.filter(
-        (q: any) => q.type === QuizType.FINAL_EXAM && q.courseVersionId === versionId
+      const response = await quizApi.getAll({ type: QuizType.FINAL_EXAM });
+      // API returns { success: true, data: [...] }
+      const allQuizzes = response.data || [];
+      const exams = allQuizzes.filter(
+        (q: any) => q.courseVersionId === versionId
       );
       return exams;
     },
@@ -78,7 +80,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
       return response;
     },
     onSuccess: (response) => {
-      setExistingExam(response.data.quiz);
+      setExistingExam(response.data);
       queryClient.invalidateQueries({ queryKey: ['version-final-exam', versionId] });
       toast.success('საფინალო გამოცდა შეიქმნა!');
       setShowQuestionForm(true);

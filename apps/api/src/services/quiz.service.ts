@@ -6,6 +6,7 @@ interface CreateQuizData {
   description?: string;
   type: QuizType;
   chapterContentId?: string;
+  courseVersionId?: string;
   passingScore?: number;
   maxAttempts?: number;
   timeLimit?: number;
@@ -70,6 +71,7 @@ class QuizService {
         description: data.description,
         type: data.type,
         chapterContentId: data.chapterContentId,
+        courseVersionId: data.courseVersionId,
         passingScore: data.passingScore ?? 70,
         maxAttempts: data.maxAttempts,
         timeLimit: data.timeLimit,
