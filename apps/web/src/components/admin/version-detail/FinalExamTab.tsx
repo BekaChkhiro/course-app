@@ -149,9 +149,16 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
     }
 
     addQuestionMutation.mutate({
-      ...currentQuestion,
-      answers: validAnswers,
-      quizId: existingExam.id
+      type: currentQuestion.type,
+      question: currentQuestion.question,
+      explanation: currentQuestion.explanation,
+      points: currentQuestion.points,
+      order: 0,
+      answers: validAnswers.map((a, index) => ({
+        answer: a.answer,
+        isCorrect: a.isCorrect,
+        order: index
+      }))
     });
   };
 
