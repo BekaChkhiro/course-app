@@ -35,11 +35,12 @@ adminApi.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const { data } = await axios.post(`${API_URL}/api/auth/refresh`, {}, {
+        const response = await axios.post(`${API_URL}/api/auth/refresh`, {}, {
           withCredentials: true
         });
-        localStorage.setItem('accessToken', data.accessToken);
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        const accessToken = response.data.data.accessToken;
+        localStorage.setItem('accessToken', accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return adminApi(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('accessToken');

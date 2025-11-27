@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
-// Log environment configuration
-console.log('🌍 Quiz API Environment Configuration:');
-console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-console.log('API_URL (used):', API_URL);
-console.log('---');
+import apiClient from './authApi';
 
 // TypeScript Interfaces
 export enum QuestionType {
@@ -138,71 +130,19 @@ export interface QuizAnalytics {
   questionStats?: any;
 }
 
-// Helper to get auth token
-const getAuthToken = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('accessToken'); // Fixed: should be 'accessToken' not 'token'
-};
-
-// Axios instance with auth
-const api = axios.create({
-  baseURL: API_URL,
-});
-
-// Request interceptor with detailed logging
-api.interceptors.request.use((config) => {
-  const token = getAuthToken();
-
-  console.group('🚀 Quiz API Request');
-  console.log('URL:', config.baseURL + config.url);
-  console.log('Method:', config.method?.toUpperCase());
-  console.log('Token exists:', !!token);
-  console.log('Token (first 20 chars):', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
-  console.log('Headers:', config.headers);
-  console.log('Data:', config.data);
-  console.groupEnd();
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    console.warn('⚠️ No auth token found in localStorage!');
-  }
-  return config;
-});
-
-// Response interceptor with detailed logging
-api.interceptors.response.use(
-  (response) => {
-    console.group('✅ Quiz API Response Success');
-    console.log('URL:', response.config.url);
-    console.log('Status:', response.status);
-    console.log('Data:', response.data);
-    console.groupEnd();
-    return response;
-  },
-  (error) => {
-    console.group('❌ Quiz API Response Error');
-    console.log('URL:', error.config?.url);
-    console.log('Status:', error.response?.status);
-    console.log('Error Message:', error.response?.data?.message || error.message);
-    console.log('Full Error:', error.response?.data);
-    console.log('Request Headers:', error.config?.headers);
-    console.groupEnd();
-    return Promise.reject(error);
-  }
-);
+// Use the shared apiClient which has token refresh logic built-in
 
 // Admin API - Quiz Management
 export const quizApi = {
   // Create quiz
   async create(data: Partial<Quiz>) {
-    const response = await api.post('/api/quizzes', data);
+    const response = await apiClient.post('/quizzes', data);
     return response.data;
   },
 
   // Get quiz by ID
   async getById(quizId: string, includeQuestions = true) {
-    const response = await api.get(`/api/quizzes/${quizId}`, {
+    const response = await apiClient.get(`/quizzes/${quizId}`, {
       params: { includeQuestions },
     });
     return response.data;
@@ -210,37 +150,37 @@ export const quizApi = {
 
   // Update quiz
   async update(quizId: string, data: Partial<Quiz>) {
-    const response = await api.put(`/api/quizzes/${quizId}`, data);
+    const response = await apiClient.put(`/quizzes/${quizId}`, data);
     return response.data;
   },
 
   // Delete quiz
   async delete(quizId: string) {
-    const response = await api.delete(`/api/quizzes/${quizId}`);
+    const response = await apiClient.delete(`/quizzes/${quizId}`);
     return response.data;
   },
 
   // Add question
   async addQuestion(quizId: string, data: Partial<QuizQuestion>) {
-    const response = await api.post(`/api/quizzes/${quizId}/questions`, data);
+    const response = await apiClient.post(`/quizzes/${quizId}/questions`, data);
     return response.data;
   },
 
   // Update question
   async updateQuestion(questionId: string, data: Partial<QuizQuestion>) {
-    const response = await api.put(`/api/quizzes/questions/${questionId}`, data);
+    const response = await apiClient.put(`/quizzes/questions/${questionId}`, data);
     return response.data;
   },
 
   // Delete question
   async deleteQuestion(questionId: string) {
-    const response = await api.delete(`/api/quizzes/questions/${questionId}`);
+    const response = await apiClient.delete(`/quizzes/questions/${questionId}`);
     return response.data;
   },
 
   // Import questions from CSV
   async importQuestions(quizId: string, csvData: any[]) {
-    const response = await api.post(`/api/quizzes/${quizId}/import-questions`, {
+    const response = await apiClient.post(`/quizzes/${quizId}/import-questions`, {
       csvData,
     });
     return response.data;
@@ -248,8 +188,8 @@ export const quizApi = {
 
   // Create from template
   async createFromTemplate(templateId: string, data: Partial<Quiz>) {
-    const response = await api.post(
-      `/api/quizzes/templates/${templateId}/create`,
+    const response = await apiClient.post(
+      `/quizzes/templates/${templateId}/create`,
       data
     );
     return response.data;
@@ -257,7 +197,7 @@ export const quizApi = {
 
   // Get analytics
   async getAnalytics(quizId: string, days = 30) {
-    const response = await api.get(`/api/quizzes/${quizId}/analytics`, {
+    const response = await apiClient.get(`/quizzes/${quizId}/analytics`, {
       params: { days },
     });
     return response.data;
@@ -268,7 +208,7 @@ export const quizApi = {
 export const quizAttemptApi = {
   // Start quiz attempt
   async start(quizId: string) {
-    const response = await api.post(`/api/quizzes/${quizId}/start`);
+    const response = await apiClient.post(`/quizzes/${quizId}/start`);
     return response.data;
   },
 
@@ -279,7 +219,7 @@ export const quizAttemptApi = {
     answerIds: string[],
     timeSpent?: number
   ) {
-    const response = await api.post(`/api/quizzes/attempts/${attemptId}/answers`, {
+    const response = await apiClient.post(`/quizzes/attempts/${attemptId}/answers`, {
       questionId,
       answerIds,
       timeSpent,
@@ -289,8 +229,8 @@ export const quizAttemptApi = {
 
   // Auto-save progress
   async autoSave(attemptId: string, autoSaveData: any) {
-    const response = await api.post(
-      `/api/quizzes/attempts/${attemptId}/auto-save`,
+    const response = await apiClient.post(
+      `/quizzes/attempts/${attemptId}/auto-save`,
       { autoSaveData }
     );
     return response.data;
@@ -298,8 +238,8 @@ export const quizAttemptApi = {
 
   // Toggle mark for review
   async toggleMarkForReview(attemptId: string, questionId: string) {
-    const response = await api.post(
-      `/api/quizzes/attempts/${attemptId}/mark-for-review`,
+    const response = await apiClient.post(
+      `/quizzes/attempts/${attemptId}/mark-for-review`,
       { questionId }
     );
     return response.data;
@@ -307,16 +247,16 @@ export const quizAttemptApi = {
 
   // Log tab switch
   async logTabSwitch(attemptId: string) {
-    const response = await api.post(
-      `/api/quizzes/attempts/${attemptId}/log-tab-switch`
+    const response = await apiClient.post(
+      `/quizzes/attempts/${attemptId}/log-tab-switch`
     );
     return response.data;
   },
 
   // Log copy/paste
   async logCopyPaste(attemptId: string, action: 'copy' | 'paste') {
-    const response = await api.post(
-      `/api/quizzes/attempts/${attemptId}/log-copy-paste`,
+    const response = await apiClient.post(
+      `/quizzes/attempts/${attemptId}/log-copy-paste`,
       { action }
     );
     return response.data;
@@ -324,8 +264,8 @@ export const quizAttemptApi = {
 
   // Complete quiz
   async complete(attemptId: string, timeRemaining?: number) {
-    const response = await api.post(
-      `/api/quizzes/attempts/${attemptId}/complete`,
+    const response = await apiClient.post(
+      `/quizzes/attempts/${attemptId}/complete`,
       { timeRemaining }
     );
     return response.data;
@@ -333,13 +273,13 @@ export const quizAttemptApi = {
 
   // Get attempt results
   async getResults(attemptId: string) {
-    const response = await api.get(`/api/quizzes/attempts/${attemptId}/results`);
+    const response = await apiClient.get(`/quizzes/attempts/${attemptId}/results`);
     return response.data;
   },
 
   // Get user's attempts
   async getUserAttempts(quizId: string) {
-    const response = await api.get(`/api/quizzes/${quizId}/attempts`);
+    const response = await apiClient.get(`/quizzes/${quizId}/attempts`);
     return response.data;
   },
 };
