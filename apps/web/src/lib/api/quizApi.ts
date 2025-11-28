@@ -48,6 +48,7 @@ export interface Quiz {
   description?: string;
   type: QuizType;
   chapterContentId?: string;
+  chapterId?: string;
   passingScore: number;
   totalPoints: number;
   showScore: boolean;

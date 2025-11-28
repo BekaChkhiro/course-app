@@ -208,6 +208,7 @@ model Chapter {
   comments      Comment[]
   progress      Progress[]
   videos        Video[]
+  quiz          Quiz?
 
   @@index([courseVersionId])
   @@index([order])
@@ -241,6 +242,7 @@ model ChapterContent {
 model Quiz {
   id               String   @id @default(cuid())
   chapterContentId String?  @unique // Optional for standalone quizzes
+  chapterId        String?  @unique // Direct link to chapter
   courseVersionId  String?  // For final exams linked to course versions
   title            String
   description      String?  @db.Text
@@ -283,6 +285,7 @@ model Quiz {
 
   // Relations
   chapterContent ChapterContent? @relation(fields: [chapterContentId], references: [id], onDelete: Cascade)
+  chapter        Chapter?        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   courseVersion  CourseVersion?  @relation(fields: [courseVersionId], references: [id], onDelete: Cascade)
   questions      QuizQuestion[]
   attempts       QuizAttempt[]
@@ -291,6 +294,7 @@ model Quiz {
   @@index([type])
   @@index([isTemplate])
   @@index([courseVersionId])
+  @@index([chapterId])
   @@map("quizzes")
 }
 

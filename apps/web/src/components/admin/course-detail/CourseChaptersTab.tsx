@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import {
   DndContext,
   closestCenter,
@@ -20,9 +19,11 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Edit, Trash2, GripVertical, Video, FileText, File } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Video, FileText, File, HelpCircle } from 'lucide-react';
 import { chapterApi } from '@/lib/api/adminApi';
 import Badge from '@/components/ui/Badge';
+import ChapterEditSidebar from '@/components/admin/ChapterEditSidebar';
+import ChapterCreateSidebar from '@/components/admin/ChapterCreateSidebar';
 import toast from 'react-hot-toast';
 
 interface CourseChaptersTabProps {
@@ -40,6 +41,7 @@ type Chapter = {
   theory: string | null;
   assignmentFile: string | null;
   answerFile: string | null;
+  hasQuiz?: boolean;
   _count: { comments: number; progress: number };
 };
 
@@ -47,8 +49,9 @@ export default function CourseChaptersTab({
   courseId,
   selectedVersionId
 }: CourseChaptersTabProps) {
-  const router = useRouter();
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -119,58 +122,72 @@ export default function CourseChaptersTab({
     }
   };
 
-  const handleEdit = (chapterId: string) => {
-    router.push(`/admin/courses/${courseId}/versions/${selectedVersionId}/chapters/${chapterId}/edit`);
-  };
-
-  const handleCreate = () => {
-    router.push(`/admin/courses/${courseId}/versions/${selectedVersionId}/chapters/new`);
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
-        <button
-          onClick={handleCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4" />
-          ახალი თავი
-        </button>
-      </div>
-
-      {/* Chapters List */}
-      {isLoading ? (
-        <div className="text-center py-8 text-gray-500">იტვირთება...</div>
-      ) : chapters.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <p className="text-gray-500 mb-4">თავები არ არის</p>
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
           <button
-            onClick={handleCreate}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            onClick={() => setIsCreateOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            დაამატე პირველი თავი
+            <Plus className="w-4 h-4" />
+            ახალი თავი
           </button>
         </div>
-      ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={chapters.map(c => c.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-              {chapters.map((chapter) => (
-                <SortableChapterItem
-                  key={chapter.id}
-                  chapter={chapter}
-                  onEdit={() => handleEdit(chapter.id)}
-                  onDelete={() => handleDelete(chapter)}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+
+        {/* Chapters List */}
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">იტვირთება...</div>
+        ) : chapters.length === 0 ? (
+          <div className="text-center py-12 border-2 border-dashed rounded-lg">
+            <p className="text-gray-500 mb-4">თავები არ არის</p>
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              დაამატე პირველი თავი
+            </button>
+          </div>
+        ) : (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={chapters.map(c => c.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {chapters.map((chapter) => (
+                  <SortableChapterItem
+                    key={chapter.id}
+                    chapter={chapter}
+                    onEdit={() => setEditingChapterId(chapter.id)}
+                    onDelete={() => handleDelete(chapter)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
+
+      {/* Edit Sidebar - Outside of space-y-6 */}
+      {editingChapterId && (
+        <ChapterEditSidebar
+          isOpen={!!editingChapterId}
+          onClose={() => setEditingChapterId(null)}
+          chapterId={editingChapterId}
+          versionId={selectedVersionId}
+        />
       )}
-    </div>
+
+      {/* Create Sidebar - Outside of space-y-6 */}
+      <ChapterCreateSidebar
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        versionId={selectedVersionId}
+        onCreated={() => {
+          queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersionId] });
+        }}
+      />
+    </>
   );
 }
 
@@ -204,7 +221,7 @@ function SortableChapterItem({
         <GripVertical className="w-5 h-5 text-gray-400" />
       </button>
 
-      <div className="flex-1">
+      <div className="flex-1 cursor-pointer" onClick={onEdit}>
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-gray-900">{chapter.title}</h3>
           {chapter.isFree && <Badge variant="success" size="sm">უფასო</Badge>}
@@ -228,21 +245,24 @@ function SortableChapterItem({
               <File className="w-3 h-3" /> დავალება
             </span>
           )}
+          {chapter.hasQuiz && (
+            <span className="flex items-center gap-1 text-purple-600">
+              <HelpCircle className="w-3 h-3" /> ქვიზი
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button onClick={onEdit} className="p-2 hover:bg-gray-100 rounded" title="რედაქტირება">
-          <Edit className="w-4 h-4" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-2 hover:bg-red-100 rounded text-red-600"
-          title="წაშლა"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="p-2 hover:bg-red-100 rounded text-red-600"
+        title="წაშლა"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
     </div>
   );
 }

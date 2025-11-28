@@ -54,6 +54,7 @@ export default function RichTextEditor({
     ],
     content,
     editable,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

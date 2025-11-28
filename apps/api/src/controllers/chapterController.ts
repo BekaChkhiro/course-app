@@ -20,7 +20,21 @@ export const getChaptersByVersion = async (req: Request, res: Response) => {
       orderBy: { order: 'asc' }
     });
 
-    res.json({ chapters });
+    // Check which chapters have quizzes
+    const chapterIds = chapters.map(c => c.id);
+    const quizzes = await prisma.quiz.findMany({
+      where: { chapterContentId: { in: chapterIds } },
+      select: { chapterContentId: true }
+    });
+    const chaptersWithQuiz = new Set(quizzes.map(q => q.chapterContentId));
+
+    // Add hasQuiz flag to each chapter
+    const chaptersWithQuizFlag = chapters.map(chapter => ({
+      ...chapter,
+      hasQuiz: chaptersWithQuiz.has(chapter.id)
+    }));
+
+    res.json({ chapters: chaptersWithQuizFlag });
   } catch (error) {
     console.error('Get chapters error:', error);
     res.status(500).json({ error: 'Failed to fetch chapters' });
