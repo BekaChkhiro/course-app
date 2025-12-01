@@ -257,6 +257,7 @@ function ChapterSidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }
 
