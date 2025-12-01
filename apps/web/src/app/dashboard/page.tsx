@@ -95,7 +95,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
           <h3 className="font-semibold text-gray-900 mt-2 line-clamp-1">{course.title}</h3>
           <div className="mt-3">
             <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
-              <span>{course.completedChapters}/{course.totalChapters} chapters</span>
+              <span>{course.completedChapters}/{course.totalChapters} თავი</span>
               <span>{course.progressPercentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -107,7 +107,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
           </div>
           {course.nextChapter && (
             <p className="mt-3 text-sm text-gray-500">
-              Next: <span className="text-gray-700">{course.nextChapter.title}</span>
+              შემდეგი: <span className="text-gray-700">{course.nextChapter.title}</span>
             </p>
           )}
         </div>
@@ -117,7 +117,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
 }
 
 function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const days = ['ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა', 'კვ'];
   const today = new Date().getDay();
   const adjustedToday = today === 0 ? 6 : today - 1;
 
@@ -125,8 +125,8 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
     <div className="bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl shadow-sm p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white text-opacity-80 text-sm">Study Streak</p>
-          <p className="text-3xl font-bold mt-1">{streak.currentStreak} days</p>
+          <p className="text-white text-opacity-80 text-sm">სწავლის სერია</p>
+          <p className="text-3xl font-bold mt-1">{streak.currentStreak} დღე</p>
         </div>
         <div className="text-5xl">
           {streak.currentStreak > 0 ? '' : ''}
@@ -157,11 +157,11 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
       </div>
       <div className="mt-4 pt-4 border-t border-white border-opacity-20 flex justify-between text-sm">
         <div>
-          <p className="text-white text-opacity-70">Longest</p>
-          <p className="font-semibold">{streak.longestStreak} days</p>
+          <p className="text-white text-opacity-70">ყველაზე გრძელი</p>
+          <p className="font-semibold">{streak.longestStreak} დღე</p>
         </div>
         <div>
-          <p className="text-white text-opacity-70">Total Days</p>
+          <p className="text-white text-opacity-70">სულ დღეები</p>
           <p className="font-semibold">{streak.totalStudyDays}</p>
         </div>
       </div>
@@ -176,7 +176,7 @@ function XPCard({ gamification }: { gamification: DashboardData['gamification'] 
     <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-sm p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-white text-opacity-80 text-sm">Level</p>
+          <p className="text-white text-opacity-80 text-sm">დონე</p>
           <p className="text-3xl font-bold mt-1">{gamification.level}</p>
         </div>
         <div className="relative">
@@ -188,17 +188,17 @@ function XPCard({ gamification }: { gamification: DashboardData['gamification'] 
       </div>
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-white text-opacity-80">Total XP</span>
+          <span className="text-white text-opacity-80">სულ XP</span>
           <span className="font-semibold">{gamification.totalXP.toLocaleString()}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-white text-opacity-80">Next Level</span>
+          <span className="text-white text-opacity-80">შემდეგი დონე</span>
           <span className="font-semibold">{gamification.xpToNextLevel.toLocaleString()} XP</span>
         </div>
       </div>
       {gamification.recentBadges.length > 0 && (
         <div className="mt-4 pt-4 border-t border-white border-opacity-20">
-          <p className="text-xs text-white text-opacity-70 mb-2">Recent Badges</p>
+          <p className="text-xs text-white text-opacity-70 mb-2">ბოლო ბეჯები</p>
           <div className="flex space-x-2">
             {gamification.recentBadges.slice(0, 3).map((badge) => (
               <div
@@ -254,8 +254,8 @@ export default function DashboardPage() {
           <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <p className="text-red-600 font-medium">Failed to load dashboard data</p>
-          <p className="text-red-500 text-sm mt-1">Please try again later</p>
+          <p className="text-red-600 font-medium">მონაცემების ჩატვირთვა ვერ მოხერხდა</p>
+          <p className="text-red-500 text-sm mt-1">გთხოვთ, სცადოთ მოგვიანებით</p>
         </div>
       </StudentLayout>
     );
@@ -269,19 +269,19 @@ export default function DashboardPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
-                Welcome back, {user?.name}!
+                გამარჯობა, {user?.name}!
               </h1>
               <p className="mt-2 text-indigo-100">
                 {dashboardData?.continueLearning.length
-                  ? "Continue where you left off and keep up the great progress!"
-                  : "Start exploring courses to begin your learning journey."}
+                  ? "გააგრძელე იქიდან, სადაც შეჩერდი და განაგრძე პროგრესი!"
+                  : "დაიწყე კურსების აღმოჩენა და შედი სასწავლო მოგზაურობაში."}
               </p>
             </div>
             <Link
               href="/dashboard/courses"
               className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
             >
-              Browse Courses
+              კურსების ნახვა
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -292,7 +292,7 @@ export default function DashboardPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Total Courses"
+            title="სულ კურსები"
             value={dashboardData?.stats.totalCourses || 0}
             icon={
               <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,7 +302,7 @@ export default function DashboardPage() {
             color="bg-indigo-100"
           />
           <StatCard
-            title="Completed"
+            title="დასრულებული"
             value={dashboardData?.stats.completedCourses || 0}
             icon={
               <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,7 +312,7 @@ export default function DashboardPage() {
             color="bg-green-100"
           />
           <StatCard
-            title="Watch Time"
+            title="ყურების დრო"
             value={formatWatchTime(dashboardData?.stats.totalWatchTimeHours || 0)}
             icon={
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -322,7 +322,7 @@ export default function DashboardPage() {
             color="bg-blue-100"
           />
           <StatCard
-            title="Certificates"
+            title="სერტიფიკატები"
             value={dashboardData?.stats.certificates || 0}
             icon={
               <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -338,12 +338,12 @@ export default function DashboardPage() {
           {/* Continue Learning Section */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Continue Learning</h2>
+              <h2 className="text-lg font-semibold text-gray-900">სწავლის გაგრძელება</h2>
               <Link
                 href="/dashboard/courses"
                 className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
-                View All
+                ყველას ნახვა
               </Link>
             </div>
             {dashboardData?.continueLearning.length ? (
@@ -357,13 +357,13 @@ export default function DashboardPage() {
                 <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-1">No courses in progress</h3>
-                <p className="text-gray-500 mb-4">Start learning today!</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-1">მიმდინარე კურსები არ არის</h3>
+                <p className="text-gray-500 mb-4">დაიწყე სწავლა დღესვე!</p>
                 <Link
                   href="/dashboard/courses"
                   className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
-                  Browse Courses
+                  კურსების ნახვა
                 </Link>
               </div>
             )}

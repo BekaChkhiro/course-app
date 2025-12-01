@@ -18,9 +18,9 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
   };
 
   const statusLabels = {
-    completed: 'Completed',
-    in_progress: 'In Progress',
-    not_started: 'Not Started',
+    completed: 'დასრულებული',
+    in_progress: 'მიმდინარე',
+    not_started: 'დაუწყებელი',
   };
 
   if (viewMode === 'list') {
@@ -53,7 +53,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
             </div>
             <h3 className="font-semibold text-gray-900 truncate">{course.title}</h3>
             <p className="text-sm text-gray-500 mt-1">
-              by {course.author.name} {course.author.surname}
+              ავტორი: {course.author.name} {course.author.surname}
             </p>
           </div>
           <div className="flex-shrink-0 w-32">
@@ -122,11 +122,11 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
           </div>
           <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">{course.title}</h3>
           <p className="text-sm text-gray-500 mb-3">
-            by {course.author.name} {course.author.surname}
+            ავტორი: {course.author.name} {course.author.surname}
           </p>
           <div className="mt-auto">
             <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
-              <span>{course.completedChapters}/{course.totalChapters} chapters</span>
+              <span>{course.completedChapters}/{course.totalChapters} თავი</span>
               <span>{course.progressPercentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -140,7 +140,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
           </div>
           {course.lastAccessedAt && (
             <p className="text-xs text-gray-400 mt-3">
-              Last accessed: {new Date(course.lastAccessedAt).toLocaleDateString()}
+              ბოლოს ნანახი: {new Date(course.lastAccessedAt).toLocaleDateString('ka-GE')}
             </p>
           )}
         </div>
@@ -169,17 +169,17 @@ export default function MyCoursesPage() {
   const courses = data?.data.courses || [];
 
   const filterOptions: { value: FilterStatus; label: string }[] = [
-    { value: 'all', label: 'All Courses' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'not_started', label: 'Not Started' },
+    { value: 'all', label: 'ყველა კურსი' },
+    { value: 'in_progress', label: 'მიმდინარე' },
+    { value: 'completed', label: 'დასრულებული' },
+    { value: 'not_started', label: 'დაუწყებელი' },
   ];
 
   const sortOptions: { value: SortOption; label: string }[] = [
-    { value: 'recent', label: 'Recently Accessed' },
-    { value: 'progress', label: 'Progress' },
-    { value: 'name', label: 'Name (A-Z)' },
-    { value: 'oldest', label: 'Oldest First' },
+    { value: 'recent', label: 'ბოლოს ნანახი' },
+    { value: 'progress', label: 'პროგრესით' },
+    { value: 'name', label: 'სახელით (ა-ჰ)' },
+    { value: 'oldest', label: 'ძველი პირველი' },
   ];
 
   return (
@@ -188,9 +188,9 @@ export default function MyCoursesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Courses</h1>
+            <h1 className="text-2xl font-bold text-gray-900">ჩემი კურსები</h1>
             <p className="text-gray-500 mt-1">
-              {courses.length} course{courses.length !== 1 ? 's' : ''} in your library
+              {courses.length} კურსი თქვენს ბიბლიოთეკაში
             </p>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function MyCoursesPage() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search courses..."
+                  placeholder="კურსების ძებნა..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -295,8 +295,8 @@ export default function MyCoursesPage() {
         {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <p className="text-red-600 font-medium">Failed to load courses</p>
-            <p className="text-red-500 text-sm mt-1">Please try again later</p>
+            <p className="text-red-600 font-medium">კურსების ჩატვირთვა ვერ მოხერხდა</p>
+            <p className="text-red-500 text-sm mt-1">გთხოვთ, სცადოთ მოგვიანებით</p>
           </div>
         )}
 
@@ -331,18 +331,18 @@ export default function MyCoursesPage() {
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
               />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No courses found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">კურსები ვერ მოიძებნა</h3>
             <p className="text-gray-500 mb-4">
               {search || filter !== 'all'
-                ? 'Try adjusting your search or filters'
-                : "You haven't purchased any courses yet"}
+                ? 'სცადეთ ძებნის ან ფილტრის შეცვლა'
+                : "თქვენ ჯერ არ გაქვთ შეძენილი კურსი"}
             </p>
             {!search && filter === 'all' && (
               <Link
                 href="/courses"
                 className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
-                Browse Courses
+                კურსების ნახვა
               </Link>
             )}
           </div>

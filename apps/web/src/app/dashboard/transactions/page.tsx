@@ -6,14 +6,14 @@ import StudentLayout from '@/components/student/StudentLayout';
 import { studentApiClient, Transaction } from '@/lib/api/studentApi';
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('ka-GE', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'GEL',
   }).format(amount);
 }
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString('ka-GE', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -22,10 +22,10 @@ function formatDate(date: string): string {
 
 function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'Completed' },
-    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Pending' },
-    FAILED: { bg: 'bg-red-100', text: 'text-red-700', label: 'Failed' },
-    REFUNDED: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Refunded' },
+    COMPLETED: { bg: 'bg-green-100', text: 'text-green-700', label: 'დასრულებული' },
+    PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'მოლოდინში' },
+    FAILED: { bg: 'bg-red-100', text: 'text-red-700', label: 'ჩაიშალა' },
+    REFUNDED: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'დაბრუნებული' },
   };
 
   const config = statusConfig[status] || statusConfig.PENDING;
@@ -89,11 +89,11 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
         <button
           onClick={() => {
             // Would download invoice
-            alert('Invoice download coming soon');
+            alert('ინვოისის ჩამოტვირთვა მალე იქნება ხელმისაწვდომი');
           }}
           className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
         >
-          Download Invoice
+          ინვოისის ჩამოტვირთვა
         </button>
       </td>
     </tr>
@@ -120,8 +120,8 @@ export default function TransactionsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Transaction History</h1>
-            <p className="text-gray-500 mt-1">View all your course purchases</p>
+            <h1 className="text-2xl font-bold text-gray-900">ტრანზაქციების ისტორია</h1>
+            <p className="text-gray-500 mt-1">ნახეთ ყველა თქვენი კურსის შეძენა</p>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ export default function TransactionsPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Purchases</p>
+                <p className="text-sm text-gray-500">სულ შეძენები</p>
                 <p className="text-2xl font-bold text-gray-900">{summary?.totalPurchases || 0}</p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function TransactionsPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Spent</p>
+                <p className="text-sm text-gray-500">სულ დახარჯული</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(summary?.totalSpent || 0)}</p>
               </div>
             </div>
@@ -160,22 +160,22 @@ export default function TransactionsPage() {
           {isLoading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading transactions...</p>
+              <p className="text-gray-500 mt-4">ტრანზაქციების ჩატვირთვა...</p>
             </div>
           ) : error ? (
             <div className="p-8 text-center">
               <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <p className="text-red-600 font-medium">Failed to load transactions</p>
+              <p className="text-red-600 font-medium">ტრანზაქციების ჩატვირთვა ვერ მოხერხდა</p>
             </div>
           ) : transactions.length === 0 ? (
             <div className="p-12 text-center">
               <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No transactions yet</h3>
-              <p className="text-gray-500">Your purchase history will appear here</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">ტრანზაქციები არ არის</h3>
+              <p className="text-gray-500">თქვენი შეძენების ისტორია აქ გამოჩნდება</p>
             </div>
           ) : (
             <>
@@ -184,19 +184,19 @@ export default function TransactionsPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Course
+                        კურსი
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Amount
+                        თანხა
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Discount
+                        ფასდაკლება
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        სტატუსი
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Invoice
+                        ინვოისი
                       </th>
                     </tr>
                   </thead>
@@ -212,8 +212,8 @@ export default function TransactionsPage() {
               {pagination && pagination.totalPages > 1 && (
                 <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                   <p className="text-sm text-gray-500">
-                    Showing {(page - 1) * limit + 1} to {Math.min(page * limit, pagination.total)} of{' '}
-                    {pagination.total} transactions
+                    ნაჩვენებია {(page - 1) * limit + 1}-დან {Math.min(page * limit, pagination.total)}-მდე,{' '}
+                    სულ {pagination.total} ტრანზაქციიდან
                   </p>
                   <div className="flex gap-2">
                     <button
@@ -221,14 +221,14 @@ export default function TransactionsPage() {
                       disabled={page === 1}
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Previous
+                      წინა
                     </button>
                     <button
                       onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                       disabled={page === pagination.totalPages}
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                     >
-                      Next
+                      შემდეგი
                     </button>
                   </div>
                 </div>

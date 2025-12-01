@@ -19,6 +19,7 @@ import studentRoutes from './routes/student.routes'
 import reviewRoutes from './routes/review.routes'
 import messagingRoutes from './routes/messaging.routes'
 import comprehensiveAnalyticsRoutes from './routes/comprehensiveAnalyticsRoutes'
+import publicRoutes from './routes/public.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -112,6 +113,9 @@ app.use('/api', messagingRoutes)
 
 // Comprehensive Analytics routes (admin only)
 app.use('/api/admin/analytics', comprehensiveAnalyticsRoutes)
+
+// Public routes (no authentication required)
+app.use('/api/public', publicRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

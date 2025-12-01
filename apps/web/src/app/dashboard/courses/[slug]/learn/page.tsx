@@ -110,7 +110,7 @@ function ChapterSidebar({
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to Courses
+                კურსებზე დაბრუნება
               </Link>
               <h2 className="font-semibold text-gray-900 truncate">{courseTitle}</h2>
             </div>
@@ -147,7 +147,7 @@ function ChapterSidebar({
         {(isMobile || !isCollapsed) && (
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-gray-600">Course Progress</span>
+              <span className="text-gray-600">კურსის პროგრესი</span>
               <span className="font-medium text-gray-900">{overallProgress}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -278,10 +278,10 @@ function ChapterContent({
   const [showAnswer, setShowAnswer] = useState(false);
 
   const tabs: { id: ActiveTab; label: string; available: boolean }[] = [
-    { id: 'video', label: 'Video', available: !!chapter.video },
-    { id: 'theory', label: 'Theory', available: !!chapter.theory },
-    { id: 'assignment', label: 'Assignment', available: !!chapter.assignmentFile },
-    { id: 'quiz', label: 'Quiz', available: !!chapter.quiz },
+    { id: 'video', label: 'ვიდეო', available: !!chapter.video },
+    { id: 'theory', label: 'თეორია', available: !!chapter.theory },
+    { id: 'assignment', label: 'დავალება', available: !!chapter.assignmentFile },
+    { id: 'quiz', label: 'ტესტი', available: !!chapter.quiz },
   ];
 
   const availableTabs = tabs.filter((t) => t.available);
@@ -292,7 +292,7 @@ function ChapterContent({
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">Chapter {chapter.order}</p>
+            <p className="text-sm text-gray-500">თავი {chapter.order}</p>
             <h1 className="text-xl font-bold text-gray-900">{chapter.title}</h1>
           </div>
           {!progress.isCompleted && (
@@ -307,14 +307,14 @@ function ChapterContent({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Marking...
+                  მონიშვნა...
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Mark Complete
+                  დასრულებულად მონიშვნა
                 </>
               )}
             </button>
@@ -324,7 +324,7 @@ function ChapterContent({
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              Completed
+              დასრულებული
             </span>
           )}
         </div>
@@ -369,7 +369,7 @@ function ChapterContent({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p>Video is being processed...</p>
+                  <p>ვიდეო მუშავდება...</p>
                 </div>
               </div>
             )}
@@ -390,7 +390,7 @@ function ChapterContent({
             {/* Download Assignment */}
             {chapter.assignmentFile && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Assignment</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">დავალება</h3>
                 <a
                   href={chapter.assignmentFile}
                   download
@@ -399,7 +399,7 @@ function ChapterContent({
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  Download Assignment
+                  დავალების ჩამოტვირთვა
                 </a>
               </div>
             )}
@@ -407,7 +407,7 @@ function ChapterContent({
             {/* View Answer */}
             {chapter.answerFile && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Answer</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">პასუხი</h3>
                 {!showAnswer ? (
                   <button
                     onClick={() => setShowAnswer(true)}
@@ -417,7 +417,7 @@ function ChapterContent({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    Reveal Answer
+                    პასუხის ჩვენება
                   </button>
                 ) : (
                   <div className="space-y-4">
@@ -429,13 +429,13 @@ function ChapterContent({
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                      Download Answer
+                      პასუხის ჩამოტვირთვა
                     </a>
                     <button
                       onClick={() => setShowAnswer(false)}
                       className="ml-3 text-sm text-gray-500 hover:text-gray-700"
                     >
-                      Hide Answer
+                      პასუხის დამალვა
                     </button>
                   </div>
                 )}
@@ -455,15 +455,15 @@ function ChapterContent({
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{chapter.quiz.title}</h3>
               <div className="text-sm text-gray-500 space-y-1 mb-6">
-                <p>{chapter.quiz.questionCount} questions</p>
-                <p>Passing score: {chapter.quiz.passingScore}%</p>
-                {chapter.quiz.timeLimit && <p>Time limit: {chapter.quiz.timeLimit} minutes</p>}
+                <p>{chapter.quiz.questionCount} კითხვა</p>
+                <p>გამსვლელი ქულა: {chapter.quiz.passingScore}%</p>
+                {chapter.quiz.timeLimit && <p>დროის ლიმიტი: {chapter.quiz.timeLimit} წუთი</p>}
               </div>
               <Link
                 href={`/quiz/${chapter.quiz.id}`}
                 className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
               >
-                Start Quiz
+                ტესტის დაწყება
                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
@@ -479,7 +479,7 @@ function ChapterContent({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p>No video available for this chapter</p>
+            <p>ამ თავისთვის ვიდეო არ არის ხელმისაწვდომი</p>
           </div>
         )}
 
@@ -488,7 +488,7 @@ function ChapterContent({
             <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p>No theory content available for this chapter</p>
+            <p>ამ თავისთვის თეორიული მასალა არ არის ხელმისაწვდომი</p>
           </div>
         )}
       </div>
@@ -601,13 +601,13 @@ export default function CourseLearningPage() {
           <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Course Not Found</h2>
-          <p className="text-gray-500 mb-4">This course may not exist or you may not have access to it.</p>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">კურსი ვერ მოიძებნა</h2>
+          <p className="text-gray-500 mb-4">ეს კურსი შესაძლოა არ არსებობდეს ან თქვენ არ გაქვთ მასზე წვდომა.</p>
           <Link
             href="/dashboard/courses"
             className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            Back to My Courses
+            ჩემს კურსებზე დაბრუნება
           </Link>
         </div>
       </div>
@@ -711,11 +711,11 @@ export default function CourseLearningPage() {
             <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="hidden sm:inline">Previous</span>
+            <span className="hidden sm:inline">წინა</span>
           </button>
 
           <span className="text-xs sm:text-sm text-gray-500 text-center">
-            <span className="hidden sm:inline">Chapter </span>{currentChapterIndex + 1}<span className="hidden sm:inline"> of</span><span className="sm:hidden">/</span> {chapters.length}
+            <span className="hidden sm:inline">თავი </span>{currentChapterIndex + 1}<span className="hidden sm:inline"> / </span><span className="sm:hidden">/</span>{chapters.length}<span className="hidden sm:inline">-დან</span>
           </span>
 
           <button
@@ -727,7 +727,7 @@ export default function CourseLearningPage() {
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span className="hidden sm:inline">Next</span>
+            <span className="hidden sm:inline">შემდეგი</span>
             <svg className="w-5 h-5 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -738,7 +738,7 @@ export default function CourseLearningPage() {
         {isMobile && (
           <div className="fixed bottom-16 left-0 right-0 flex justify-center pointer-events-none">
             <div className="bg-gray-900 bg-opacity-70 text-white text-xs px-3 py-1.5 rounded-full opacity-0 animate-pulse">
-              Swipe to navigate chapters
+              გადაფურცლეთ თავებს შორის გადასასვლელად
             </div>
           </div>
         )}

@@ -89,12 +89,12 @@ export default function SettingsPage() {
     setPasswordError('');
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New passwords do not match');
+      setPasswordError('ახალი პაროლები არ ემთხვევა');
       return;
     }
 
     if (passwordForm.newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
+      setPasswordError('პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო');
       return;
     }
 
@@ -108,14 +108,14 @@ export default function SettingsPage() {
     <StudentLayout>
       <div className="max-w-4xl mx-auto space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-500 mt-1">Manage your account settings and preferences</p>
+          <h1 className="text-2xl font-bold text-gray-900">პარამეტრები</h1>
+          <p className="text-gray-500 mt-1">მართეთ თქვენი ანგარიშის პარამეტრები</p>
         </div>
 
         {/* Profile Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
+            <h2 className="text-lg font-semibold text-gray-900">პროფილის ინფორმაცია</h2>
           </div>
           <div className="p-6">
             {!editingProfile ? (
@@ -144,32 +144,32 @@ export default function SettingsPage() {
 
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                    <dd className="mt-1 text-gray-900">{user?.phone || 'Not set'}</dd>
+                    <dt className="text-sm font-medium text-gray-500">ტელეფონი</dt>
+                    <dd className="mt-1 text-gray-900">{user?.phone || 'არ არის მითითებული'}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Email Status</dt>
+                    <dt className="text-sm font-medium text-gray-500">ელ.ფოსტის სტატუსი</dt>
                     <dd className="mt-1">
                       {user?.emailVerified ? (
                         <span className="inline-flex items-center text-green-600">
                           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          Verified
+                          დადასტურებული
                         </span>
                       ) : (
                         <span className="inline-flex items-center text-yellow-600">
                           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          Not Verified
+                          დაუდასტურებელი
                         </span>
                       )}
                     </dd>
                   </div>
                   {user?.bio && (
                     <div className="sm:col-span-2">
-                      <dt className="text-sm font-medium text-gray-500">Bio</dt>
+                      <dt className="text-sm font-medium text-gray-500">ბიოგრაფია</dt>
                       <dd className="mt-1 text-gray-900">{user.bio}</dd>
                     </div>
                   )}
@@ -179,7 +179,7 @@ export default function SettingsPage() {
                   onClick={() => setEditingProfile(true)}
                   className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                 >
-                  Edit Profile
+                  პროფილის რედაქტირება
                 </button>
               </div>
             ) : (
@@ -187,7 +187,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      First Name
+                      სახელი
                     </label>
                     <input
                       type="text"
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Last Name
+                      გვარი
                     </label>
                     <input
                       type="text"
@@ -214,7 +214,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone
+                    ტელეფონი
                   </label>
                   <input
                     type="tel"
@@ -227,7 +227,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bio
+                    ბიოგრაფია
                   </label>
                   <textarea
                     value={profileForm.bio}
@@ -243,14 +243,14 @@ export default function SettingsPage() {
                     type="submit"
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   >
-                    Save Changes
+                    ცვლილებების შენახვა
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingProfile(false)}
                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
-                    Cancel
+                    გაუქმება
                   </button>
                 </div>
               </form>
@@ -261,7 +261,7 @@ export default function SettingsPage() {
         {/* Password Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Password</h2>
+            <h2 className="text-lg font-semibold text-gray-900">პაროლი</h2>
           </div>
           <div className="p-6">
             {!showPasswordForm ? (
@@ -269,7 +269,7 @@ export default function SettingsPage() {
                 onClick={() => setShowPasswordForm(true)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                Change Password
+                პაროლის შეცვლა
               </button>
             ) : (
               <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
@@ -280,7 +280,7 @@ export default function SettingsPage() {
                 )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Current Password
+                    მიმდინარე პაროლი
                   </label>
                   <input
                     type="password"
@@ -293,7 +293,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    New Password
+                    ახალი პაროლი
                   </label>
                   <input
                     type="password"
@@ -306,7 +306,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm New Password
+                    ახალი პაროლის დადასტურება
                   </label>
                   <input
                     type="password"
@@ -322,7 +322,7 @@ export default function SettingsPage() {
                     type="submit"
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   >
-                    Update Password
+                    პაროლის განახლება
                   </button>
                   <button
                     type="button"
@@ -332,7 +332,7 @@ export default function SettingsPage() {
                     }}
                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
-                    Cancel
+                    გაუქმება
                   </button>
                 </div>
               </form>
@@ -343,7 +343,7 @@ export default function SettingsPage() {
         {/* Notification Preferences */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
+            <h2 className="text-lg font-semibold text-gray-900">შეტყობინებები</h2>
           </div>
           <div className="p-6 space-y-6">
             {isLoadingPreferences ? (
@@ -356,8 +356,8 @@ export default function SettingsPage() {
               <>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">Email Notifications</h3>
-                    <p className="text-sm text-gray-500">Receive notifications about your courses via email</p>
+                    <h3 className="text-sm font-medium text-gray-900">ელ.ფოსტის შეტყობინებები</h3>
+                    <p className="text-sm text-gray-500">მიიღეთ შეტყობინებები კურსების შესახებ ელ.ფოსტით</p>
                   </div>
                   <ToggleSwitch
                     enabled={preferences?.emailNotifications ?? true}
@@ -368,8 +368,8 @@ export default function SettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">Progress Reminders</h3>
-                    <p className="text-sm text-gray-500">Get reminded to continue your courses</p>
+                    <h3 className="text-sm font-medium text-gray-900">პროგრესის შეხსენებები</h3>
+                    <p className="text-sm text-gray-500">მიიღეთ შეხსენება კურსების გასაგრძელებლად</p>
                   </div>
                   <ToggleSwitch
                     enabled={preferences?.progressReminders ?? true}
@@ -380,8 +380,8 @@ export default function SettingsPage() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">Weekly Reports</h3>
-                    <p className="text-sm text-gray-500">Receive weekly progress reports via email</p>
+                    <h3 className="text-sm font-medium text-gray-900">ყოველკვირეული ანგარიშები</h3>
+                    <p className="text-sm text-gray-500">მიიღეთ ყოველკვირეული პროგრესის ანგარიშები ელ.ფოსტით</p>
                   </div>
                   <ToggleSwitch
                     enabled={preferences?.weeklyReports ?? true}
@@ -397,23 +397,27 @@ export default function SettingsPage() {
         {/* Theme Preferences */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Appearance</h2>
+            <h2 className="text-lg font-semibold text-gray-900">გარეგნობა</h2>
           </div>
           <div className="p-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Theme</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">თემა</label>
               <div className="flex gap-3">
-                {['light', 'dark', 'system'].map((theme) => (
+                {[
+                  { key: 'light', label: 'ნათელი' },
+                  { key: 'dark', label: 'მუქი' },
+                  { key: 'system', label: 'სისტემური' }
+                ].map((theme) => (
                   <button
-                    key={theme}
-                    onClick={() => handlePreferenceChange('theme', theme)}
+                    key={theme.key}
+                    onClick={() => handlePreferenceChange('theme', theme.key)}
                     className={`px-4 py-2 rounded-lg border transition-colors ${
-                      preferences?.theme === theme
+                      preferences?.theme === theme.key
                         ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
                         : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                    {theme.label}
                   </button>
                 ))}
               </div>
@@ -424,17 +428,17 @@ export default function SettingsPage() {
         {/* Data Export */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Data & Privacy</h2>
+            <h2 className="text-lg font-semibold text-gray-900">მონაცემები და კონფიდენციალურობა</h2>
           </div>
           <div className="p-6">
             <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              Export My Data
+              ჩემი მონაცემების ექსპორტი
             </button>
             <p className="text-sm text-gray-500 mt-2">
-              Download a copy of your data including progress, notes, and certificates
+              ჩამოტვირთეთ თქვენი მონაცემების ასლი, მათ შორის პროგრესი, ჩანაწერები და სერტიფიკატები
             </p>
           </div>
         </div>

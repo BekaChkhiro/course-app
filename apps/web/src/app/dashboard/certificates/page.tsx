@@ -5,7 +5,7 @@ import StudentLayout from '@/components/student/StudentLayout';
 import { studentApiClient, Certificate } from '@/lib/api/studentApi';
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString('ka-GE', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -24,12 +24,12 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
-              <span className="font-semibold">Certificate of Completion</span>
+              <span className="font-semibold">კურსის დასრულების სერტიფიკატი</span>
             </div>
           </div>
           <h3 className="text-lg font-bold line-clamp-2 mb-2">{certificate.courseName}</h3>
           <p className="text-sm text-white text-opacity-80">
-            Awarded to {certificate.studentName}
+            გადაეცა: {certificate.studentName}
           </p>
         </div>
         {/* Decorative elements */}
@@ -41,17 +41,17 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
       <div className="p-4">
         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
           <div>
-            <p className="text-gray-500">Score</p>
+            <p className="text-gray-500">ქულა</p>
             <p className="font-medium text-gray-900">{Math.round(Number(certificate.score))}%</p>
           </div>
           <div>
-            <p className="text-gray-500">Issued</p>
+            <p className="text-gray-500">გაცემის თარიღი</p>
             <p className="font-medium text-gray-900">{formatDate(certificate.issuedAt)}</p>
           </div>
         </div>
 
         <div className="mb-4">
-          <p className="text-xs text-gray-400">Certificate ID</p>
+          <p className="text-xs text-gray-400">სერტიფიკატის ID</p>
           <p className="text-sm font-mono text-gray-600">{certificate.certificateNumber}</p>
         </div>
 
@@ -65,7 +65,7 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              Download
+              ჩამოტვირთვა
             </a>
           )}
           <button
@@ -73,13 +73,13 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
               // Would open share modal or copy link
               if (navigator.share) {
                 navigator.share({
-                  title: `Certificate - ${certificate.courseName}`,
-                  text: `I completed ${certificate.courseName} with a score of ${Math.round(Number(certificate.score))}%!`,
+                  title: `სერტიფიკატი - ${certificate.courseName}`,
+                  text: `დავასრულე ${certificate.courseName} კურსი ${Math.round(Number(certificate.score))}% შედეგით!`,
                   url: window.location.href,
                 });
               } else {
                 navigator.clipboard.writeText(window.location.href);
-                alert('Link copied to clipboard!');
+                alert('ბმული კოპირებულია!');
               }
             }}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
@@ -108,8 +108,8 @@ export default function CertificatesPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Certificates</h1>
-          <p className="text-gray-500 mt-1">Your course completion certificates</p>
+          <h1 className="text-2xl font-bold text-gray-900">სერტიფიკატები</h1>
+          <p className="text-gray-500 mt-1">თქვენი კურსების დასრულების სერტიფიკატები</p>
         </div>
 
         {/* Loading */}
@@ -127,7 +127,7 @@ export default function CertificatesPage() {
             <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <p className="text-red-600 font-medium">Failed to load certificates</p>
+            <p className="text-red-600 font-medium">სერტიფიკატების ჩატვირთვა ვერ მოხერხდა</p>
           </div>
         )}
 
@@ -148,15 +148,15 @@ export default function CertificatesPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No certificates yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">სერტიფიკატები ჯერ არ არის</h3>
             <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Complete courses and pass final exams to earn certificates. Your achievements will be displayed here.
+              დაასრულეთ კურსები და ჩააბარეთ საბოლოო გამოცდები სერტიფიკატების მისაღებად. თქვენი მიღწევები აქ გამოჩნდება.
             </p>
             <a
               href="/dashboard/courses"
               className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              Start Learning
+              სწავლის დაწყება
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>

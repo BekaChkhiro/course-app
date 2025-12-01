@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { authApi, Device } from '@/lib/api/authApi';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import StudentLayout from '@/components/student/StudentLayout';
 
 const getDeviceIcon = (deviceType: string) => {
   switch (deviceType.toLowerCase()) {
@@ -38,27 +38,24 @@ const formatLastActive = (lastActiveAt: string) => {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (minutes < 1) return 'ახლახანს';
+  if (minutes < 60) return `${minutes} წუთის წინ`;
+  if (hours < 24) return `${hours} საათის წინ`;
+  return `${days} დღის წინ`;
 };
 
 export default function DevicesPage() {
-  const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [devices, setDevices] = useState<Device[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingDevice, setEditingDevice] = useState<string | null>(null);
   const [newDeviceName, setNewDeviceName] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login');
-      return;
+    if (isAuthenticated) {
+      fetchDevices();
     }
-    fetchDevices();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   const fetchDevices = async () => {
     setIsLoading(true);
@@ -75,7 +72,7 @@ export default function DevicesPage() {
   };
 
   const handleRemoveDevice = async (deviceId: string) => {
-    if (!confirm('Are you sure you want to remove this device? You will be logged out on that device.')) {
+    if (!confirm('დარწმუნებული ხართ, რომ გსურთ ამ მოწყობილობის წაშლა? თქვენ გამოხვალთ იმ მოწყობილობაზე.')) {
       return;
     }
 
@@ -84,7 +81,7 @@ export default function DevicesPage() {
       setDevices(devices.filter((d) => d.id !== deviceId));
     } catch (error) {
       console.error('Failed to remove device:', error);
-      alert('Failed to remove device');
+      alert('მოწყობილობის წაშლა ვერ მოხერხდა');
     }
   };
 
@@ -100,7 +97,7 @@ export default function DevicesPage() {
 
   const handleSaveDeviceName = async (deviceId: string) => {
     if (!newDeviceName.trim()) {
-      alert('Device name cannot be empty');
+      alert('მოწყობილობის სახელი არ შეიძლება იყოს ცარიელი');
       return;
     }
 
@@ -115,46 +112,48 @@ export default function DevicesPage() {
       setNewDeviceName('');
     } catch (error) {
       console.error('Failed to update device name:', error);
-      alert('Failed to update device name');
+      alert('მოწყობილობის სახელის განახლება ვერ მოხერხდა');
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900">Device Management</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Manage your active devices. You can have up to 3 devices logged in at once.
+    <StudentLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">მოწყობილობების მართვა</h1>
+          <p className="text-gray-500 mt-1">
+            მართეთ თქვენი აქტიური მოწყობილობები. შეგიძლიათ გქონდეთ მაქსიმუმ 3 მოწყობილობა ერთდროულად.
           </p>
         </div>
 
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Active Devices ({devices.length}/3)
+        {/* Devices List */}
+        <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">
+              აქტიური მოწყობილობები ({devices.length}/3)
             </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Devices that are currently logged in to your account
+            <p className="mt-1 text-sm text-gray-500">
+              მოწყობილობები, რომლებზეც ამჟამად ხართ შესული
             </p>
           </div>
 
-          {devices.length === 0 ? (
+          {isLoading ? (
             <div className="px-4 py-12 text-center">
-              <p className="text-gray-500">No active devices found</p>
+              <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+              <p className="text-gray-500 mt-4">იტვირთება...</p>
+            </div>
+          ) : devices.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <p className="text-gray-500">აქტიური მოწყობილობები არ მოიძებნა</p>
             </div>
           ) : (
             <ul className="divide-y divide-gray-200">
               {devices.map((device) => (
-                <li key={device.id} className="px-4 py-6 sm:px-6">
+                <li key={device.id} className="px-6 py-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0">
@@ -170,20 +169,20 @@ export default function DevicesPage() {
                               value={newDeviceName}
                               onChange={(e) => setNewDeviceName(e.target.value)}
                               className="max-w-xs"
-                              placeholder="Device name"
+                              placeholder="მოწყობილობის სახელი"
                             />
                             <Button
                               size="sm"
                               onClick={() => handleSaveDeviceName(device.id)}
                             >
-                              Save
+                              შენახვა
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={handleCancelEdit}
                             >
-                              Cancel
+                              გაუქმება
                             </Button>
                           </div>
                         ) : (
@@ -216,10 +215,10 @@ export default function DevicesPage() {
                             IP: {device.ipAddress}
                           </p>
                           <p className="text-sm text-gray-500">
-                            Last active: {formatLastActive(device.lastActiveAt)}
+                            ბოლო აქტივობა: {formatLastActive(device.lastActiveAt)}
                           </p>
                           <p className="text-xs text-gray-400">
-                            Added: {new Date(device.createdAt).toLocaleDateString()}
+                            დამატების თარიღი: {new Date(device.createdAt).toLocaleDateString('ka-GE')}
                           </p>
                         </div>
                       </div>
@@ -231,7 +230,7 @@ export default function DevicesPage() {
                         size="sm"
                         onClick={() => handleRemoveDevice(device.id)}
                       >
-                        Remove
+                        წაშლა
                       </Button>
                     </div>
                   </div>
@@ -241,7 +240,8 @@ export default function DevicesPage() {
           )}
         </div>
 
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        {/* Security Notice */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -250,24 +250,18 @@ export default function DevicesPage() {
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-yellow-800">
-                Security Notice
+                უსაფრთხოების შენიშვნა
               </h3>
               <div className="mt-2 text-sm text-yellow-700">
                 <p>
-                  Devices inactive for more than 30 days are automatically logged out for security reasons.
-                  If you don't recognize a device, remove it immediately and change your password.
+                  მოწყობილობები, რომლებიც არააქტიურია 30 დღეზე მეტი, ავტომატურად გამოდიან უსაფრთხოების მიზნით.
+                  თუ ვერ ცნობთ რომელიმე მოწყობილობას, დაუყოვნებლივ წაშალეთ და შეცვალეთ პაროლი.
                 </p>
               </div>
             </div>
           </div>
         </div>
-
-        <div className="mt-6">
-          <Button variant="outline" onClick={() => router.push('/dashboard')}>
-            Back to Dashboard
-          </Button>
-        </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 }
