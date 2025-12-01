@@ -16,6 +16,8 @@ import videoRoutes from './routes/video.routes'
 import progressRoutes from './routes/progress.routes'
 import quizRoutes from './routes/quiz.routes'
 import studentRoutes from './routes/student.routes'
+import reviewRoutes from './routes/review.routes'
+import messagingRoutes from './routes/messaging.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -77,6 +79,9 @@ app.use('/api/upload', uploadRoutes)
 // Category routes
 app.use('/api/categories', categoryRoutes)
 
+// Review routes (student and admin) - Must be before courseRoutes to match /courses/:id/reviews before /:id
+app.use('/api', reviewRoutes)
+
 // Course routes
 app.use('/api/courses', courseRoutes)
 
@@ -100,6 +105,9 @@ app.use('/api/quizzes', quizRoutes)
 
 // Student routes (dashboard, my courses, learning)
 app.use('/api/student', studentRoutes)
+
+// Messaging routes (student and admin)
+app.use('/api', messagingRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

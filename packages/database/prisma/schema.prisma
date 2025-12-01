@@ -100,6 +100,15 @@ model User {
   userXP          UserXP?
   preferences     UserPreferences?
 
+  // Communication system relations
+  sentMessages      StudentMessage[]  @relation("StudentMessages")
+  assignedMessages  StudentMessage[]  @relation("AssignedMessages")
+  messageReplies    MessageReply[]    @relation("MessageReplies")
+  cannedResponses   CannedResponse[]  @relation("CannedResponses")
+  reviewVotes       ReviewVote[]      @relation("ReviewVotes")
+  reviewResponses   ReviewResponse[]  @relation("ReviewResponses")
+  moderatedReviews  Review[]          @relation("ModeratedReviews")
+
   @@index([email])
   @@index([phone])
   @@index([verificationToken])
@@ -153,6 +162,7 @@ model Course {
   versions        CourseVersion[]
   purchases       Purchase[]
   reviews         Review[]
+  messages        StudentMessage[]
   activeVersionId String?         @unique
 
   @@index([slug])
@@ -582,22 +592,46 @@ model Comment {
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  rating    Int // 1-5 stars
-  comment   String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(cuid())
+  userId      String
+  courseId    String
+  rating      Int          // 1-5 stars (can store half-stars as x10, e.g., 45 = 4.5)
+  title       String?      // Review title
+  comment     String?      @db.Text
+  pros        String?      @db.Text // What they liked
+  cons        String?      @db.Text // What could be improved
+  wouldRecommend Boolean?  // Would recommend to others
+  isAnonymous Boolean      @default(false)
+  status      ReviewStatus @default(PENDING)
+
+  // Moderation
+  moderatedById   String?
+  moderatedAt     DateTime?
+  rejectionReason String?   @db.Text
+
+  // User completion info at time of review
+  completionPercentage Int  @default(0)
+
+  // Voting stats (denormalized for performance)
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  moderatedBy User?           @relation("ModeratedReviews", fields: [moderatedById], references: [id], onDelete: SetNull)
+  response    ReviewResponse?
+  votes       ReviewVote[]
 
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
   @@index([rating])
+  @@index([status])
+  @@index([createdAt])
   @@map("reviews")
 }
 
@@ -950,6 +984,10 @@ model UserPreferences {
   reminderDays          String[] // ["monday", "wednesday", "friday"]
   theme                 String   @default("light") // light, dark, system
   language              String   @default("en")
+  // Communication preferences
+  commentNotifications  Boolean  @default(true)
+  reviewNotifications   Boolean  @default(true)
+  marketingEmails       Boolean  @default(false)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
@@ -958,4 +996,192 @@ model UserPreferences {
 
   @@index([userId])
   @@map("user_preferences")
+}
+
+// ==========================================
+// COMMUNICATION & REVIEW SYSTEM
+// ==========================================
+
+enum MessageStatus {
+  NEW
+  READ
+  IN_PROGRESS
+  ANSWERED
+  RESOLVED
+  ARCHIVED
+}
+
+enum MessagePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+}
+
+model StudentMessage {
+  id            String          @id @default(cuid())
+  userId        String
+  courseId      String?
+  chapterId     String?
+  subject       String
+  content       String          @db.Text
+  attachmentUrl String?
+  status        MessageStatus   @default(NEW)
+  priority      MessagePriority @default(MEDIUM)
+
+  // Assignment
+  assignedToId  String?         // Admin assigned to handle
+
+  // Internal notes (not visible to student)
+  internalNotes String?         @db.Text
+
+  // Response tracking
+  firstResponseAt DateTime?
+  resolvedAt      DateTime?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  user       User              @relation("StudentMessages", fields: [userId], references: [id], onDelete: Cascade)
+  course     Course?           @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  assignedTo User?             @relation("AssignedMessages", fields: [assignedToId], references: [id], onDelete: SetNull)
+  replies    MessageReply[]
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("student_messages")
+}
+
+model MessageReply {
+  id          String   @id @default(cuid())
+  messageId   String
+  userId      String   // User who replied (admin or student)
+  content     String   @db.Text
+  attachmentUrl String?
+  isInternal  Boolean  @default(false) // Internal note not visible to student
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  message StudentMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User           @relation("MessageReplies", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("message_replies")
+}
+
+model CannedResponse {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  category    String?  // support, greeting, follow-up, etc.
+  shortcut    String?  // e.g., "/greeting" to quick insert
+  isActive    Boolean  @default(true)
+  usageCount  Int      @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  createdBy User @relation("CannedResponses", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([shortcut])
+  @@map("canned_responses")
+}
+
+// Enhanced Review model - updating existing Review
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  isHelpful Boolean  // true = helpful, false = not helpful
+  createdAt DateTime @default(now())
+
+  // Relations
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation("ReviewVotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
+  @@map("review_votes")
+}
+
+model ReviewResponse {
+  id        String   @id @default(cuid())
+  reviewId  String   @unique
+  adminId   String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  admin  User   @relation("ReviewResponses", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@map("review_responses")
+}
+
+model EmailLog {
+  id            String   @id @default(cuid())
+  toEmail       String
+  toUserId      String?
+  subject       String
+  templateType  String   // welcome, review_approved, message_reply, etc.
+  status        String   @default("sent") // sent, failed, bounced
+  errorMessage  String?  @db.Text
+  messageId     String?  // Email provider message ID
+  metadata      Json?    // Additional email metadata
+  createdAt     DateTime @default(now())
+
+  @@index([toEmail])
+  @@index([toUserId])
+  @@index([templateType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_logs")
+}
+
+model CommunicationAnalytics {
+  id                 String   @id @default(cuid())
+  date               DateTime @db.Date
+
+  // Message stats
+  totalMessages      Int      @default(0)
+  newMessages        Int      @default(0)
+  resolvedMessages   Int      @default(0)
+  avgResponseTimeMin Int?     // Average response time in minutes
+
+  // Review stats
+  totalReviews       Int      @default(0)
+  approvedReviews    Int      @default(0)
+  rejectedReviews    Int      @default(0)
+  avgRating          Decimal? @db.Decimal(3, 2)
+
+  // Email stats
+  emailsSent         Int      @default(0)
+  emailsFailed       Int      @default(0)
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("communication_analytics")
 }

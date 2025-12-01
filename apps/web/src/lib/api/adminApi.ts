@@ -146,4 +146,76 @@ export const analyticsApi = {
   getCourse: (courseId: string) => adminApi.get(`/analytics/course/${courseId}`)
 };
 
+// Review APIs (Admin)
+export const reviewApi = {
+  getAll: (params?: {
+    status?: string;
+    courseId?: string;
+    sortBy?: string;
+    page?: number;
+    limit?: number;
+  }) => adminApi.get('/admin/reviews', { params }),
+  getPending: (params?: { page?: number; limit?: number }) =>
+    adminApi.get('/admin/reviews/pending', { params }),
+  getAnalytics: (params?: { startDate?: string; endDate?: string }) =>
+    adminApi.get('/admin/reviews/analytics', { params }),
+  approve: (reviewId: string) =>
+    adminApi.post(`/admin/reviews/${reviewId}/approve`),
+  reject: (reviewId: string, reason: string) =>
+    adminApi.post(`/admin/reviews/${reviewId}/reject`, { reason }),
+  flag: (reviewId: string, reason: string) =>
+    adminApi.post(`/admin/reviews/${reviewId}/flag`, { reason }),
+  bulkModerate: (reviewIds: string[], action: 'approve' | 'reject' | 'flag', reason?: string) =>
+    adminApi.post('/admin/reviews/bulk-moderate', { reviewIds, action, reason }),
+  addResponse: (reviewId: string, content: string) =>
+    adminApi.post(`/admin/reviews/${reviewId}/response`, { content }),
+  deleteResponse: (reviewId: string) =>
+    adminApi.delete(`/admin/reviews/${reviewId}/response`)
+};
+
+// Messaging APIs (Admin)
+export const messagingApi = {
+  getAll: (params?: {
+    status?: string;
+    priority?: string;
+    assignedToId?: string;
+    courseId?: string;
+    unassigned?: boolean;
+    search?: string;
+    sortBy?: string;
+    page?: number;
+    limit?: number;
+  }) => adminApi.get('/admin/messages', { params }),
+  getMessage: (messageId: string) => adminApi.get(`/messages/${messageId}`),
+  addReply: (messageId: string, content: string, isInternal?: boolean, attachmentUrl?: string) =>
+    adminApi.post(`/messages/${messageId}/replies`, { content, isInternal, attachmentUrl }),
+  assign: (messageId: string, assignedToId: string | null) =>
+    adminApi.post(`/admin/messages/${messageId}/assign`, { assignedToId }),
+  updateStatus: (messageId: string, status: string) =>
+    adminApi.post(`/admin/messages/${messageId}/status`, { status }),
+  updatePriority: (messageId: string, priority: string) =>
+    adminApi.post(`/admin/messages/${messageId}/priority`, { priority }),
+  updateNotes: (messageId: string, notes: string) =>
+    adminApi.put(`/admin/messages/${messageId}/notes`, { notes }),
+  bulkUpdateStatus: (messageIds: string[], status: string) =>
+    adminApi.post('/admin/messages/bulk-status', { messageIds, status }),
+  bulkAssign: (messageIds: string[], assignedToId: string | null) =>
+    adminApi.post('/admin/messages/bulk-assign', { messageIds, assignedToId }),
+  getAnalytics: (params?: { startDate?: string; endDate?: string }) =>
+    adminApi.get('/admin/messages/analytics', { params }),
+  getTeamPerformance: (params?: { startDate?: string; endDate?: string }) =>
+    adminApi.get('/admin/messages/team-performance', { params })
+};
+
+// Canned Responses APIs (Admin)
+export const cannedResponseApi = {
+  getAll: (category?: string) =>
+    adminApi.get('/admin/canned-responses', { params: { category } }),
+  create: (data: { title: string; content: string; category?: string; shortcut?: string }) =>
+    adminApi.post('/admin/canned-responses', data),
+  update: (id: string, data: { title?: string; content?: string; category?: string; shortcut?: string; isActive?: boolean }) =>
+    adminApi.put(`/admin/canned-responses/${id}`, data),
+  delete: (id: string) => adminApi.delete(`/admin/canned-responses/${id}`)
+};
+
 export default adminApi;

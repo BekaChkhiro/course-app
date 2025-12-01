@@ -429,6 +429,184 @@ export const studentApiClient = {
     const response = await studentApi.get(`/courses/${courseId}/bookmarks`);
     return response.data;
   },
+
+  // Reviews
+  canReview: async (courseId: string): Promise<{
+    success: boolean;
+    data: {
+      canReview: boolean;
+      reason?: string;
+      completionPercentage: number;
+      hasExistingReview: boolean;
+    };
+  }> => {
+    const response = await axios.get(`${API_URL}/api/courses/${courseId}/can-review`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  createReview: async (
+    courseId: string,
+    data: {
+      rating: number;
+      title?: string;
+      comment?: string;
+      pros?: string;
+      cons?: string;
+      wouldRecommend?: boolean;
+      isAnonymous?: boolean;
+    }
+  ): Promise<{ success: boolean; data: any; message: string }> => {
+    const response = await axios.post(`${API_URL}/api/courses/${courseId}/reviews`, data, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  updateReview: async (
+    reviewId: string,
+    data: {
+      rating?: number;
+      title?: string;
+      comment?: string;
+      pros?: string;
+      cons?: string;
+      wouldRecommend?: boolean;
+      isAnonymous?: boolean;
+    }
+  ): Promise<{ success: boolean; data: any; message: string }> => {
+    const response = await axios.put(`${API_URL}/api/reviews/${reviewId}`, data, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  deleteReview: async (reviewId: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_URL}/api/reviews/${reviewId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  getCourseReviews: async (
+    courseId: string,
+    params?: { sortBy?: string; page?: number; limit?: number; rating?: number }
+  ): Promise<{
+    success: boolean;
+    data: {
+      reviews: any[];
+      pagination: { total: number; page: number; limit: number; totalPages: number };
+    };
+  }> => {
+    const response = await axios.get(`${API_URL}/api/courses/${courseId}/reviews`, { params });
+    return response.data;
+  },
+
+  getCourseReviewStats: async (
+    courseId: string
+  ): Promise<{
+    success: boolean;
+    data: {
+      averageRating: number;
+      totalReviews: number;
+      ratingDistribution: { [key: number]: number };
+      wouldRecommendPercentage: number;
+    };
+  }> => {
+    const response = await axios.get(`${API_URL}/api/courses/${courseId}/reviews/stats`);
+    return response.data;
+  },
+
+  voteReview: async (
+    reviewId: string,
+    isHelpful: boolean
+  ): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.post(
+      `${API_URL}/api/reviews/${reviewId}/vote`,
+      { isHelpful },
+      { headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } }
+    );
+    return response.data;
+  },
+
+  removeVote: async (reviewId: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_URL}/api/reviews/${reviewId}/vote`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  getMyReviews: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<{ success: boolean; data: any }> => {
+    const response = await axios.get(`${API_URL}/api/my-reviews`, {
+      params,
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  // Messages
+  sendMessage: async (data: {
+    subject: string;
+    content: string;
+    courseId?: string;
+    attachmentUrl?: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  }): Promise<{ success: boolean; data: any; message: string }> => {
+    const response = await axios.post(`${API_URL}/api/messages`, data, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  getMyMessages: async (params?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{ success: boolean; data: any }> => {
+    const response = await axios.get(`${API_URL}/api/messages`, {
+      params,
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  getMessage: async (messageId: string): Promise<{ success: boolean; data: any }> => {
+    const response = await axios.get(`${API_URL}/api/messages/${messageId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  replyToMessage: async (
+    messageId: string,
+    content: string,
+    attachmentUrl?: string
+  ): Promise<{ success: boolean; data: any; message: string }> => {
+    const response = await axios.post(
+      `${API_URL}/api/messages/${messageId}/replies`,
+      { content, attachmentUrl },
+      { headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } }
+    );
+    return response.data;
+  },
+
+  deleteMessage: async (messageId: string): Promise<{ success: boolean; message: string }> => {
+    const response = await axios.delete(`${API_URL}/api/messages/${messageId}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
+
+  getUnreadMessageCount: async (): Promise<{ success: boolean; data: { count: number } }> => {
+    const response = await axios.get(`${API_URL}/api/messages/unread-count`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    return response.data;
+  },
 };
 
 export default studentApi;
