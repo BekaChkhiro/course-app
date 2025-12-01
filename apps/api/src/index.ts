@@ -18,6 +18,7 @@ import quizRoutes from './routes/quiz.routes'
 import studentRoutes from './routes/student.routes'
 import reviewRoutes from './routes/review.routes'
 import messagingRoutes from './routes/messaging.routes'
+import comprehensiveAnalyticsRoutes from './routes/comprehensiveAnalyticsRoutes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -108,6 +109,9 @@ app.use('/api/student', studentRoutes)
 
 // Messaging routes (student and admin)
 app.use('/api', messagingRoutes)
+
+// Comprehensive Analytics routes (admin only)
+app.use('/api/admin/analytics', comprehensiveAnalyticsRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

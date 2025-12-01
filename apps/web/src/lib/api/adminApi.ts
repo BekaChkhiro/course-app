@@ -136,7 +136,7 @@ export const versionApi = {
     adminApi.get('/versions/compare', { params: { version1Id, version2Id } })
 };
 
-// Analytics APIs
+// Analytics APIs (Legacy)
 export const analyticsApi = {
   getDashboard: (params?: { period?: number }) =>
     adminApi.get('/analytics/dashboard', { params }),
@@ -144,6 +144,97 @@ export const analyticsApi = {
   getStudents: (params?: { period?: number }) =>
     adminApi.get('/analytics/students', { params }),
   getCourse: (courseId: string) => adminApi.get(`/analytics/course/${courseId}`)
+};
+
+// Comprehensive Analytics APIs
+export const comprehensiveAnalyticsApi = {
+  // Dashboard
+  getDashboardOverview: (params?: { period?: number }) =>
+    adminApi.get('/admin/analytics/dashboard', { params }),
+  getRevenueTrend: (params?: { months?: number }) =>
+    adminApi.get('/admin/analytics/dashboard/revenue-trend', { params }),
+  getTopCourses: (params?: { limit?: number }) =>
+    adminApi.get('/admin/analytics/dashboard/top-courses', { params }),
+
+  // Revenue
+  getRevenueAnalytics: (params?: { startDate?: string; endDate?: string; groupBy?: 'day' | 'week' | 'month' }) =>
+    adminApi.get('/admin/analytics/revenue', { params }),
+  getRecurringRevenue: () =>
+    adminApi.get('/admin/analytics/revenue/recurring'),
+  getCustomerLifetimeValue: () =>
+    adminApi.get('/admin/analytics/revenue/clv'),
+  getConversionRates: (params?: { period?: number }) =>
+    adminApi.get('/admin/analytics/revenue/conversion', { params }),
+
+  // Students
+  getStudentAnalytics: (params?: { period?: number }) =>
+    adminApi.get('/admin/analytics/students', { params }),
+  getCohortRetention: () =>
+    adminApi.get('/admin/analytics/students/cohorts'),
+
+  // Courses
+  getAllCoursesPerformance: () =>
+    adminApi.get('/admin/analytics/courses'),
+  getCoursePerformance: (courseId: string) =>
+    adminApi.get(`/admin/analytics/courses/${courseId}`),
+
+  // Learning
+  getLearningAnalytics: (params?: { period?: number }) =>
+    adminApi.get('/admin/analytics/learning', { params }),
+
+  // Engagement
+  getEngagementMetrics: (params?: { period?: number }) =>
+    adminApi.get('/admin/analytics/engagement', { params }),
+
+  // Real-time
+  getRealtimeActivity: () =>
+    adminApi.get('/admin/analytics/realtime'),
+  getLiveUsers: () =>
+    adminApi.get('/admin/analytics/realtime/users'),
+
+  // Custom Reports
+  createReport: (data: any) =>
+    adminApi.post('/admin/analytics/reports', data),
+  createCustomReport: (data: any) =>
+    adminApi.post('/admin/analytics/reports', data),
+  getUserReports: () =>
+    adminApi.get('/admin/analytics/reports'),
+  getCustomReports: () =>
+    adminApi.get('/admin/analytics/reports'),
+  getReportTemplates: () =>
+    adminApi.get('/admin/analytics/reports/templates'),
+  updateReport: (reportId: string, data: any) =>
+    adminApi.put(`/admin/analytics/reports/${reportId}`, data),
+  updateCustomReport: (reportId: string, data: any) =>
+    adminApi.put(`/admin/analytics/reports/${reportId}`, data),
+  deleteReport: (reportId: string) =>
+    adminApi.delete(`/admin/analytics/reports/${reportId}`),
+  deleteCustomReport: (reportId: string) =>
+    adminApi.delete(`/admin/analytics/reports/${reportId}`),
+  runCustomReport: (reportId: string) =>
+    adminApi.post(`/admin/analytics/reports/${reportId}/run`),
+
+  // Exports
+  createExportJob: (data: { exportType: string; reportType: string; filters?: any; startDate?: string; endDate?: string }) =>
+    adminApi.post('/admin/analytics/export', data),
+  getExportJobs: () =>
+    adminApi.get('/admin/analytics/export'),
+  exportRevenue: (params: { startDate: string; endDate: string }) =>
+    adminApi.get('/admin/analytics/export/revenue', { params, responseType: 'blob' }),
+  exportStudents: () =>
+    adminApi.get('/admin/analytics/export/students', { responseType: 'blob' }),
+  exportCourses: () =>
+    adminApi.get('/admin/analytics/export/courses', { responseType: 'blob' }),
+
+  // Predictive Analytics
+  getPredictiveAnalytics: (params?: { period?: number }) =>
+    adminApi.get('/admin/analytics/predictive', { params }),
+  getChurnPrediction: () =>
+    adminApi.get('/admin/analytics/predictive/churn'),
+  getRevenueForecast: (params?: { months?: number }) =>
+    adminApi.get('/admin/analytics/predictive/revenue-forecast', { params }),
+  getDemandPrediction: () =>
+    adminApi.get('/admin/analytics/predictive/demand')
 };
 
 // Review APIs (Admin)

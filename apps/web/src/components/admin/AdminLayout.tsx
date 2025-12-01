@@ -9,23 +9,72 @@ import {
   FolderTree,
   Menu,
   X,
-  LogOut
+  LogOut,
+  BarChart3,
+  ChevronDown,
+  TrendingUp,
+  Users,
+  GraduationCap,
+  Brain,
+  MessageSquare,
+  Activity,
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
 import { useAuthStore } from '@/store/authStore';
 import { PageLoader } from '../ui/LoadingSpinner';
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: any;
+  children?: { name: string; href: string; icon: any }[];
+}
+
+const navigation: NavItem[] = [
   { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
   { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
-  { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree }
+  { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
+  {
+    name: 'ანალიტიკა',
+    href: '/admin/analytics',
+    icon: BarChart3,
+    children: [
+      { name: 'მიმოხილვა', href: '/admin/analytics', icon: BarChart3 },
+      { name: 'შემოსავალი', href: '/admin/analytics/revenue', icon: TrendingUp },
+      { name: 'სტუდენტები', href: '/admin/analytics/students', icon: Users },
+      { name: 'კურსები', href: '/admin/analytics/courses', icon: GraduationCap },
+      { name: 'სწავლა', href: '/admin/analytics/learning', icon: Brain },
+      { name: 'ჩართულობა', href: '/admin/analytics/engagement', icon: MessageSquare },
+      { name: 'რეალტაიმ', href: '/admin/analytics/realtime', icon: Activity },
+      { name: 'რეპორტები', href: '/admin/analytics/reports', icon: FileText },
+      { name: 'პროგნოზები', href: '/admin/analytics/predictive', icon: Sparkles }
+    ]
+  }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const pathname = usePathname();
+
+  // Auto-expand analytics menu if on analytics page
+  useEffect(() => {
+    if (pathname?.startsWith('/admin/analytics')) {
+      setExpandedMenus(prev => prev.includes('ანალიტიკა') ? prev : [...prev, 'ანალიტიკა']);
+    }
+  }, [pathname]);
+
+  const toggleMenu = (name: string) => {
+    setExpandedMenus(prev =>
+      prev.includes(name)
+        ? prev.filter(n => n !== name)
+        : [...prev, name]
+    );
+  };
   const router = useRouter();
   const { user, isAuthenticated, fetchProfile, logout } = useAuthStore();
 
@@ -142,6 +191,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               ? pathname === '/admin'
               : pathname === item.href || pathname?.startsWith(item.href + '/');
             const Icon = item.icon;
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedMenus.includes(item.name);
+
+            if (hasChildren) {
+              return (
+                <div key={item.name}>
+                  <button
+                    onClick={() => toggleMenu(item.name)}
+                    className={cn(
+                      'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5" />
+                      {item.name}
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 transition-transform',
+                        isExpanded ? 'rotate-180' : ''
+                      )}
+                    />
+                  </button>
+                  {isExpanded && (
+                    <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-3">
+                      {item.children!.map((child) => {
+                        const childIsActive = child.href === '/admin/analytics'
+                          ? pathname === '/admin/analytics'
+                          : pathname === child.href;
+                        const ChildIcon = child.icon;
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={() => setSidebarOpen(false)}
+                            className={cn(
+                              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
+                              childIsActive
+                                ? 'bg-indigo-50 text-indigo-600 font-medium'
+                                : 'text-gray-600 hover:bg-gray-100'
+                            )}
+                          >
+                            <ChildIcon className="w-4 h-4" />
+                            {child.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
 
             return (
               <Link
@@ -151,7 +255,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-blue-50 text-blue-600'
+                    ? 'bg-indigo-50 text-indigo-600'
                     : 'text-gray-700 hover:bg-gray-100'
                 )}
               >

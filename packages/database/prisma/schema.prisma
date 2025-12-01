@@ -1185,3 +1185,314 @@ model CommunicationAnalytics {
   @@index([date])
   @@map("communication_analytics")
 }
+
+// ==========================================
+// COMPREHENSIVE ANALYTICS SYSTEM
+// ==========================================
+
+// Daily aggregated analytics for performance dashboard
+model DailyAnalytics {
+  id                  String   @id @default(cuid())
+  date                DateTime @db.Date
+
+  // Revenue metrics
+  totalRevenue        Decimal  @default(0) @db.Decimal(10, 2)
+  refundedAmount      Decimal  @default(0) @db.Decimal(10, 2)
+  netRevenue          Decimal  @default(0) @db.Decimal(10, 2)
+  totalPurchases      Int      @default(0)
+  avgOrderValue       Decimal  @default(0) @db.Decimal(10, 2)
+  newPurchases        Int      @default(0)
+
+  // Student metrics
+  newRegistrations    Int      @default(0)
+  activeUsers         Int      @default(0) // Users who logged in
+  totalLogins         Int      @default(0)
+  avgSessionDuration  Int      @default(0) // seconds
+
+  // Course metrics
+  enrollments         Int      @default(0)
+  completions         Int      @default(0)
+  chaptersCompleted   Int      @default(0)
+
+  // Engagement metrics
+  totalComments       Int      @default(0)
+  newReviews          Int      @default(0)
+  videoViews          Int      @default(0)
+  totalWatchTime      Int      @default(0) // seconds
+  quizAttempts        Int      @default(0)
+  quizPasses          Int      @default(0)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([date])
+  @@index([date])
+  @@map("daily_analytics")
+}
+
+// Revenue breakdown by course for detailed reporting
+model CourseRevenueAnalytics {
+  id              String   @id @default(cuid())
+  courseId        String
+  date            DateTime @db.Date
+
+  revenue         Decimal  @default(0) @db.Decimal(10, 2)
+  refunds         Decimal  @default(0) @db.Decimal(10, 2)
+  purchases       Int      @default(0)
+  avgPrice        Decimal  @default(0) @db.Decimal(10, 2)
+  promoCodeUsage  Int      @default(0)
+  discountGiven   Decimal  @default(0) @db.Decimal(10, 2)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([courseId, date])
+  @@index([courseId])
+  @@index([date])
+  @@map("course_revenue_analytics")
+}
+
+// Student cohort analysis
+model StudentCohort {
+  id              String   @id @default(cuid())
+  cohortMonth     DateTime @db.Date // First day of the month
+
+  totalStudents   Int      @default(0)
+  activeMonth1    Int      @default(0) // Still active after 1 month
+  activeMonth2    Int      @default(0)
+  activeMonth3    Int      @default(0)
+  activeMonth6    Int      @default(0)
+  activeMonth12   Int      @default(0)
+
+  avgPurchases    Decimal  @default(0) @db.Decimal(5, 2)
+  avgLifetimeValue Decimal @default(0) @db.Decimal(10, 2)
+  churnRate       Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([cohortMonth])
+  @@index([cohortMonth])
+  @@map("student_cohorts")
+}
+
+// Chapter-level analytics for learning path analysis
+model ChapterAnalytics {
+  id                  String   @id @default(cuid())
+  chapterId           String
+  date                DateTime @db.Date
+
+  views               Int      @default(0)
+  starts              Int      @default(0)
+  completions         Int      @default(0)
+  avgTimeSpent        Int      @default(0) // seconds
+  dropoffs            Int      @default(0)
+  videoCompletionRate Decimal  @default(0) @db.Decimal(5, 2)
+
+  // Quiz performance (if chapter has quiz)
+  quizAttempts        Int      @default(0)
+  quizPasses          Int      @default(0)
+  avgQuizScore        Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([chapterId, date])
+  @@index([chapterId])
+  @@index([date])
+  @@map("chapter_analytics")
+}
+
+// Geographic and device analytics
+model GeoAnalytics {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  country         String
+  region          String?
+  city            String?
+
+  users           Int      @default(0)
+  revenue         Decimal  @default(0) @db.Decimal(10, 2)
+  purchases       Int      @default(0)
+  sessions        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([date, country, region, city])
+  @@index([date])
+  @@index([country])
+  @@map("geo_analytics")
+}
+
+model DeviceAnalytics {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  deviceType      String   // mobile, tablet, desktop
+  browser         String?
+  os              String?
+
+  users           Int      @default(0)
+  sessions        Int      @default(0)
+  avgDuration     Int      @default(0) // seconds
+  bounceRate      Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([date, deviceType, browser, os])
+  @@index([date])
+  @@index([deviceType])
+  @@map("device_analytics")
+}
+
+// Saved custom reports
+model CustomReport {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  createdById     String
+
+  // Report configuration
+  reportType      String   // dashboard, revenue, students, courses, custom
+  config          Json     // Chart types, metrics, filters, date range
+  layout          Json?    // Grid layout for dashboard widgets
+
+  // Scheduling
+  isScheduled     Boolean  @default(false)
+  scheduleFrequency String? // daily, weekly, monthly
+  scheduledDay    Int?     // Day of week (0-6) or day of month (1-31)
+  scheduleTime    String?  // HH:MM format
+  emailRecipients String[] // Email addresses to send to
+  lastSentAt      DateTime?
+
+  isPublic        Boolean  @default(false)
+  isTemplate      Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([createdById])
+  @@index([isScheduled])
+  @@map("custom_reports")
+}
+
+// Export jobs tracking
+model ExportJob {
+  id              String   @id @default(cuid())
+  userId          String
+
+  exportType      String   // csv, excel, pdf
+  reportType      String   // revenue, students, courses, custom
+  filters         Json?    // Applied filters
+  dateRange       Json?    // Start and end date
+
+  status          String   @default("pending") // pending, processing, completed, failed
+  progress        Int      @default(0) // 0-100
+  fileUrl         String?
+  fileName        String?
+  fileSize        Int?     // bytes
+  errorMessage    String?
+
+  startedAt       DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime? // When the file will be deleted
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("export_jobs")
+}
+
+// Real-time activity tracking
+model ActivityLog {
+  id              String   @id @default(cuid())
+  userId          String?
+  sessionId       String?
+
+  activityType    String   // page_view, video_play, quiz_start, purchase, login, etc.
+  resourceType    String?  // course, chapter, video, quiz
+  resourceId      String?
+
+  metadata        Json?    // Additional activity data
+  ipAddress       String?
+  userAgent       String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([activityType])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// Performance monitoring
+model PerformanceMetric {
+  id              String   @id @default(cuid())
+  metricType      String   // page_load, api_response, video_buffer, error_rate
+  endpoint        String?  // API endpoint or page path
+
+  avgValue        Decimal  @db.Decimal(10, 2) // Average time/rate
+  minValue        Decimal  @db.Decimal(10, 2)
+  maxValue        Decimal  @db.Decimal(10, 2)
+  p50Value        Decimal  @db.Decimal(10, 2) // Median
+  p95Value        Decimal  @db.Decimal(10, 2) // 95th percentile
+  p99Value        Decimal  @db.Decimal(10, 2) // 99th percentile
+  sampleCount     Int
+
+  hour            DateTime // Aggregated by hour
+
+  createdAt       DateTime @default(now())
+
+  @@unique([metricType, endpoint, hour])
+  @@index([metricType])
+  @@index([hour])
+  @@map("performance_metrics")
+}
+
+// Predictive analytics data
+model PredictiveData {
+  id              String   @id @default(cuid())
+  userId          String?
+  courseId        String?
+
+  predictionType  String   // churn_risk, revenue_forecast, completion_prediction
+  confidenceScore Decimal  @db.Decimal(5, 2)
+  predictedValue  Decimal? @db.Decimal(10, 2)
+  predictedDate   DateTime?
+
+  factors         Json?    // Contributing factors to the prediction
+
+  isActualized    Boolean  @default(false)
+  actualValue     Decimal? @db.Decimal(10, 2)
+  actualizedAt    DateTime?
+
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime?
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([predictionType])
+  @@index([createdAt])
+  @@map("predictive_data")
+}
+
+// Promo code analytics
+model PromoCodeAnalytics {
+  id              String   @id @default(cuid())
+  promoCodeId     String
+  date            DateTime @db.Date
+
+  usageCount      Int      @default(0)
+  revenue         Decimal  @default(0) @db.Decimal(10, 2)
+  discountGiven   Decimal  @default(0) @db.Decimal(10, 2)
+  uniqueUsers     Int      @default(0)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([promoCodeId, date])
+  @@index([promoCodeId])
+  @@index([date])
+  @@map("promo_code_analytics")
+}
