@@ -1,165 +1,385 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import StudentLayout from '@/components/student/StudentLayout';
+import { studentApiClient, DashboardData } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
-import { Button } from '@/components/ui/Button';
+
+function formatWatchTime(hours: number): string {
+  if (hours < 1) {
+    return `${Math.round(hours * 60)}m`;
+  }
+  return `${Math.round(hours)}h`;
+}
+
+function ProgressRing({ progress, size = 60, strokeWidth = 6 }: { progress: number; size?: number; strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        className="text-gray-200"
+        strokeWidth={strokeWidth}
+        stroke="currentColor"
+        fill="transparent"
+        r={radius}
+        cx={size / 2}
+        cy={size / 2}
+      />
+      <circle
+        className="text-indigo-600 transition-all duration-500"
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        stroke="currentColor"
+        fill="transparent"
+        r={radius}
+        cx={size / 2}
+        cy={size / 2}
+      />
+    </svg>
+  );
+}
+
+function StatCard({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        </div>
+        <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+function ContinueLearningCard({ course }: { course: DashboardData['continueLearning'][0] }) {
+  return (
+    <Link href={`/dashboard/courses/${course.slug}/learn`}>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
+        <div className="relative h-32 bg-gray-200">
+          {course.thumbnail ? (
+            <img
+              src={course.thumbnail}
+              alt={course.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-500">
+              <svg className="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="bg-white rounded-full p-3 shadow-lg">
+                <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-4">
+          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+            {course.category}
+          </span>
+          <h3 className="font-semibold text-gray-900 mt-2 line-clamp-1">{course.title}</h3>
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+              <span>{course.completedChapters}/{course.totalChapters} chapters</span>
+              <span>{course.progressPercentage}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${course.progressPercentage}%` }}
+              />
+            </div>
+          </div>
+          {course.nextChapter && (
+            <p className="mt-3 text-sm text-gray-500">
+              Next: <span className="text-gray-700">{course.nextChapter.title}</span>
+            </p>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
+  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const today = new Date().getDay();
+  const adjustedToday = today === 0 ? 6 : today - 1;
+
+  return (
+    <div className="bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl shadow-sm p-6 text-white">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-white text-opacity-80 text-sm">Study Streak</p>
+          <p className="text-3xl font-bold mt-1">{streak.currentStreak} days</p>
+        </div>
+        <div className="text-5xl">
+          {streak.currentStreak > 0 ? '' : ''}
+        </div>
+      </div>
+      <div className="flex justify-between mt-4">
+        {days.map((day, index) => (
+          <div key={index} className="flex flex-col items-center">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                index <= adjustedToday
+                  ? streak.currentStreak > 0
+                    ? 'bg-white text-orange-500'
+                    : 'bg-white bg-opacity-30 text-white'
+                  : 'bg-white bg-opacity-20 text-white text-opacity-50'
+              }`}
+            >
+              {index < adjustedToday && streak.currentStreak > 0 ? (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <span className="text-xs font-medium">{day}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 pt-4 border-t border-white border-opacity-20 flex justify-between text-sm">
+        <div>
+          <p className="text-white text-opacity-70">Longest</p>
+          <p className="font-semibold">{streak.longestStreak} days</p>
+        </div>
+        <div>
+          <p className="text-white text-opacity-70">Total Days</p>
+          <p className="font-semibold">{streak.totalStudyDays}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function XPCard({ gamification }: { gamification: DashboardData['gamification'] }) {
+  const xpProgress = (gamification.totalXP / (gamification.totalXP + gamification.xpToNextLevel)) * 100;
+
+  return (
+    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-sm p-6 text-white">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-white text-opacity-80 text-sm">Level</p>
+          <p className="text-3xl font-bold mt-1">{gamification.level}</p>
+        </div>
+        <div className="relative">
+          <ProgressRing progress={xpProgress} size={70} strokeWidth={8} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs font-bold">{Math.round(xpProgress)}%</span>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-white text-opacity-80">Total XP</span>
+          <span className="font-semibold">{gamification.totalXP.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-white text-opacity-80">Next Level</span>
+          <span className="font-semibold">{gamification.xpToNextLevel.toLocaleString()} XP</span>
+        </div>
+      </div>
+      {gamification.recentBadges.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-white border-opacity-20">
+          <p className="text-xs text-white text-opacity-70 mb-2">Recent Badges</p>
+          <div className="flex space-x-2">
+            {gamification.recentBadges.slice(0, 3).map((badge) => (
+              <div
+                key={badge.id}
+                className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center"
+                title={badge.name}
+              >
+                <span className="text-sm">{badge.icon}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user } = useAuthStore();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login');
-    }
-  }, [isAuthenticated, router]);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: studentApiClient.getDashboard,
+    staleTime: 30000,
+  });
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/auth/login');
-  };
+  const dashboardData = data?.data;
 
-  if (!isAuthenticated || !user) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
+      <StudentLayout>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-24 bg-gray-200 rounded-xl" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-28 bg-gray-200 rounded-xl" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </StudentLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <StudentLayout>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p className="text-red-600 font-medium">Failed to load dashboard data</p>
+          <p className="text-red-500 text-sm mt-1">Please try again later</p>
+        </div>
+      </StudentLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">E-Learning Platform</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/devices">
-                <Button variant="outline">My Devices</Button>
-              </Link>
-              <Button onClick={handleLogout} variant="outline">
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Welcome Section */}
-          <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-            <div className="px-4 py-5 sm:p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Welcome back, {user.name}!
-              </h2>
-              <p className="text-gray-600">
-                {user.emailVerified ? (
-                  <span className="inline-flex items-center text-green-600">
-                    <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Email Verified
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center text-yellow-600">
-                    <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    Please verify your email
-                  </span>
-                )}
+    <StudentLayout>
+      <div className="space-y-8">
+        {/* Welcome Section */}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                Welcome back, {user?.name}!
+              </h1>
+              <p className="mt-2 text-indigo-100">
+                {dashboardData?.continueLearning.length
+                  ? "Continue where you left off and keep up the great progress!"
+                  : "Start exploring courses to begin your learning journey."}
               </p>
             </div>
-          </div>
-
-          {/* User Info Card */}
-          <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Account Information</h3>
-              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Full Name</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{user.name} {user.surname}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
-                </div>
-                {user.phone && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{user.phone}</dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Role</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{user.role}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <Link href="/devices">
-              <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                      <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="ml-5">
-                      <div className="text-sm font-medium text-gray-500">My Devices</div>
-                      <div className="text-lg font-semibold text-gray-900">Manage Sessions</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <Link
+              href="/dashboard/courses"
+              className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
+            >
+              Browse Courses
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg opacity-50 cursor-not-allowed">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-gray-400 rounded-md p-3">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <div className="ml-5">
-                    <div className="text-sm font-medium text-gray-500">My Courses</div>
-                    <div className="text-lg font-semibold text-gray-900">Coming Soon</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg opacity-50 cursor-not-allowed">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-gray-400 rounded-md p-3">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-5">
-                    <div className="text-sm font-medium text-gray-500">Progress</div>
-                    <div className="text-lg font-semibold text-gray-900">Coming Soon</div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
-      </main>
-    </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Courses"
+            value={dashboardData?.stats.totalCourses || 0}
+            icon={
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            }
+            color="bg-indigo-100"
+          />
+          <StatCard
+            title="Completed"
+            value={dashboardData?.stats.completedCourses || 0}
+            icon={
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            color="bg-green-100"
+          />
+          <StatCard
+            title="Watch Time"
+            value={formatWatchTime(dashboardData?.stats.totalWatchTimeHours || 0)}
+            icon={
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            color="bg-blue-100"
+          />
+          <StatCard
+            title="Certificates"
+            value={dashboardData?.stats.certificates || 0}
+            icon={
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            }
+            color="bg-yellow-100"
+          />
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Continue Learning Section */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Continue Learning</h2>
+              <Link
+                href="/dashboard/courses"
+                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              >
+                View All
+              </Link>
+            </div>
+            {dashboardData?.continueLearning.length ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {dashboardData.continueLearning.map((course) => (
+                  <ContinueLearningCard key={course.id} course={course} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-1">No courses in progress</h3>
+                <p className="text-gray-500 mb-4">Start learning today!</p>
+                <Link
+                  href="/dashboard/courses"
+                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Browse Courses
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="space-y-4">
+            {dashboardData?.studyStreak && (
+              <StreakCard streak={dashboardData.studyStreak} />
+            )}
+            {dashboardData?.gamification && (
+              <XPCard gamification={dashboardData.gamification} />
+            )}
+          </div>
+        </div>
+      </div>
+    </StudentLayout>
   );
 }

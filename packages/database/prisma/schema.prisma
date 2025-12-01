@@ -87,12 +87,18 @@ model User {
   updatedAt             DateTime  @updatedAt
 
   // Relations
-  purchases      Purchase[]
-  progress       Progress[]
-  comments       Comment[]
-  reviews        Review[]
-  deviceSessions DeviceSession[]
+  purchases       Purchase[]
+  progress        Progress[]
+  comments        Comment[]
+  reviews         Review[]
+  deviceSessions  DeviceSession[]
   authoredCourses Course[]
+  notes           Note[]
+  bookmarks       Bookmark[]
+  studyStreak     StudyStreak?
+  userBadges      UserBadge[]
+  userXP          UserXP?
+  preferences     UserPreferences?
 
   @@index([email])
   @@index([phone])
@@ -209,6 +215,8 @@ model Chapter {
   progress      Progress[]
   videos        Video[]
   quiz          Quiz?
+  notes         Note[]
+  bookmarks     Bookmark[]
 
   @@index([courseVersionId])
   @@index([order])
@@ -683,6 +691,7 @@ model Video {
   accessTokens    VideoAccessToken[]
   analytics       VideoAnalytics[]
   processingJobs  VideoProcessingJob[]
+  bookmarks       Bookmark[]
 
   @@index([chapterId])
   @@index([processingStatus])
@@ -776,4 +785,177 @@ model VideoAnalytics {
   @@index([sessionId])
   @@index([createdAt])
   @@map("video_analytics")
+}
+
+// ==========================================
+// STUDENT LEARNING FEATURES
+// ==========================================
+
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String
+  content     String   @db.Text
+  highlightedText String? @db.Text // Original text that was highlighted
+  color       String?  @default("yellow") // Highlight color
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([chapterId])
+  @@index([userId, chapterId])
+  @@map("notes")
+}
+
+model Bookmark {
+  id          String   @id @default(cuid())
+  userId      String
+  chapterId   String
+  videoId     String?
+  timestamp   Int?     // Video timestamp in seconds
+  title       String   // User-defined title for the bookmark
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  video   Video?  @relation(fields: [videoId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([chapterId])
+  @@index([videoId])
+  @@map("bookmarks")
+}
+
+model StudyStreak {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastStudyDate DateTime?
+  streakStartDate DateTime?
+  totalStudyDays Int     @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("study_streaks")
+}
+
+model StudySession {
+  id          String   @id @default(cuid())
+  userId      String
+  courseId    String?
+  chapterId   String?
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  duration    Int?     // Duration in seconds
+  xpEarned    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([startedAt])
+  @@map("study_sessions")
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String
+  icon        String   // Icon name or URL
+  category    String   // streak, completion, engagement, achievement
+  requirement Json     // Requirements to earn the badge
+  xpReward    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userBadges UserBadge[]
+
+  @@index([slug])
+  @@index([category])
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  notified  Boolean  @default(false)
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@map("user_badges")
+}
+
+model UserXP {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  totalXP     Int      @default(0)
+  level       Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xpHistory   XPHistory[]
+
+  @@index([userId])
+  @@index([totalXP])
+  @@map("user_xp")
+}
+
+model XPHistory {
+  id          String   @id @default(cuid())
+  userXPId    String
+  amount      Int
+  reason      String   // chapter_complete, quiz_pass, streak_bonus, etc.
+  sourceId    String?  // ID of the related entity (chapter, quiz, etc.)
+  sourceType  String?  // chapter, quiz, course, etc.
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userXP UserXP @relation(fields: [userXPId], references: [id], onDelete: Cascade)
+
+  @@index([userXPId])
+  @@index([createdAt])
+  @@map("xp_history")
+}
+
+model UserPreferences {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  emailNotifications    Boolean  @default(true)
+  progressReminders     Boolean  @default(true)
+  weeklyReports         Boolean  @default(true)
+  reminderTime          String?  // HH:MM format
+  reminderDays          String[] // ["monday", "wednesday", "friday"]
+  theme                 String   @default("light") // light, dark, system
+  language              String   @default("en")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_preferences")
 }
