@@ -18,6 +18,7 @@ interface RequestMetrics {
   userAgent?: string;
   userId?: string;
   error?: string;
+  timestamp: number;
 }
 
 class MonitoringService {
@@ -49,6 +50,7 @@ class MonitoringService {
           ip: req.ip || 'unknown',
           userAgent: req.get('User-Agent'),
           userId: (req as any).userId,
+          timestamp: Date.now(),
         });
       });
 

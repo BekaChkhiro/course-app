@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireAdmin } from '../middleware/authMiddleware';
+import { requireAuth, requireAdmin } from '../middleware/auth';
 import * as controller from '../controllers/comprehensiveAnalyticsController';
 
 const router = Router();
