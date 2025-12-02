@@ -50,7 +50,7 @@ export default function VersionsPage() {
     mutationFn: (id: string) => versionApi.activate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['versions', selectedCourse] });
-      toast.success('Version activated successfully');
+      toast.success('ვერსია წარმატებით გააქტიურდა');
     }
   });
 
@@ -60,25 +60,25 @@ export default function VersionsPage() {
   const columns: ColumnDef<Version>[] = [
     {
       accessorKey: 'version',
-      header: 'Version',
+      header: 'ვერსია',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <span className="font-mono font-medium">v{row.original.version}</span>
-          {row.original.isActive && <Badge variant="success" size="sm">Active</Badge>}
+          {row.original.isActive && <Badge variant="success" size="sm">აქტიური</Badge>}
         </div>
       )
     },
     {
       accessorKey: 'title',
-      header: 'Title'
+      header: 'სათაური'
     },
     {
       accessorKey: '_count.chapters',
-      header: 'Chapters'
+      header: 'თავები'
     },
     {
       accessorKey: 'publishedAt',
-      header: 'Published',
+      header: 'გამოქვეყნებულია',
       cell: ({ row }) => row.original.publishedAt ? formatDate(row.original.publishedAt) : '-'
     }
   ];
@@ -88,8 +88,8 @@ export default function VersionsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Course Versions</h1>
-            <p className="mt-1 text-sm text-gray-500">Manage course versions</p>
+            <h1 className="text-3xl font-bold text-gray-900">კურსის ვერსიები</h1>
+            <p className="mt-1 text-sm text-gray-500">მართეთ კურსის ვერსიები</p>
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
@@ -97,18 +97,18 @@ export default function VersionsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            Create Version
+            ახალი ვერსია
           </button>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Course</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">აირჩიეთ კურსი</label>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
             className="max-w-md px-3 py-2 border border-gray-300 rounded-lg"
           >
-            <option value="">Choose a course...</option>
+            <option value="">აირჩიეთ კურსი...</option>
             {courses.map((course: any) => (
               <option key={course.id} value={course.id}>{course.title}</option>
             ))}
@@ -116,7 +116,7 @@ export default function VersionsPage() {
         </div>
 
         {isLoading ? <PageLoader /> : !selectedCourse ? (
-          <div className="text-center py-12 text-gray-500">Select a course</div>
+          <div className="text-center py-12 text-gray-500">აირჩიეთ კურსი</div>
         ) : (
           <DataTable columns={columns} data={versions} />
         )}

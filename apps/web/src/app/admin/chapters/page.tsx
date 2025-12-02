@@ -91,10 +91,10 @@ export default function ChaptersPage() {
       chapterApi.reorder(reorderedChapters),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersion] });
-      toast.success('Chapters reordered successfully');
+      toast.success('თავები წარმატებით გადაწყობილია');
     },
     onError: () => {
-      toast.error('Failed to reorder chapters');
+      toast.error('თავების გადაწყობა ვერ მოხერხდა');
     }
   });
 
@@ -102,10 +102,10 @@ export default function ChaptersPage() {
     mutationFn: (id: string) => chapterApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersion] });
-      toast.success('Chapter deleted successfully');
+      toast.success('თავი წარმატებით წაიშალა');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to delete chapter');
+      toast.error(error.response?.data?.error || 'თავის წაშლა ვერ მოხერხდა');
     }
   });
 
@@ -131,7 +131,7 @@ export default function ChaptersPage() {
   };
 
   const handleDelete = (chapter: Chapter) => {
-    if (confirm(`Are you sure you want to delete "${chapter.title}"?`)) {
+    if (confirm(`დარწმუნებული ხართ რომ გსურთ "${chapter.title}" წაშლა?`)) {
       deleteMutation.mutate(chapter.id);
     }
   };
@@ -145,9 +145,9 @@ export default function ChaptersPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Chapters</h1>
+            <h1 className="text-3xl font-bold text-gray-900">თავები</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage course chapters with drag-and-drop ordering
+              მართეთ კურსის თავები drag-and-drop-ით
             </p>
           </div>
 
@@ -157,14 +157,14 @@ export default function ChaptersPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
-            Add Chapter
+            ახალი თავი
           </button>
         </div>
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Course</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">აირჩიეთ კურსი</label>
             <select
               value={selectedCourse}
               onChange={(e) => {
@@ -173,7 +173,7 @@ export default function ChaptersPage() {
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Choose a course...</option>
+              <option value="">აირჩიეთ კურსი...</option>
               {courses.map((course: any) => (
                 <option key={course.id} value={course.id}>
                   {course.title}
@@ -183,14 +183,14 @@ export default function ChaptersPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Version</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">აირჩიეთ ვერსია</label>
             <select
               value={selectedVersion}
               onChange={(e) => setSelectedVersion(e.target.value)}
               disabled={!selectedCourse}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              <option value="">Choose a version...</option>
+              <option value="">აირჩიეთ ვერსია...</option>
               {versions.map((version: any) => (
                 <option key={version.id} value={version.id}>
                   v{version.version} - {version.title}
@@ -205,11 +205,11 @@ export default function ChaptersPage() {
           <PageLoader />
         ) : !selectedVersion ? (
           <div className="text-center py-12 text-gray-500">
-            Please select a course and version to manage chapters
+            აირჩიეთ კურსი და ვერსია თავების სამართავად
           </div>
         ) : chapters.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            No chapters yet. Click "Add Chapter" to create one.
+            თავები ჯერ არ არის. დააჭირეთ "ახალი თავი" შესაქმნელად.
           </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -280,7 +280,7 @@ function SortableChapterItem({
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-gray-900">{chapter.title}</h3>
-          {chapter.isFree && <Badge variant="success" size="sm">Free</Badge>}
+          {chapter.isFree && <Badge variant="success" size="sm">უფასო</Badge>}
         </div>
         {chapter.description && (
           <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>
@@ -288,30 +288,30 @@ function SortableChapterItem({
         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
           {chapter.videoUrl && (
             <span className="flex items-center gap-1">
-              <Video className="w-3 h-3" /> Video
+              <Video className="w-3 h-3" /> ვიდეო
             </span>
           )}
           {chapter.theory && (
             <span className="flex items-center gap-1">
-              <FileText className="w-3 h-3" /> Theory
+              <FileText className="w-3 h-3" /> თეორია
             </span>
           )}
           {chapter.assignmentFile && (
             <span className="flex items-center gap-1">
-              <File className="w-3 h-3" /> Assignment
+              <File className="w-3 h-3" /> დავალება
             </span>
           )}
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <button onClick={onEdit} className="p-2 hover:bg-gray-100 rounded" title="Edit">
+        <button onClick={onEdit} className="p-2 hover:bg-gray-100 rounded" title="რედაქტირება">
           <Edit className="w-4 h-4" />
         </button>
         <button
           onClick={onDelete}
           className="p-2 hover:bg-red-100 rounded text-red-600"
-          title="Delete"
+          title="წაშლა"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -348,11 +348,11 @@ function ChapterModal({
     mutationFn: (data: any) => chapterApi.create({ ...data, courseVersionId: versionId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters', versionId] });
-      toast.success('Chapter created successfully');
+      toast.success('თავი წარმატებით შეიქმნა');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to create chapter');
+      toast.error(error.response?.data?.error || 'თავის შექმნა ვერ მოხერხდა');
     }
   });
 
@@ -360,11 +360,11 @@ function ChapterModal({
     mutationFn: (data: any) => chapterApi.update(chapter!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters', versionId] });
-      toast.success('Chapter updated successfully');
+      toast.success('თავი წარმატებით განახლდა');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to update chapter');
+      toast.error(error.response?.data?.error || 'თავის განახლება ვერ მოხერხდა');
     }
   });
 
@@ -381,12 +381,12 @@ function ChapterModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={chapter ? 'Edit Chapter' : 'Create Chapter'}
+      title={chapter ? 'თავის რედაქტირება' : 'ახალი თავი'}
       size="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Chapter Title</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">თავის სათაური</label>
           <input
             type="text"
             value={formData.title}
@@ -397,7 +397,7 @@ function ChapterModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">აღწერა</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -428,7 +428,7 @@ function ChapterModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Theory Content</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">თეორიული მასალა</label>
           <RichTextEditor
             content={formData.theory}
             onChange={(html) => setFormData({ ...formData, theory: html })}
@@ -437,7 +437,7 @@ function ChapterModal({
 
         <div className="grid grid-cols-2 gap-4">
           <FileUpload
-            label="Assignment File"
+            label="დავალების ფაილი"
             accept=".pdf,.doc,.docx"
             onUpload={(file) => uploadApi.assignment(file).then(res => res.data.file)}
             value={formData.assignmentFile}
@@ -446,7 +446,7 @@ function ChapterModal({
           />
 
           <FileUpload
-            label="Answer File"
+            label="პასუხების ფაილი"
             accept=".pdf,.doc,.docx"
             onUpload={(file) => uploadApi.answer(file).then(res => res.data.file)}
             value={formData.answerFile}
@@ -463,9 +463,9 @@ function ChapterModal({
             <p className="text-sm text-blue-800">
               💡 <strong>ქვიზის დამატება:</strong> გადადით{' '}
               <a href="/admin/quizzes" className="underline font-medium">
-                Quiz Management
+                ქვიზების მართვა
               </a>{' '}
-              გვერდზე, შექმენით ქვიზი და მიუთითეთ ეს Chapter.
+              გვერდზე, შექმენით ქვიზი და მიუთითეთ ეს თავი.
             </p>
             <p className="text-xs text-blue-600 mt-2">
               ან გამოიყენეთ API: <code className="bg-blue-100 px-1 rounded">chapterContentId: "{chapter?.id}"</code>
@@ -477,11 +477,11 @@ function ChapterModal({
               <strong>როგორ ჩაამატოთ ქვიზი:</strong>
             </p>
             <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1 ml-2">
-              <li>შექმენით Chapter-ი (Save)</li>
-              <li>გადადით <strong>Admin → Quizzes</strong></li>
+              <li>შექმენით თავი (შეინახეთ)</li>
+              <li>გადადით <strong>ადმინი → ქვიზები</strong></li>
               <li>შექმენით ქვიზი</li>
               <li>დაამატეთ კითხვები</li>
-              <li>სტუდენტები ნახავენ ქვიზს ამ Chapter-ში</li>
+              <li>სტუდენტები ნახავენ ქვიზს ამ თავში</li>
             </ol>
           </div>
         </div>
@@ -495,7 +495,7 @@ function ChapterModal({
             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
           />
           <label htmlFor="isFree" className="text-sm font-medium text-gray-700">
-            Make this chapter free (preview)
+            ეს თავი უფასოა (პრევიუ)
           </label>
         </div>
 
@@ -505,7 +505,7 @@ function ChapterModal({
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Cancel
+            გაუქმება
           </button>
           <button
             type="submit"
@@ -513,10 +513,10 @@ function ChapterModal({
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             {createMutation.isPending || updateMutation.isPending
-              ? 'Saving...'
+              ? 'ინახება...'
               : chapter
-              ? 'Update Chapter'
-              : 'Create Chapter'}
+              ? 'განახლება'
+              : 'შექმნა'}
           </button>
         </ModalFooter>
       </form>

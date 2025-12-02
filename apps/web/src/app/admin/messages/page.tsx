@@ -221,9 +221,9 @@ export default function AdminMessagesPage() {
       <div className="h-[calc(100vh-120px)] flex flex-col">
         {/* Header */}
         <div className="flex-shrink-0 mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
+          <h1 className="text-3xl font-bold text-gray-900">შეტყობინებები</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage and respond to student inquiries
+            მართეთ და უპასუხეთ სტუდენტების შეკითხვებს
           </p>
         </div>
 
@@ -231,32 +231,32 @@ export default function AdminMessagesPage() {
         <div className="flex-shrink-0 grid grid-cols-4 gap-4 mb-4">
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Total</span>
+              <span className="text-sm text-gray-500">სულ</span>
               <MessageSquare className="w-4 h-4 text-gray-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-gray-900">{analytics.total || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">New</span>
+              <span className="text-sm text-gray-500">ახალი</span>
               <AlertCircle className="w-4 h-4 text-blue-500" />
             </div>
             <p className="mt-1 text-2xl font-bold text-blue-600">{analytics.newMessages || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Resolved</span>
+              <span className="text-sm text-gray-500">გადაწყვეტილი</span>
               <CheckCircle className="w-4 h-4 text-green-500" />
             </div>
             <p className="mt-1 text-2xl font-bold text-green-600">{analytics.resolved || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Avg Response</span>
+              <span className="text-sm text-gray-500">საშ. პასუხი</span>
               <Clock className="w-4 h-4 text-gray-400" />
             </div>
             <p className="mt-1 text-2xl font-bold text-gray-900">
-              {analytics.avgResponseTimeMinutes || 0}m
+              {analytics.avgResponseTimeMinutes || 0}წ
             </p>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function AdminMessagesPage() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search messages..."
+                  placeholder="შეტყობინებების ძიება..."
                   className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
@@ -283,22 +283,22 @@ export default function AdminMessagesPage() {
                   onChange={(e) => setStatusFilter(e.target.value as MessageStatus | '')}
                   className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
                 >
-                  <option value="">All Status</option>
-                  <option value="NEW">New</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="ANSWERED">Answered</option>
-                  <option value="RESOLVED">Resolved</option>
+                  <option value="">ყველა სტატუსი</option>
+                  <option value="NEW">ახალი</option>
+                  <option value="IN_PROGRESS">მუშავდება</option>
+                  <option value="ANSWERED">უპასუხა</option>
+                  <option value="RESOLVED">გადაწყვეტილი</option>
                 </select>
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value as MessagePriority | '')}
                   className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
                 >
-                  <option value="">All Priority</option>
-                  <option value="URGENT">Urgent</option>
-                  <option value="HIGH">High</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="LOW">Low</option>
+                  <option value="">ყველა პრიორიტეტი</option>
+                  <option value="URGENT">სასწრაფო</option>
+                  <option value="HIGH">მაღალი</option>
+                  <option value="MEDIUM">საშუალო</option>
+                  <option value="LOW">დაბალი</option>
                 </select>
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function AdminMessagesPage() {
                           </span>
                           {message._count && message._count.replies > 0 && (
                             <span className="text-xs text-gray-400">
-                              {message._count.replies} replies
+                              {message._count.replies} პასუხი
                             </span>
                           )}
                         </div>
@@ -381,7 +381,7 @@ export default function AdminMessagesPage() {
               {messages.length === 0 && (
                 <div className="p-8 text-center">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">No messages found</p>
+                  <p className="text-gray-500">შეტყობინებები არ მოიძებნა</p>
                 </div>
               )}
             </div>
@@ -390,7 +390,7 @@ export default function AdminMessagesPage() {
             {pagination.totalPages > 1 && (
               <div className="flex-shrink-0 border-t border-gray-200 p-2 flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  Page {pagination.page}/{pagination.totalPages}
+                  გვერდი {pagination.page}/{pagination.totalPages}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -429,7 +429,7 @@ export default function AdminMessagesPage() {
                         </span>
                         <span>{currentMessage.user.email}</span>
                         {currentMessage.course && (
-                          <span>Course: {currentMessage.course.title}</span>
+                          <span>კურსი: {currentMessage.course.title}</span>
                         )}
                       </div>
                     </div>
@@ -444,11 +444,11 @@ export default function AdminMessagesPage() {
                         }
                         className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
                       >
-                        <option value="NEW">New</option>
-                        <option value="IN_PROGRESS">In Progress</option>
-                        <option value="ANSWERED">Answered</option>
-                        <option value="RESOLVED">Resolved</option>
-                        <option value="ARCHIVED">Archived</option>
+                        <option value="NEW">ახალი</option>
+                        <option value="IN_PROGRESS">მუშავდება</option>
+                        <option value="ANSWERED">უპასუხა</option>
+                        <option value="RESOLVED">გადაწყვეტილი</option>
+                        <option value="ARCHIVED">დაარქივებული</option>
                       </select>
                       <select
                         value={currentMessage.priority}
@@ -460,10 +460,10 @@ export default function AdminMessagesPage() {
                         }
                         className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
                       >
-                        <option value="LOW">Low</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="HIGH">High</option>
-                        <option value="URGENT">Urgent</option>
+                        <option value="LOW">დაბალი</option>
+                        <option value="MEDIUM">საშუალო</option>
+                        <option value="HIGH">მაღალი</option>
+                        <option value="URGENT">სასწრაფო</option>
                       </select>
                     </div>
                   </div>
@@ -510,7 +510,7 @@ export default function AdminMessagesPage() {
                             className="mt-2 inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700"
                           >
                             <Paperclip className="w-4 h-4" />
-                            View attachment
+                            მიმაგრებული ფაილი
                           </a>
                         )}
                       </div>
@@ -556,12 +556,12 @@ export default function AdminMessagesPage() {
                           </span>
                           {reply.user.role === 'ADMIN' && (
                             <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded">
-                              Admin
+                              ადმინი
                             </span>
                           )}
                           {reply.isInternal && (
                             <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">
-                              Internal
+                              შიდა
                             </span>
                           )}
                           <span className="text-sm text-gray-500">
@@ -595,13 +595,13 @@ export default function AdminMessagesPage() {
                           onChange={(e) => setIsInternalNote(e.target.checked)}
                           className="rounded border-gray-300"
                         />
-                        Internal note (not visible to student)
+                        შიდა ჩანაწერი (სტუდენტისთვის არ ჩანს)
                       </label>
                       <button
                         onClick={() => setShowCannedResponses(!showCannedResponses)}
                         className="ml-auto text-sm text-indigo-600 hover:text-indigo-700"
                       >
-                        Insert template
+                        შაბლონის ჩასმა
                       </button>
                     </div>
 
@@ -624,8 +624,8 @@ export default function AdminMessagesPage() {
                       onChange={(e) => setReplyContent(e.target.value)}
                       placeholder={
                         isInternalNote
-                          ? 'Write an internal note...'
-                          : 'Write your reply...'
+                          ? 'დაწერეთ შიდა ჩანაწერი...'
+                          : 'დაწერეთ პასუხი...'
                       }
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
                         isInternalNote ? 'border-yellow-300 bg-yellow-50' : 'border-gray-300'
@@ -639,7 +639,7 @@ export default function AdminMessagesPage() {
                         className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                       >
                         <Send className="w-4 h-4" />
-                        {isInternalNote ? 'Add Note' : 'Send Reply'}
+                        {isInternalNote ? 'ჩანაწერის დამატება' : 'პასუხის გაგზავნა'}
                       </button>
                     </div>
                   </div>
@@ -649,7 +649,7 @@ export default function AdminMessagesPage() {
               <div className="flex-1 flex items-center justify-center text-gray-500">
                 <div className="text-center">
                   <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p>Select a message to view details</p>
+                  <p>აირჩიეთ შეტყობინება დეტალების სანახავად</p>
                 </div>
               </div>
             )}

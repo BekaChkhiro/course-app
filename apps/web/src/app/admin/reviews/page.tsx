@@ -61,10 +61,10 @@ interface Review {
 }
 
 const statusColors: Record<ReviewStatus, { bg: string; text: string; label: string }> = {
-  PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
-  APPROVED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Approved' },
-  REJECTED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rejected' },
-  FLAGGED: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Flagged' },
+  PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'მოლოდინში' },
+  APPROVED: { bg: 'bg-green-100', text: 'text-green-800', label: 'დამტკიცებული' },
+  REJECTED: { bg: 'bg-red-100', text: 'text-red-800', label: 'უარყოფილი' },
+  FLAGGED: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'მონიშნული' },
 };
 
 export default function AdminReviewsPage() {
@@ -223,9 +223,9 @@ export default function AdminReviewsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Review Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">შეფასებების მართვა</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Moderate and manage student reviews for courses
+            მართეთ სტუდენტების შეფასებები კურსებისთვის
           </p>
         </div>
 
@@ -234,28 +234,28 @@ export default function AdminReviewsPage() {
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-gray-500">
               <MessageSquare className="w-5 h-5" />
-              <span className="text-sm">Total Reviews</span>
+              <span className="text-sm">სულ შეფასებები</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-gray-900">{analytics.total || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-yellow-500">
               <Clock className="w-5 h-5" />
-              <span className="text-sm text-gray-500">Pending</span>
+              <span className="text-sm text-gray-500">მოლოდინში</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-gray-900">{analytics.pending || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-green-500">
               <Check className="w-5 h-5" />
-              <span className="text-sm text-gray-500">Approved</span>
+              <span className="text-sm text-gray-500">დამტკიცებული</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-gray-900">{analytics.approved || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center gap-2 text-indigo-500">
               <TrendingUp className="w-5 h-5" />
-              <span className="text-sm text-gray-500">Avg Rating</span>
+              <span className="text-sm text-gray-500">საშუალო რეიტინგი</span>
             </div>
             <p className="mt-2 text-2xl font-bold text-gray-900">
               {analytics.averageRating?.toFixed(1) || '0.0'}
@@ -277,11 +277,11 @@ export default function AdminReviewsPage() {
                 }}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="">All Status</option>
-                <option value="PENDING">Pending</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-                <option value="FLAGGED">Flagged</option>
+                <option value="">ყველა სტატუსი</option>
+                <option value="PENDING">მოლოდინში</option>
+                <option value="APPROVED">დამტკიცებული</option>
+                <option value="REJECTED">უარყოფილი</option>
+                <option value="FLAGGED">მონიშნული</option>
               </select>
             </div>
 
@@ -294,7 +294,7 @@ export default function AdminReviewsPage() {
               }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="">All Courses</option>
+              <option value="">ყველა კურსი</option>
               {courses.map((course: any) => (
                 <option key={course.id} value={course.id}>
                   {course.title}
@@ -308,17 +308,17 @@ export default function AdminReviewsPage() {
               onChange={(e) => setSortBy(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="rating_high">Highest Rating</option>
-              <option value="rating_low">Lowest Rating</option>
+              <option value="newest">ახალი პირველი</option>
+              <option value="oldest">ძველი პირველი</option>
+              <option value="rating_high">მაღალი რეიტინგი</option>
+              <option value="rating_low">დაბალი რეიტინგი</option>
             </select>
 
             {/* Bulk Actions */}
             {selectedReviews.length > 0 && (
               <div className="flex items-center gap-2 ml-auto">
                 <span className="text-sm text-gray-500">
-                  {selectedReviews.length} selected
+                  {selectedReviews.length} მონიშნული
                 </span>
                 <button
                   onClick={() =>
@@ -329,7 +329,7 @@ export default function AdminReviewsPage() {
                   }
                   className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200"
                 >
-                  Approve All
+                  ყველას დამტკიცება
                 </button>
                 <button
                   onClick={() =>
@@ -341,7 +341,7 @@ export default function AdminReviewsPage() {
                   }
                   className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200"
                 >
-                  Reject All
+                  ყველას უარყოფა
                 </button>
               </div>
             )}
@@ -360,7 +360,7 @@ export default function AdminReviewsPage() {
                 className="w-4 h-4 text-indigo-600 rounded"
               />
               <span className="text-sm font-medium text-gray-700">
-                {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                {reviews.length} შეფასება
               </span>
             </div>
           </div>
@@ -403,7 +403,7 @@ export default function AdminReviewsPage() {
                       <div>
                         <p className="font-medium text-gray-900">
                           {review.isAnonymous
-                            ? 'Anonymous'
+                            ? 'ანონიმური'
                             : `${review.user.name} ${review.user.surname}`}
                         </p>
                         <p className="text-sm text-gray-500">{review.course.title}</p>
@@ -426,7 +426,7 @@ export default function AdminReviewsPage() {
                     <div className="mt-2 flex items-center gap-4">
                       {renderStars(review.rating)}
                       <span className="text-sm text-gray-500">
-                        {review.completionPercentage}% completed
+                        {review.completionPercentage}% დასრულებული
                       </span>
                       {review.wouldRecommend !== null && (
                         <span
@@ -434,7 +434,7 @@ export default function AdminReviewsPage() {
                             review.wouldRecommend ? 'text-green-600' : 'text-red-600'
                           }`}
                         >
-                          {review.wouldRecommend ? 'Would recommend' : "Wouldn't recommend"}
+                          {review.wouldRecommend ? 'რეკომენდაციას უწევს' : 'არ რეკომენდირდება'}
                         </span>
                       )}
                     </div>
@@ -452,13 +452,13 @@ export default function AdminReviewsPage() {
                       <div className="mt-3 grid grid-cols-2 gap-4">
                         {review.pros && (
                           <div>
-                            <p className="text-sm font-medium text-green-700">Pros:</p>
+                            <p className="text-sm font-medium text-green-700">დადებითი:</p>
                             <p className="text-sm text-gray-600">{review.pros}</p>
                           </div>
                         )}
                         {review.cons && (
                           <div>
-                            <p className="text-sm font-medium text-red-700">Cons:</p>
+                            <p className="text-sm font-medium text-red-700">უარყოფითი:</p>
                             <p className="text-sm text-gray-600">{review.cons}</p>
                           </div>
                         )}
@@ -469,7 +469,7 @@ export default function AdminReviewsPage() {
                     {review.response && (
                       <div className="mt-4 bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500">
                         <p className="text-sm font-medium text-gray-700">
-                          Response from {review.response.admin.name}:
+                          პასუხი {review.response.admin.name}-სგან:
                         </p>
                         <p className="mt-1 text-sm text-gray-600">{review.response.content}</p>
                       </div>
@@ -485,14 +485,14 @@ export default function AdminReviewsPage() {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200"
                           >
                             <Check className="w-4 h-4" />
-                            Approve
+                            დამტკიცება
                           </button>
                           <button
                             onClick={() => setRejectModal({ open: true, reviewId: review.id })}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200"
                           >
                             <X className="w-4 h-4" />
-                            Reject
+                            უარყოფა
                           </button>
                           <button
                             onClick={() =>
@@ -504,7 +504,7 @@ export default function AdminReviewsPage() {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm hover:bg-orange-200"
                           >
                             <Flag className="w-4 h-4" />
-                            Flag
+                            მონიშვნა
                           </button>
                         </>
                       )}
@@ -514,7 +514,7 @@ export default function AdminReviewsPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm hover:bg-indigo-200"
                         >
                           <MessageSquare className="w-4 h-4" />
-                          Add Response
+                          პასუხის დამატება
                         </button>
                       )}
                     </div>
@@ -526,7 +526,7 @@ export default function AdminReviewsPage() {
             {reviews.length === 0 && (
               <div className="p-12 text-center">
                 <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No reviews found</p>
+                <p className="text-gray-500">შეფასებები არ მოიძებნა</p>
               </div>
             )}
           </div>
@@ -536,7 +536,7 @@ export default function AdminReviewsPage() {
             <div className="border-t border-gray-200 bg-gray-50 px-6 py-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500">
-                  Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
+                  გვერდი {pagination.page} / {pagination.totalPages} (სულ {pagination.total})
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -563,14 +563,14 @@ export default function AdminReviewsPage() {
         {rejectModal.open && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Reject Review</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">შეფასების უარყოფა</h3>
               <p className="text-sm text-gray-500 mb-4">
-                Please provide a reason for rejecting this review. The user will be notified.
+                გთხოვთ მიუთითოთ უარყოფის მიზეზი. მომხმარებელი მიიღებს შეტყობინებას.
               </p>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Enter rejection reason..."
+                placeholder="შეიყვანეთ უარყოფის მიზეზი..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 rows={3}
               />
@@ -579,7 +579,7 @@ export default function AdminReviewsPage() {
                   onClick={() => setRejectModal({ open: false, reviewId: null })}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
-                  Cancel
+                  გაუქმება
                 </button>
                 <button
                   onClick={() => {
@@ -593,7 +593,7 @@ export default function AdminReviewsPage() {
                   disabled={!rejectReason || rejectMutation.isPending}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                 >
-                  Reject
+                  უარყოფა
                 </button>
               </div>
             </div>
@@ -604,17 +604,17 @@ export default function AdminReviewsPage() {
         {responseModal.open && responseModal.review && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Response</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">პასუხის დამატება</h3>
               <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
-                  Responding to {responseModal.review.user.name}'s review of{' '}
+                  პასუხი {responseModal.review.user.name}-ის შეფასებაზე კურსზე:{' '}
                   <strong>{responseModal.review.course.title}</strong>
                 </p>
               </div>
               <textarea
                 value={responseContent}
                 onChange={(e) => setResponseContent(e.target.value)}
-                placeholder="Write your response..."
+                placeholder="დაწერეთ თქვენი პასუხი..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 rows={4}
               />
@@ -623,7 +623,7 @@ export default function AdminReviewsPage() {
                   onClick={() => setResponseModal({ open: false, review: null })}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                 >
-                  Cancel
+                  გაუქმება
                 </button>
                 <button
                   onClick={() => {
@@ -637,7 +637,7 @@ export default function AdminReviewsPage() {
                   disabled={!responseContent || addResponseMutation.isPending}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  Post Response
+                  გაგზავნა
                 </button>
               </div>
             </div>

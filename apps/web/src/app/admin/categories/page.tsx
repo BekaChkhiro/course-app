@@ -39,10 +39,10 @@ export default function CategoriesPage() {
     mutationFn: (id: string) => categoryApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category deleted successfully');
+      toast.success('კატეგორია წარმატებით წაიშალა');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to delete category');
+      toast.error(error.response?.data?.error || 'კატეგორიის წაშლა ვერ მოხერხდა');
     }
   });
 
@@ -50,14 +50,14 @@ export default function CategoriesPage() {
 
   const handleDelete = (category: Category) => {
     if (category._count.courses > 0) {
-      toast.error('Cannot delete category with associated courses');
+      toast.error('კატეგორიას აქვს მიბმული კურსები');
       return;
     }
     if (category._count.children > 0) {
-      toast.error('Cannot delete category with child categories');
+      toast.error('კატეგორიას აქვს ქვე-კატეგორიები');
       return;
     }
-    if (confirm(`Are you sure you want to delete "${category.name}"?`)) {
+    if (confirm(`დარწმუნებული ხართ რომ გსურთ "${category.name}" წაშლა?`)) {
       deleteMutation.mutate(category.id);
     }
   };
@@ -65,7 +65,7 @@ export default function CategoriesPage() {
   const columns: ColumnDef<Category>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: 'სახელი',
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.name}</div>
@@ -75,29 +75,29 @@ export default function CategoriesPage() {
     },
     {
       accessorKey: 'parent.name',
-      header: 'Parent Category',
+      header: 'მშობელი კატეგორია',
       cell: ({ row }) => row.original.parent?.name || '-'
     },
     {
       accessorKey: 'description',
-      header: 'Description',
+      header: 'აღწერა',
       cell: ({ row }) => row.original.description || '-'
     },
     {
       accessorKey: '_count.courses',
-      header: 'Courses'
+      header: 'კურსები'
     },
     {
       accessorKey: '_count.children',
-      header: 'Sub-categories'
+      header: 'ქვე-კატეგორიები'
     },
     {
       accessorKey: 'order',
-      header: 'Order'
+      header: 'რიგი'
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: 'მოქმედებები',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <button
@@ -107,7 +107,7 @@ export default function CategoriesPage() {
               setIsEditModalOpen(true);
             }}
             className="p-1 hover:bg-gray-100 rounded"
-            title="Edit"
+            title="რედაქტირება"
           >
             <Edit className="w-4 h-4" />
           </button>
@@ -117,7 +117,7 @@ export default function CategoriesPage() {
               handleDelete(row.original);
             }}
             className="p-1 hover:bg-red-100 rounded text-red-600"
-            title="Delete"
+            title="წაშლა"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -133,9 +133,9 @@ export default function CategoriesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+            <h1 className="text-3xl font-bold text-gray-900">კატეგორიები</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Organize your courses into categories
+              მართეთ კურსების კატეგორიები
             </p>
           </div>
 
@@ -144,7 +144,7 @@ export default function CategoriesPage() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
-            Create Category
+            ახალი კატეგორია
           </button>
         </div>
 
@@ -152,7 +152,7 @@ export default function CategoriesPage() {
           columns={columns}
           data={categories}
           searchKey="name"
-          searchPlaceholder="Search categories..."
+          searchPlaceholder="კატეგორიის ძიება..."
           onRowClick={(category) => {
             setSelectedCategory(category);
             setIsEditModalOpen(true);
@@ -200,11 +200,11 @@ function CategoryModal({
     mutationFn: (data: any) => categoryApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category created successfully');
+      toast.success('კატეგორია წარმატებით შეიქმნა');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to create category');
+      toast.error(error.response?.data?.error || 'კატეგორიის შექმნა ვერ მოხერხდა');
     }
   });
 
@@ -212,11 +212,11 @@ function CategoryModal({
     mutationFn: (data: any) => categoryApi.update(category!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      toast.success('Category updated successfully');
+      toast.success('კატეგორია წარმატებით განახლდა');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to update category');
+      toast.error(error.response?.data?.error || 'კატეგორიის განახლება ვერ მოხერხდა');
     }
   });
 
@@ -236,10 +236,10 @@ function CategoryModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={category ? 'Edit Category' : 'Create Category'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={category ? 'კატეგორიის რედაქტირება' : 'ახალი კატეგორია'}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">სახელი</label>
           <input
             type="text"
             value={formData.name}
@@ -253,7 +253,7 @@ function CategoryModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">სლაგი</label>
           <input
             type="text"
             value={formData.slug}
@@ -264,7 +264,7 @@ function CategoryModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">აღწერა</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -274,13 +274,13 @@ function CategoryModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">მშობელი კატეგორია</label>
           <select
             value={formData.parentId}
             onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">None (Top-level category)</option>
+            <option value="">არცერთი (მთავარი კატეგორია)</option>
             {categories
               .filter((cat) => cat.id !== category?.id)
               .map((cat) => (
@@ -292,7 +292,7 @@ function CategoryModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">რიგი</label>
           <input
             type="number"
             value={formData.order}
@@ -307,7 +307,7 @@ function CategoryModal({
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Cancel
+            გაუქმება
           </button>
           <button
             type="submit"
@@ -315,10 +315,10 @@ function CategoryModal({
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             {createMutation.isPending || updateMutation.isPending
-              ? 'Saving...'
+              ? 'ინახება...'
               : category
-              ? 'Update'
-              : 'Create'}
+              ? 'განახლება'
+              : 'შექმნა'}
           </button>
         </ModalFooter>
       </form>

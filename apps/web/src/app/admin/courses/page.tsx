@@ -99,16 +99,16 @@ export default function CoursesPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success('Courses exported successfully');
+      toast.success('კურსები წარმატებით გადმოიწერა');
     } catch (error) {
-      toast.error('Failed to export courses');
+      toast.error('კურსების ექსპორტი ვერ მოხერხდა');
     }
   };
 
   const columns: ColumnDef<Course>[] = [
     {
       accessorKey: 'title',
-      header: 'Title',
+      header: 'სათაური',
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.title}</div>
@@ -118,16 +118,16 @@ export default function CoursesPage() {
     },
     {
       accessorKey: 'category.name',
-      header: 'Category'
+      header: 'კატეგორია'
     },
     {
       accessorKey: 'price',
-      header: 'Price',
+      header: 'ფასი',
       cell: ({ row }) => formatCurrency(row.original.price)
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'სტატუსი',
       cell: ({ row }) => {
         const status = row.original.status;
         const variants = {
@@ -135,22 +135,27 @@ export default function CoursesPage() {
           PUBLISHED: 'success' as const,
           ARCHIVED: 'warning' as const
         };
-        return <Badge variant={variants[status]}>{status}</Badge>;
+        const labels = {
+          DRAFT: 'დრაფტი',
+          PUBLISHED: 'გამოქვეყნებული',
+          ARCHIVED: 'დაარქივებული'
+        };
+        return <Badge variant={variants[status]}>{labels[status]}</Badge>;
       }
     },
     {
       accessorKey: '_count.purchases',
-      header: 'Enrollments',
+      header: 'ჩარიცხვები',
       cell: ({ row }) => row.original._count.purchases
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created',
+      header: 'შექმნილია',
       cell: ({ row }) => formatDate(row.original.createdAt)
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: 'მოქმედებები',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <button
@@ -160,7 +165,7 @@ export default function CoursesPage() {
               setIsEditModalOpen(true);
             }}
             className="p-1 hover:bg-gray-100 rounded"
-            title="Edit"
+            title="რედაქტირება"
           >
             <Edit className="w-4 h-4" />
           </button>
@@ -170,7 +175,7 @@ export default function CoursesPage() {
               handleDuplicate(row.original);
             }}
             className="p-1 hover:bg-gray-100 rounded"
-            title="Duplicate"
+            title="დუბლირება"
           >
             <Copy className="w-4 h-4" />
           </button>
@@ -180,7 +185,7 @@ export default function CoursesPage() {
               handleDelete(row.original);
             }}
             className="p-1 hover:bg-red-100 rounded text-red-600"
-            title="Delete"
+            title="წაშლა"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -312,11 +317,11 @@ function CourseModal({
     mutationFn: (data: any) => courseApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast.success('Course created successfully');
+      toast.success('კურსი წარმატებით შეიქმნა');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to create course');
+      toast.error(error.response?.data?.error || 'კურსის შექმნა ვერ მოხერხდა');
     }
   });
 
@@ -324,11 +329,11 @@ function CourseModal({
     mutationFn: (data: any) => courseApi.update(course!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      toast.success('Course updated successfully');
+      toast.success('კურსი წარმატებით განახლდა');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to update course');
+      toast.error(error.response?.data?.error || 'კურსის განახლება ვერ მოხერხდა');
     }
   });
 
@@ -353,10 +358,10 @@ function CourseModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={course ? 'Edit Course' : 'Create Course'} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title={course ? 'კურსის რედაქტირება' : 'ახალი კურსი'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">სათაური</label>
           <input
             type="text"
             value={formData.title}
@@ -370,7 +375,7 @@ function CourseModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">სლაგი</label>
           <input
             type="text"
             value={formData.slug}
@@ -381,7 +386,7 @@ function CourseModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">აღწერა</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -392,7 +397,7 @@ function CourseModal({
         </div>
 
         <FileUpload
-          label="Thumbnail"
+          label="თამბნეილი"
           accept="image/*"
           onUpload={handleUpload}
           value={formData.thumbnail}
@@ -401,7 +406,7 @@ function CourseModal({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price (GEL)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ფასი (ლარი)</label>
             <input
               type="number"
               step="0.01"
@@ -413,14 +418,14 @@ function CourseModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">კატეგორია</label>
             <select
               value={formData.categoryId}
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="">Select category</option>
+              <option value="">აირჩიეთ კატეგორია</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -431,15 +436,15 @@ function CourseModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">სტატუსი</label>
           <select
             value={formData.status}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="ARCHIVED">Archived</option>
+            <option value="DRAFT">დრაფტი</option>
+            <option value="PUBLISHED">გამოქვეყნებული</option>
+            <option value="ARCHIVED">დაარქივებული</option>
           </select>
         </div>
 
@@ -449,7 +454,7 @@ function CourseModal({
             onClick={onClose}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Cancel
+            გაუქმება
           </button>
           <button
             type="submit"
@@ -457,10 +462,10 @@ function CourseModal({
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             {createMutation.isPending || updateMutation.isPending
-              ? 'Saving...'
+              ? 'ინახება...'
               : course
-              ? 'Update Course'
-              : 'Create Course'}
+              ? 'განახლება'
+              : 'შექმნა'}
           </button>
         </ModalFooter>
       </form>

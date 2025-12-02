@@ -93,12 +93,12 @@ export default function AnalyticsDashboardPage() {
 
   // Quick links for analytics sections
   const analyticsLinks = [
-    { name: 'Revenue', href: '/admin/analytics/revenue', icon: DollarSign, color: 'indigo' },
-    { name: 'Students', href: '/admin/analytics/students', icon: Users, color: 'blue' },
-    { name: 'Courses', href: '/admin/analytics/courses', icon: BookOpen, color: 'green' },
-    { name: 'Learning', href: '/admin/analytics/learning', icon: Target, color: 'purple' },
-    { name: 'Engagement', href: '/admin/analytics/engagement', icon: Activity, color: 'yellow' },
-    { name: 'Real-time', href: '/admin/analytics/realtime', icon: Zap, color: 'red' }
+    { name: 'შემოსავალი', href: '/admin/analytics/revenue', icon: DollarSign, color: 'indigo' },
+    { name: 'სტუდენტები', href: '/admin/analytics/students', icon: Users, color: 'blue' },
+    { name: 'კურსები', href: '/admin/analytics/courses', icon: BookOpen, color: 'green' },
+    { name: 'სწავლა', href: '/admin/analytics/learning', icon: Target, color: 'purple' },
+    { name: 'ჩართულობა', href: '/admin/analytics/engagement', icon: Activity, color: 'yellow' },
+    { name: 'რეალტაიმ', href: '/admin/analytics/realtime', icon: Zap, color: 'red' }
   ];
 
   return (
@@ -108,12 +108,12 @@ export default function AnalyticsDashboardPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-indigo-600">მთავარი</Link>
               <span>/</span>
-              <span>Analytics</span>
+              <span>ანალიტიკა</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-500 mt-1">Comprehensive insights into your platform performance</p>
+            <h1 className="text-2xl font-bold text-gray-900">ანალიტიკის დაშბორდი</h1>
+            <p className="text-gray-500 mt-1">პლატფორმის შესრულების სრული მიმოხილვა</p>
           </div>
           <div className="flex items-center gap-3">
             <select
@@ -121,15 +121,15 @@ export default function AnalyticsDashboardPage() {
               onChange={(e) => setPeriod(parseInt(e.target.value))}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-              <option value={365}>Last year</option>
+              <option value={7}>ბოლო 7 დღე</option>
+              <option value={30}>ბოლო 30 დღე</option>
+              <option value={90}>ბოლო 90 დღე</option>
+              <option value={365}>ბოლო წელი</option>
             </select>
             <button
               onClick={() => refetch()}
               className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-              title="Refresh data"
+              title="განახლება"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -138,7 +138,7 @@ export default function AnalyticsDashboardPage() {
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
               <Download className="w-4 h-4" />
-              Export
+              ექსპორტი
             </Link>
           </div>
         </div>
@@ -151,12 +151,12 @@ export default function AnalyticsDashboardPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
               </span>
-              <span className="text-sm font-medium text-gray-700">Live</span>
+              <span className="text-sm font-medium text-gray-700">პირდაპირ</span>
             </div>
-            <RealtimeStat label="Active Users" value={realtime.activeUsers} pulse={false} />
-            <RealtimeStat label="Watching Now" value={realtime.currentStreams} pulse={false} />
-            <RealtimeStat label="Today's Revenue" value={realtime.today?.revenue || 0} unit="USD" pulse={false} />
-            <RealtimeStat label="Today's Sales" value={realtime.today?.purchases || 0} pulse={false} />
+            <RealtimeStat label="აქტიური მომხმარებლები" value={realtime.activeUsers} pulse={false} />
+            <RealtimeStat label="უყურებენ ახლა" value={realtime.currentStreams} pulse={false} />
+            <RealtimeStat label="დღევანდელი შემოსავალი" value={realtime.today?.revenue || 0} unit="ლარი" pulse={false} />
+            <RealtimeStat label="დღევანდელი გაყიდვები" value={realtime.today?.purchases || 0} pulse={false} />
           </div>
         )}
 
@@ -172,31 +172,31 @@ export default function AnalyticsDashboardPage() {
             {/* Main Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                title="Total Revenue"
+                title="სულ შემოსავალი"
                 value={formatCurrency(dashboard.revenue?.period || 0)}
-                subtitle={`${dashboard.revenue?.purchases || 0} purchases`}
+                subtitle={`${dashboard.revenue?.purchases || 0} შეძენა`}
                 change={dashboard.revenue?.growth}
                 icon="revenue"
                 color="indigo"
               />
               <StatCard
-                title="Active Students"
+                title="აქტიური სტუდენტები"
                 value={dashboard.students?.active30d || 0}
-                subtitle={`${dashboard.students?.total || 0} total registered`}
+                subtitle={`${dashboard.students?.total || 0} სულ რეგისტრირებული`}
                 icon="users"
                 color="blue"
               />
               <StatCard
-                title="Course Completions"
+                title="დასრულებული კურსები"
                 value={dashboard.completions?.month || 0}
-                subtitle={`${dashboard.completions?.allTime || 0} all-time`}
+                subtitle={`${dashboard.completions?.allTime || 0} ყველა დროის`}
                 icon="courses"
                 color="green"
               />
               <StatCard
-                title="Average Rating"
+                title="საშუალო რეიტინგი"
                 value={dashboard.rating?.average?.toFixed(1) || '0.0'}
-                subtitle="From all reviews"
+                subtitle="ყველა შეფასებიდან"
                 icon="rating"
                 color="yellow"
               />
@@ -206,15 +206,15 @@ export default function AnalyticsDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Revenue Trend Chart */}
               <ChartContainer
-                title="Revenue Trend"
-                subtitle="Monthly revenue over the past year"
+                title="შემოსავლის ტრენდი"
+                subtitle="ყოველთვიური შემოსავალი ბოლო წლის განმავლობაში"
                 className="lg:col-span-2"
                 action={
                   <Link
                     href="/admin/analytics/revenue"
                     className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
                   >
-                    View Details
+                    დეტალები
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 }
@@ -231,11 +231,11 @@ export default function AnalyticsDashboardPage() {
               </ChartContainer>
 
               {/* Revenue Breakdown */}
-              <ChartContainer title="Revenue by Period">
+              <ChartContainer title="შემოსავალი პერიოდების მიხედვით">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-500">Today</p>
+                      <p className="text-sm text-gray-500">დღეს</p>
                       <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(dashboard.revenue?.today || 0)}
                       </p>
@@ -244,7 +244,7 @@ export default function AnalyticsDashboardPage() {
                   </div>
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-500">This Month</p>
+                      <p className="text-sm text-gray-500">ეს თვე</p>
                       <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(dashboard.revenue?.month || 0)}
                       </p>
@@ -253,7 +253,7 @@ export default function AnalyticsDashboardPage() {
                   </div>
                   <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-500">This Year</p>
+                      <p className="text-sm text-gray-500">ეს წელი</p>
                       <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(dashboard.revenue?.year || 0)}
                       </p>
@@ -268,14 +268,14 @@ export default function AnalyticsDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Student Activity Stats */}
               <ChartContainer
-                title="Student Activity"
-                subtitle="Active users by time period"
+                title="სტუდენტების აქტივობა"
+                subtitle="აქტიური მომხმარებლები პერიოდების მიხედვით"
                 action={
                   <Link
                     href="/admin/analytics/students"
                     className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
                   >
-                    View Details
+                    დეტალები
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 }
@@ -285,24 +285,24 @@ export default function AnalyticsDashboardPage() {
                     <p className="text-3xl font-bold text-gray-900">
                       {dashboard.students?.active24h || 0}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">Last 24h</p>
+                    <p className="text-sm text-gray-500 mt-1">ბოლო 24 სთ</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <p className="text-3xl font-bold text-gray-900">
                       {dashboard.students?.active7d || 0}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">Last 7 days</p>
+                    <p className="text-sm text-gray-500 mt-1">ბოლო 7 დღე</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <p className="text-3xl font-bold text-gray-900">
                       {dashboard.students?.active30d || 0}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">Last 30 days</p>
+                    <p className="text-sm text-gray-500 mt-1">ბოლო 30 დღე</p>
                   </div>
                 </div>
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-500">New registrations today</span>
+                    <span className="text-sm text-gray-500">დღევანდელი რეგისტრაციები</span>
                     <span className="text-lg font-semibold text-green-600">
                       +{dashboard.students?.todayRegistrations || 0}
                     </span>
@@ -326,12 +326,12 @@ export default function AnalyticsDashboardPage() {
 
               {/* Top Courses */}
               <Leaderboard
-                title="Top Selling Courses"
+                title="ყველაზე გაყიდვადი კურსები"
                 items={topCourses.map((course: any, index: number) => ({
                   rank: index + 1,
                   name: course.title,
                   value: formatCurrency(parseFloat(course.revenue) || 0),
-                  subtitle: `${course.sales} sales`
+                  subtitle: `${course.sales} გაყიდვა`
                 }))}
               />
             </div>
@@ -357,15 +357,15 @@ export default function AnalyticsDashboardPage() {
 
             {/* Recent Activities */}
             {dashboard.recentActivities && dashboard.recentActivities.length > 0 && (
-              <ChartContainer title="Recent Purchases" subtitle="Latest transactions">
+              <ChartContainer title="ბოლო შეძენები" subtitle="უახლესი ტრანზაქციები">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Customer</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Course</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Amount</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Time</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">მომხმარებელი</th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">კურსი</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">თანხა</th>
+                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">დრო</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -402,7 +402,7 @@ export default function AnalyticsDashboardPage() {
           </>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500">No data available</p>
+            <p className="text-gray-500">მონაცემები არ არის</p>
           </div>
         )}
       </div>
