@@ -1,60 +1,33 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentApiClient, ChapterProgress, ChapterForLearning } from '@/lib/api/studentApi';
-import { useAuthStore } from '@/store/authStore';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { useSwipeGesture } from '@/hooks/useSwipeGesture';
+import QuizPlayer from '@/components/quiz/QuizPlayer';
+import QuizResults from '@/components/quiz/QuizResults';
+import CourseCompletionModal from '@/components/student/learning/CourseCompletionModal';
+import { QuizAttempt } from '@/lib/api/quizApi';
 
 type ActiveTab = 'video' | 'theory' | 'assignment' | 'quiz';
 
-// Custom hook for detecting mobile screens
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  return isMobile;
-}
-
-// Custom hook for swipe gestures
-function useSwipeGesture(onSwipeLeft?: () => void, onSwipeRight?: () => void) {
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchEndX.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-
-    const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && onSwipeLeft) {
-      onSwipeLeft();
+// Helper function to extract YouTube video ID
+const getYouTubeVideoId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/)([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
     }
-    if (isRightSwipe && onSwipeRight) {
-      onSwipeRight();
-    }
-  };
-
-  return { onTouchStart, onTouchMove, onTouchEnd };
-}
+  }
+  return null;
+};
 
 function ChapterSidebar({
   chapters,
@@ -79,9 +52,6 @@ function ChapterSidebar({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  // On mobile, sidebar is hidden by default and shown as overlay
-  // On desktop, sidebar follows normal collapsed/expanded behavior
-  const shouldShow = isMobile ? isOpen : true;
   const sidebarWidth = isMobile ? 'w-80' : (isCollapsed ? 'w-16' : 'w-80');
 
   return (
@@ -267,12 +237,20 @@ function ChapterContent({
   onTabChange,
   onMarkComplete,
   isMarkingComplete,
+  quizMode,
+  completedAttemptId,
+  onQuizComplete,
+  onQuizRetry,
 }: {
   chapterData: ChapterForLearning;
   activeTab: ActiveTab;
   onTabChange: (tab: ActiveTab) => void;
   onMarkComplete: () => void;
   isMarkingComplete: boolean;
+  quizMode: 'start' | 'playing' | 'results';
+  completedAttemptId: string | null;
+  onQuizComplete: (attempt: QuizAttempt) => void;
+  onQuizRetry: () => void;
 }) {
   const { chapter, progress } = chapterData;
   const [showAnswer, setShowAnswer] = useState(false);
@@ -355,13 +333,24 @@ function ChapterContent({
         {activeTab === 'video' && chapter.video && (
           <div className="bg-black rounded-xl overflow-hidden aspect-video mb-6">
             {chapter.video.hlsMasterUrl ? (
-              <video
-                controls
-                className="w-full h-full"
-                src={chapter.video.hlsMasterUrl}
-              >
-                Your browser does not support the video tag.
-              </video>
+              // Check if it's a YouTube URL
+              chapter.video.hlsMasterUrl.includes('youtube.com') || chapter.video.hlsMasterUrl.includes('youtu.be') ? (
+                <iframe
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(chapter.video.hlsMasterUrl)}?rel=0&modestbranding=1`}
+                  title="Video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  controls
+                  className="w-full h-full"
+                  src={chapter.video.hlsMasterUrl}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              )
             ) : (
               <div className="w-full h-full flex items-center justify-center text-white">
                 <div className="text-center">
@@ -386,89 +375,108 @@ function ChapterContent({
 
         {/* Assignment Tab */}
         {activeTab === 'assignment' && (
-          <div className="space-y-6">
-            {/* Download Assignment */}
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden max-w-xl">
+            {/* Assignment Download */}
             {chapter.assignmentFile && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">დავალება</h3>
-                <a
-                  href={chapter.assignmentFile}
-                  download
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  დავალების ჩამოტვირთვა
-                </a>
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 mb-1">დავალება</h3>
+                    <p className="text-sm text-gray-500 mb-3">ჩამოტვირთეთ დავალების ფაილი</p>
+                    <a
+                      href={chapter.assignmentFile}
+                      download
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      ჩამოტვირთვა
+                    </a>
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* View Answer */}
+            {/* Answer Section */}
             {chapter.answerFile && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">პასუხი</h3>
-                {!showAnswer ? (
-                  <button
-                    onClick={() => setShowAnswer(true)}
-                    className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    პასუხის ჩვენება
-                  </button>
-                ) : (
-                  <div className="space-y-4">
-                    <a
-                      href={chapter.answerFile}
-                      download
-                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <>
+                <div className="border-t border-gray-100" />
+                <div className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      showAnswer ? 'bg-emerald-100' : 'bg-gray-100'
+                    }`}>
+                      <svg className={`w-6 h-6 ${showAnswer ? 'text-emerald-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      პასუხის ჩამოტვირთვა
-                    </a>
-                    <button
-                      onClick={() => setShowAnswer(false)}
-                      className="ml-3 text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      პასუხის დამალვა
-                    </button>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 mb-1">პასუხი</h3>
+                      {!showAnswer ? (
+                        <>
+                          <p className="text-sm text-gray-500 mb-3">ჯერ სცადეთ დავალების შესრულება</p>
+                          <button
+                            onClick={() => setShowAnswer(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            პასუხის ნახვა
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-500 mb-3">პასუხი ხელმისაწვდომია</p>
+                          <div className="flex items-center gap-3">
+                            <a
+                              href={chapter.answerFile}
+                              download
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              ჩამოტვირთვა
+                            </a>
+                            <button
+                              onClick={() => setShowAnswer(false)}
+                              className="text-sm text-gray-500 hover:text-gray-700"
+                            >
+                              დამალვა
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              </>
             )}
           </div>
         )}
 
         {/* Quiz Tab */}
         {activeTab === 'quiz' && chapter.quiz && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{chapter.quiz.title}</h3>
-              <div className="text-sm text-gray-500 space-y-1 mb-6">
-                <p>{chapter.quiz.questionCount} კითხვა</p>
-                <p>გამსვლელი ქულა: {chapter.quiz.passingScore}%</p>
-                {chapter.quiz.timeLimit && <p>დროის ლიმიტი: {chapter.quiz.timeLimit} წუთი</p>}
-              </div>
-              <Link
-                href={`/quiz/${chapter.quiz.id}`}
-                className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                ტესტის დაწყება
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </Link>
-            </div>
+          <div className="rounded-xl overflow-hidden">
+            {quizMode === 'results' && completedAttemptId ? (
+              <QuizResults
+                attemptId={completedAttemptId}
+                onRetry={onQuizRetry}
+              />
+            ) : (
+              <QuizPlayer
+                quizId={chapter.quiz.id}
+                onComplete={onQuizComplete}
+              />
+            )}
           </div>
         )}
 
@@ -498,7 +506,6 @@ function ChapterContent({
 
 export default function CourseLearningPage() {
   const params = useParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const slug = params.slug as string;
   const isMobile = useIsMobile();
@@ -507,6 +514,10 @@ export default function CourseLearningPage() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('video');
+  const [quizMode, setQuizMode] = useState<'start' | 'playing' | 'results'>('start');
+  const [completedAttemptId, setCompletedAttemptId] = useState<string | null>(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [hasShownCompletionModal, setHasShownCompletionModal] = useState(false);
 
   // Fetch course data
   const { data: courseData, isLoading: isCourseLoading, error: courseError } = useQuery({
@@ -561,8 +572,22 @@ export default function CourseLearningPage() {
     }
   }, [chapterData]);
 
+  // Check if course is completed and show modal
+  useEffect(() => {
+    if (courseData?.data && !hasShownCompletionModal) {
+      const allCompleted = courseData.data.chapters.every((c) => c.progress.isCompleted);
+      if (allCompleted && courseData.data.chapters.length > 0) {
+        setShowCompletionModal(true);
+        setHasShownCompletionModal(true);
+      }
+    }
+  }, [courseData, hasShownCompletionModal]);
+
   const handleSelectChapter = (chapterId: string) => {
     setActiveChapterId(chapterId);
+    // Reset quiz state when changing chapters
+    setQuizMode('start');
+    setCompletedAttemptId(null);
   };
 
   const handleMarkComplete = () => {
@@ -584,6 +609,18 @@ export default function CourseLearningPage() {
       }
     },
     [courseData, activeChapterId]
+  );
+
+  // Calculate chapter navigation state (used by swipe gesture hook)
+  const chapters = courseData?.data?.chapters || [];
+  const currentChapterIndex = chapters.findIndex((c) => c.id === activeChapterId);
+  const hasPrevChapter = currentChapterIndex > 0;
+  const hasNextChapter = currentChapterIndex >= 0 && currentChapterIndex < chapters.length - 1;
+
+  // Swipe gestures for mobile navigation - must be called before any conditional returns
+  const swipeHandlers = useSwipeGesture(
+    hasNextChapter ? () => navigateChapter('next') : undefined,
+    hasPrevChapter ? () => navigateChapter('prev') : undefined
   );
 
   if (isCourseLoading) {
@@ -614,16 +651,7 @@ export default function CourseLearningPage() {
     );
   }
 
-  const { course, chapters, progress } = courseData.data;
-  const currentChapterIndex = chapters.findIndex((c) => c.id === activeChapterId);
-  const hasPrevChapter = currentChapterIndex > 0;
-  const hasNextChapter = currentChapterIndex < chapters.length - 1;
-
-  // Swipe gestures for mobile navigation
-  const swipeHandlers = useSwipeGesture(
-    hasNextChapter ? () => navigateChapter('next') : undefined,
-    hasPrevChapter ? () => navigateChapter('prev') : undefined
-  );
+  const { course, progress } = courseData.data;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -689,6 +717,17 @@ export default function CourseLearningPage() {
             onTabChange={setActiveTab}
             onMarkComplete={handleMarkComplete}
             isMarkingComplete={markCompleteMutation.isPending}
+            quizMode={quizMode}
+            completedAttemptId={completedAttemptId}
+            onQuizComplete={(attempt: QuizAttempt) => {
+              setCompletedAttemptId(attempt.id);
+              setQuizMode('results');
+              queryClient.invalidateQueries({ queryKey: ['chapterForLearning', activeChapterId] });
+            }}
+            onQuizRetry={() => {
+              setQuizMode('start');
+              setCompletedAttemptId(null);
+            }}
           />
         )}
 
@@ -741,6 +780,18 @@ export default function CourseLearningPage() {
               გადაფურცლეთ თავებს შორის გადასასვლელად
             </div>
           </div>
+        )}
+
+        {/* Course Completion Modal */}
+        {courseData?.data && (
+          <CourseCompletionModal
+            isOpen={showCompletionModal}
+            onClose={() => setShowCompletionModal(false)}
+            courseTitle={courseData.data.course.title}
+            completedChapters={courseData.data.progress.completedChapters}
+            totalChapters={courseData.data.progress.totalChapters}
+            certificate={courseData.data.certificate}
+          />
         )}
       </div>
     </div>

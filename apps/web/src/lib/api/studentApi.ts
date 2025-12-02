@@ -299,8 +299,60 @@ export interface Bookmark {
   };
 }
 
+// Purchase API for enrollment
+const purchaseApi = axios.create({
+  baseURL: `${API_URL}/api/purchase`,
+  withCredentials: true,
+});
+
+purchaseApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // API Functions
 export const studentApiClient = {
+  // Enroll in a course (without payment)
+  enrollInCourse: async (
+    courseId: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data?: { purchaseId: string; courseSlug: string; courseTitle: string };
+  }> => {
+    const response = await purchaseApi.post('/enroll', { courseId });
+    return response.data;
+  },
+
+  // Enroll by course slug
+  enrollBySlug: async (
+    slug: string
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data?: { purchaseId: string; courseSlug: string; courseTitle: string };
+  }> => {
+    const response = await purchaseApi.post(`/enroll/${slug}`);
+    return response.data;
+  },
+
+  // Check enrollment status
+  checkEnrollment: async (
+    courseId: string
+  ): Promise<{
+    success: boolean;
+    data: { isEnrolled: boolean; purchaseStatus: string | null; enrolledAt: string | null };
+  }> => {
+    const response = await purchaseApi.get(`/check/${courseId}`);
+    return response.data;
+  },
+
   // Dashboard
   getDashboard: async (): Promise<{ success: boolean; data: DashboardData }> => {
     const response = await studentApi.get('/dashboard');

@@ -5,7 +5,7 @@ import { Bookmark } from '@/lib/api/studentApi';
 
 interface VideoPlayerProps {
   video: {
-    id: string;
+    id: string | null;
     duration: number | null;
     hlsMasterUrl: string | null;
   } | null;
@@ -19,6 +19,26 @@ interface VideoPlayerProps {
   onProgressUpdate: (data: { watchPercentage?: number; lastPosition?: number }) => void;
   onCreateBookmark: (timestamp: number, title: string, description?: string) => void;
 }
+
+// Helper function to extract YouTube video ID
+const getYouTubeVideoId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/)([^&\n?#]+)/,
+    /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return null;
+};
+
+// Check if URL is a YouTube URL
+const isYouTubeUrl = (url: string): boolean => {
+  return url.includes('youtube.com') || url.includes('youtu.be');
+};
 
 export default function VideoPlayer({
   video,
@@ -324,6 +344,29 @@ export default function VideoPlayer({
           <p className="text-lg">Video is being processed...</p>
           <p className="text-sm text-gray-400 mt-2">Please check back later</p>
         </div>
+      </div>
+    );
+  }
+
+  // Check if it's a YouTube video
+  const youtubeVideoId = isYouTubeUrl(video.hlsMasterUrl) ? getYouTubeVideoId(video.hlsMasterUrl) : null;
+
+  // Render YouTube embed
+  if (youtubeVideoId) {
+    return (
+      <div className="px-6 py-6">
+        <div className="relative bg-black rounded-xl overflow-hidden">
+          <iframe
+            className="w-full aspect-video"
+            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
+            title="Video player"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+        <p className="text-sm text-gray-500 mt-2 text-center">
+          YouTube ვიდეო - პროგრესის თვალყურის დევნება მიუწვდომელია
+        </p>
       </div>
     );
   }

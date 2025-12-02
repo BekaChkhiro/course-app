@@ -49,11 +49,18 @@ export const publicApi = {
 
   // Get single course by slug
   async getCourse(slug: string) {
+    // Include auth token if available to get isEnrolled status
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_URL}/api/public/courses/${slug}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     const data = await response.json();

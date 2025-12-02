@@ -434,11 +434,11 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
         description: chapter.description,
         order: chapter.order,
         isFree: chapter.isFree,
-        hasVideo: chapter.videos.length > 0,
+        hasVideo: chapter.videos.length > 0 || !!chapter.videoUrl,
         hasTheory: !!chapter.theory,
         hasAssignment: !!chapter.assignmentFile,
         hasQuiz: !!chapter.quiz,
-        videoDuration: chapter.videos[0]?.duration,
+        videoDuration: chapter.videos[0]?.duration || null,
         progress: {
           isCompleted: chapterProgress?.isCompleted || false,
           watchPercentage: Number(chapterProgress?.watchPercentage) || 0,
@@ -619,7 +619,11 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
           theory: chapter.theory,
           assignmentFile: chapter.assignmentFile,
           answerFile: chapter.answerFile,
-          video: chapter.videos[0] || null,
+          video: chapter.videos[0]
+            ? chapter.videos[0]
+            : chapter.videoUrl
+              ? { id: null, duration: null, hlsMasterUrl: chapter.videoUrl }
+              : null,
           quiz: chapter.quiz
             ? {
                 id: chapter.quiz.id,

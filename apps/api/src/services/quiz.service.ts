@@ -591,9 +591,22 @@ class QuizService {
     // Update analytics
     await this.updateQuizAnalytics(attempt.quizId);
 
+    // Mark chapter as completed if quiz is passed
+    if (passed) {
+      await this.markChapterCompleted(attempt.userId, attempt.quizId);
+    }
+
     // Generate certificate if applicable
     if (passed && attempt.quiz.generateCertificate) {
-      await this.generateCertificate(completedAttempt);
+      // Check if all chapters in the course are completed
+      const allChaptersCompleted = await this.checkAllChaptersCompleted(
+        attempt.userId,
+        attempt.quizId
+      );
+
+      if (allChaptersCompleted) {
+        await this.generateCertificate(completedAttempt);
+      }
     }
 
     return completedAttempt;
@@ -756,6 +769,125 @@ class QuizService {
         averageTime,
       },
     });
+  }
+
+  /**
+   * Mark chapter as completed when quiz is passed
+   */
+  private async markChapterCompleted(userId: string, quizId: string) {
+    // Find the quiz with its chapter
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        chapter: {
+          include: {
+            version: true,
+          },
+        },
+        chapterContent: {
+          include: {
+            chapter: {
+              include: {
+                version: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!quiz) return;
+
+    // Get chapter from either direct relation or through chapterContent
+    const chapter = quiz.chapter || quiz.chapterContent?.chapter;
+    if (!chapter) return;
+
+    const courseVersionId = chapter.versionId;
+    const chapterId = chapter.id;
+
+    // Mark progress as completed
+    await prisma.progress.upsert({
+      where: {
+        userId_chapterId: {
+          userId,
+          chapterId,
+        },
+      },
+      create: {
+        userId,
+        chapterId,
+        courseVersionId,
+        isCompleted: true,
+      },
+      update: {
+        isCompleted: true,
+      },
+    });
+  }
+
+  /**
+   * Check if all chapters in the course are completed
+   */
+  private async checkAllChaptersCompleted(
+    userId: string,
+    quizId: string
+  ): Promise<boolean> {
+    // Find the quiz to get the course version
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        chapter: {
+          include: {
+            version: {
+              include: {
+                chapters: {
+                  orderBy: { order: 'asc' },
+                },
+              },
+            },
+          },
+        },
+        chapterContent: {
+          include: {
+            chapter: {
+              include: {
+                version: {
+                  include: {
+                    chapters: {
+                      orderBy: { order: 'asc' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!quiz) return false;
+
+    // Get chapter and version from either direct relation or through chapterContent
+    const chapter = quiz.chapter || quiz.chapterContent?.chapter;
+    if (!chapter || !chapter.version) return false;
+
+    const chapters = chapter.version.chapters;
+    if (chapters.length === 0) return false;
+
+    // Get user's progress for all chapters
+    const progress = await prisma.progress.findMany({
+      where: {
+        userId,
+        chapterId: { in: chapters.map((c) => c.id) },
+      },
+    });
+
+    // Check if all chapters are completed
+    const completedChapterIds = new Set(
+      progress.filter((p) => p.isCompleted).map((p) => p.chapterId)
+    );
+
+    return chapters.every((chapter) => completedChapterIds.has(chapter.id));
   }
 
   /**

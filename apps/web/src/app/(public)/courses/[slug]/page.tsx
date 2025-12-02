@@ -2,20 +2,50 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { publicApi } from '@/lib/api/publicApi';
+import { studentApiClient } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
 
 export default function CoursePage() {
   const params = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const slug = params.slug as string;
   const { isAuthenticated } = useAuthStore();
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [enrollError, setEnrollError] = useState<string | null>(null);
 
   const { data: course, isLoading, error } = useQuery({
     queryKey: ['course', slug],
     queryFn: () => publicApi.getCourse(slug),
   });
+
+  const handleEnroll = async () => {
+    if (!course?.id) return;
+
+    setIsEnrolling(true);
+    setEnrollError(null);
+
+    try {
+      const result = await studentApiClient.enrollInCourse(course.id);
+      if (result.success) {
+        // Invalidate course query to update isEnrolled status
+        queryClient.invalidateQueries({ queryKey: ['course', slug] });
+        // Redirect to learning page
+        router.push(`/dashboard/courses/${course.slug}/learn`);
+      } else {
+        setEnrollError(result.message || 'შეცდომა ჩარიცხვისას');
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'შეცდომა ჩარიცხვისას';
+      setEnrollError(message);
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -158,12 +188,28 @@ export default function CoursePage() {
                         გააგრძელე სწავლა
                       </Link>
                     ) : (
-                      <Link
-                        href={`/checkout/${course.slug}`}
-                        className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
-                      >
-                        {course.price === 0 ? 'დაიწყე სწავლა' : 'შეიძინე ახლავე'}
-                      </Link>
+                      <>
+                        <button
+                          onClick={handleEnroll}
+                          disabled={isEnrolling}
+                          className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isEnrolling ? (
+                            <span className="flex items-center justify-center">
+                              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              მიმდინარეობს...
+                            </span>
+                          ) : (
+                            course.price === 0 ? 'დაიწყე სწავლა' : 'ჩაირიცხე კურსზე'
+                          )}
+                        </button>
+                        {enrollError && (
+                          <p className="mt-2 text-sm text-red-600 text-center">{enrollError}</p>
+                        )}
+                      </>
                     )
                   ) : (
                     <Link

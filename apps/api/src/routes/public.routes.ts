@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/database';
+import { optionalAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -143,9 +144,10 @@ router.get('/courses', async (req: Request, res: Response) => {
 });
 
 // Get single course by slug
-router.get('/courses/:slug', async (req: Request, res: Response) => {
+router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { slug } = req.params;
+    const userId = req.user?.id;
 
     const course = await prisma.course.findFirst({
       where: {
@@ -191,6 +193,20 @@ router.get('/courses/:slug', async (req: Request, res: Response) => {
       });
     }
 
+    // Check if user is enrolled (if authenticated)
+    let isEnrolled = false;
+    if (userId) {
+      const purchase = await prisma.purchase.findUnique({
+        where: {
+          userId_courseId: {
+            userId,
+            courseId: course.id,
+          },
+        },
+      });
+      isEnrolled = purchase?.status === 'COMPLETED';
+    }
+
     // Calculate stats
     const ratings = course.reviews.map((r) => r.rating);
     const averageRating =
@@ -227,6 +243,7 @@ router.get('/courses/:slug', async (req: Request, res: Response) => {
         chapters,
         learningOutcomes,
         totalDuration: 0, // Can be calculated if duration is stored in chapters
+        isEnrolled, // Added: enrollment status for authenticated users
       },
     });
   } catch (error) {

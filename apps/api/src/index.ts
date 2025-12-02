@@ -20,6 +20,7 @@ import reviewRoutes from './routes/review.routes'
 import messagingRoutes from './routes/messaging.routes'
 import comprehensiveAnalyticsRoutes from './routes/comprehensiveAnalyticsRoutes'
 import publicRoutes from './routes/public.routes'
+import purchaseRoutes from './routes/purchase.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -116,6 +117,9 @@ app.use('/api/admin/analytics', comprehensiveAnalyticsRoutes)
 
 // Public routes (no authentication required)
 app.use('/api/public', publicRoutes)
+
+// Purchase routes (requires authentication)
+app.use('/api/purchase', purchaseRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

@@ -119,3 +119,50 @@ export const requireAdmin = async (
   }
   next();
 };
+
+// Optional auth - doesn't fail if no token, just adds user to req if valid
+export const optionalAuth = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next(); // No token, continue without user
+    }
+
+    const token = authHeader.substring(7);
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        userId: string;
+      };
+
+      const user = await db.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          surname: true,
+          role: true,
+          isActive: true,
+          emailVerified: true,
+        },
+      });
+
+      if (user && user.isActive) {
+        req.userId = user.id;
+        req.user = user as any;
+      }
+    } catch {
+      // Token invalid, continue without user
+    }
+
+    next();
+  } catch (error) {
+    next();
+  }
+};

@@ -1,23 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-  Flag,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Loader,
-} from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, AlertTriangle, Check, Loader2 } from 'lucide-react';
 import {
   quizApi,
   quizAttemptApi,
   Quiz,
   QuizAttempt,
-  QuizQuestion,
   QuestionType,
 } from '@/lib/api/quizApi';
 import toast from 'react-hot-toast';
@@ -45,21 +35,14 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
   const visibilityListenerRef = useRef<() => void>();
   const copyPasteListenerRef = useRef<(e: Event) => void>();
 
-  // Load quiz and check for existing attempt
   useEffect(() => {
     loadQuiz();
-    return () => {
-      cleanup();
-    };
+    return () => cleanup();
   }, [quizId]);
 
   const cleanup = () => {
-    if (autoSaveTimerRef.current) {
-      clearInterval(autoSaveTimerRef.current);
-    }
-    if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
-    }
+    if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     if (visibilityListenerRef.current) {
       document.removeEventListener('visibilitychange', visibilityListenerRef.current);
     }
@@ -88,51 +71,30 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
       setAttempt(newAttempt);
       setHasStarted(true);
 
-      // Restore previous answers if resuming
       if (newAttempt.autoSaveData?.answers) {
         setAnswers(newAttempt.autoSaveData.answers);
       }
-
-      // Set current question index
       setCurrentQuestionIndex(newAttempt.currentQuestionIndex || 0);
-
-      // Restore marked questions
       if (newAttempt.markedForReview.length > 0) {
         setMarkedForReview(new Set(newAttempt.markedForReview));
       }
 
-      // Calculate time remaining
       if (quiz?.timeLimit && quiz.timeLimit > 0) {
         const elapsed = Math.floor(
           (new Date().getTime() - new Date(newAttempt.startedAt).getTime()) / 1000
         );
         const remaining = Math.max(0, quiz.timeLimit * 60 - elapsed);
         setTimeRemaining(remaining);
-
         if (remaining === 0) {
           await handleTimeExpired();
           return;
         }
-      }
-
-      // Setup auto-save
-      setupAutoSave();
-
-      // Setup timer if time limit exists
-      if (quiz?.timeLimit && quiz.timeLimit > 0) {
         setupCountdownTimer();
       }
 
-      // Setup anti-cheating measures
-      if (quiz?.preventTabSwitch) {
-        setupTabSwitchDetection();
-      }
-
-      if (quiz?.preventCopyPaste) {
-        setupCopyPasteDetection();
-      }
-
-      toast.success('ქვიზი დაწყებულია!');
+      setupAutoSave();
+      if (quiz?.preventTabSwitch) setupTabSwitchDetection();
+      if (quiz?.preventCopyPaste) setupCopyPasteDetection();
     } catch (error: any) {
       console.error('Failed to start quiz:', error);
       toast.error(error.response?.data?.message || 'ვერ დაიწყო ქვიზი');
@@ -141,22 +103,18 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
   const setupAutoSave = () => {
     autoSaveTimerRef.current = setInterval(() => {
-      if (attempt?.id) {
-        autoSave();
-      }
-    }, 30000); // Every 30 seconds
+      if (attempt?.id) autoSave();
+    }, 30000);
   };
 
   const autoSave = async () => {
     if (!attempt?.id) return;
-
     try {
       await quizAttemptApi.autoSave(attempt.id, {
         answers,
         currentQuestionIndex,
         timestamp: new Date().toISOString(),
       });
-      console.log('Auto-saved at', new Date().toISOString());
     } catch (error) {
       console.error('Auto-save failed:', error);
     }
@@ -170,13 +128,10 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
           handleTimeExpired();
           return 0;
         }
-
-        // Show warning at 5 minutes
         if (prev === 300 && !showTimeWarning) {
           setShowTimeWarning(true);
-          toast.error('⏰ დარჩენილია 5 წუთი!', { duration: 5000 });
+          toast.error('დარჩენილია 5 წუთი!', { duration: 5000 });
         }
-
         return prev - 1;
       });
     }, 1000);
@@ -186,10 +141,9 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     const handleVisibilityChange = () => {
       if (document.hidden && attempt?.id) {
         quizAttemptApi.logTabSwitch(attempt.id);
-        toast.error('⚠️ გაფრთხილება: ტაბის გადართვა აღმოჩენილია!');
+        toast.error('ტაბის გადართვა აღმოჩენილია');
       }
     };
-
     visibilityListenerRef.current = handleVisibilityChange;
     document.addEventListener('visibilitychange', handleVisibilityChange);
   };
@@ -198,25 +152,18 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     const handleCopyPaste = (e: Event) => {
       e.preventDefault();
       if (attempt?.id) {
-        quizAttemptApi.logCopyPaste(
-          attempt.id,
-          e.type as 'copy' | 'paste'
-        );
-        toast.error(`⚠️ ${e.type === 'copy' ? 'კოპირება' : 'ჩასმა'} აკრძალულია!`);
+        quizAttemptApi.logCopyPaste(attempt.id, e.type as 'copy' | 'paste');
+        toast.error(`${e.type === 'copy' ? 'კოპირება' : 'ჩასმა'} აკრძალულია`);
       }
     };
-
     copyPasteListenerRef.current = handleCopyPaste;
     document.addEventListener('copy', handleCopyPaste);
     document.addEventListener('paste', handleCopyPaste);
   };
 
   const handleTimeExpired = async () => {
-    if (countdownTimerRef.current) {
-      clearInterval(countdownTimerRef.current);
-    }
-
-    toast.error('⏰ დრო ამოიწურა! ქვიზი ავტომატურად დასრულდა.');
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    toast.error('დრო ამოიწურა!');
     await submitQuiz();
   };
 
@@ -224,50 +171,30 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     if (!attempt?.id) return;
 
     let newAnswerIds: string[];
-
     if (isMultiple) {
       const current = answers[questionId] || [];
-      if (current.includes(answerId)) {
-        newAnswerIds = current.filter((id) => id !== answerId);
-      } else {
-        newAnswerIds = [...current, answerId];
-      }
+      newAnswerIds = current.includes(answerId)
+        ? current.filter((id) => id !== answerId)
+        : [...current, answerId];
     } else {
       newAnswerIds = [answerId];
     }
 
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: newAnswerIds,
-    }));
+    setAnswers((prev) => ({ ...prev, [questionId]: newAnswerIds }));
 
-    // Submit answer to backend
     try {
-      await quizAttemptApi.submitAnswer(
-        attempt.id,
-        questionId,
-        newAnswerIds
-      );
+      await quizAttemptApi.submitAnswer(attempt.id, questionId, newAnswerIds);
     } catch (error) {
       console.error('Failed to submit answer:', error);
-      toast.error('პასუხი ვერ შეინახა');
     }
   };
 
   const toggleMarkForReview = async () => {
     if (!attempt?.id || !quiz?.questions) return;
-
     const questionId = quiz.questions[currentQuestionIndex].id;
     const newMarked = new Set(markedForReview);
-
-    if (newMarked.has(questionId)) {
-      newMarked.delete(questionId);
-    } else {
-      newMarked.add(questionId);
-    }
-
+    newMarked.has(questionId) ? newMarked.delete(questionId) : newMarked.add(questionId);
     setMarkedForReview(newMarked);
-
     try {
       await quizAttemptApi.toggleMarkForReview(attempt.id, questionId);
     } catch (error) {
@@ -285,14 +212,13 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
   const submitQuiz = async () => {
     if (!attempt?.id || !quiz) return;
 
-    // Check if all questions are answered
     const unansweredCount = quiz.questions?.filter(
       (q) => !answers[q.id] || answers[q.id].length === 0
     ).length || 0;
 
     if (unansweredCount > 0) {
       const confirm = window.confirm(
-        `თქვენ ${unansweredCount} კითხვას ჯერ არ უპასუხეთ. დარწმუნებული ხართ რომ გსურთ დასრულება?`
+        `${unansweredCount} კითხვა უპასუხოდ დარჩა. გსურთ დასრულება?`
       );
       if (!confirm) return;
     }
@@ -301,14 +227,9 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
     try {
       const response = await quizAttemptApi.complete(attempt.id, timeRemaining || 0);
-      const completedAttempt = response.data;
-
       cleanup();
-
-      toast.success('ქვიზი დასრულებულია!');
-
       if (onComplete) {
-        onComplete(completedAttempt);
+        onComplete(response.data);
       } else {
         router.push(`/quiz/${quizId}/results/${attempt.id}`);
       }
@@ -320,341 +241,258 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
   };
 
   const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs
-        .toString()
-        .padStart(2, '0')}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
       </div>
     );
   }
 
+  // Quiz not found
   if (!quiz) {
     return (
-      <div className="text-center py-12">
-        <AlertTriangle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">ქვიზი ვერ მოიძებნა</h2>
+      <div className="text-center py-16">
+        <AlertTriangle className="w-10 h-10 mx-auto text-gray-300 mb-3" />
+        <p className="text-gray-500">ქვიზი ვერ მოიძებნა</p>
       </div>
     );
   }
 
-  // Start screen
+  // Start screen - Minimalist
   if (!hasStarted) {
     return (
-      <div className="max-w-3xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold mb-4">{quiz.title}</h1>
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">{quiz.title}</h2>
           {quiz.description && (
-            <p className="text-gray-600 mb-6">{quiz.description}</p>
+            <p className="text-gray-500 text-sm">{quiz.description}</p>
           )}
-
-          <div className="space-y-4 mb-8">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>
-                <strong>კითხვები:</strong> {quiz.questions?.length || 0}
-              </span>
-            </div>
-
-            {quiz.timeLimit && quiz.timeLimit > 0 && (
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-blue-600" />
-                <span>
-                  <strong>დრო:</strong> {quiz.timeLimit} წუთი
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-3">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
-              <span>
-                <strong>გასავლელი ქულა:</strong> {quiz.passingScore}%
-              </span>
-            </div>
-
-            {quiz.maxAttempts && (
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                <span>
-                  <strong>მცდელობები:</strong> მაქსიმუმ {quiz.maxAttempts}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {quiz.preventTabSwitch && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-yellow-800">
-                ⚠️ <strong>გაფრთხილება:</strong> ტაბის გადართვა აღინიშნება და შეიძლება
-                გავლენა იქონიოს შედეგზე.
-              </p>
-            </div>
-          )}
-
-          <button
-            onClick={startQuiz}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 font-medium text-lg"
-          >
-            ქვიზის დაწყება
-          </button>
         </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <p className="text-2xl font-semibold text-gray-900">{quiz.questions?.length || 0}</p>
+            <p className="text-xs text-gray-500 mt-1">კითხვა</p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <p className="text-2xl font-semibold text-gray-900">{quiz.passingScore}%</p>
+            <p className="text-xs text-gray-500 mt-1">გამსვლელი</p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <p className="text-2xl font-semibold text-gray-900">
+              {quiz.timeLimit ? `${quiz.timeLimit}` : '∞'}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">წუთი</p>
+          </div>
+        </div>
+
+        {(quiz.preventTabSwitch || quiz.maxAttempts) && (
+          <div className="mb-6 p-4 bg-amber-50 rounded-xl">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-amber-700 space-y-1">
+                {quiz.preventTabSwitch && <p>ტაბის გადართვა აღირიცხება</p>}
+                {quiz.maxAttempts && <p>მაქსიმუმ {quiz.maxAttempts} მცდელობა</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={startQuiz}
+          className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+        >
+          დაწყება
+        </button>
       </div>
     );
   }
 
+  // Quiz in progress
   const currentQuestion = quiz.questions?.[currentQuestionIndex];
-  const progress = quiz.questions
-    ? ((Object.keys(answers).length / quiz.questions.length) * 100).toFixed(0)
-    : 0;
+  const totalQuestions = quiz.questions?.length || 0;
+  const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header with Timer */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold">{quiz.title}</h1>
-              <p className="text-sm text-gray-600">
-                კითხვა {currentQuestionIndex + 1} / {quiz.questions?.length}
-              </p>
-            </div>
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-900">
+              {currentQuestionIndex + 1} / {totalQuestions}
+            </span>
+            <div className="h-4 w-px bg-gray-200" />
+            <span className="text-sm text-gray-500">
+              {answeredCount} პასუხგაცემული
+            </span>
+          </div>
 
-            {timeRemaining !== null && (
-              <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-lg ${
-                  timeRemaining < 300
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-blue-100 text-blue-700'
-                }`}
-              >
-                <Clock className="w-5 h-5" />
-                {formatTime(timeRemaining)}
-              </div>
+          {timeRemaining !== null && (
+            <div className={`flex items-center gap-1.5 text-sm font-mono ${
+              timeRemaining < 300 ? 'text-red-600' : 'text-gray-600'
+            }`}>
+              <Clock className="w-4 h-4" />
+              {formatTime(timeRemaining)}
+            </div>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gray-900 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Question */}
+      {currentQuestion && (
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="flex items-start justify-between gap-4 mb-1">
+              <h3 className="text-lg font-medium text-gray-900 leading-relaxed">
+                {currentQuestion.question}
+              </h3>
+              {currentQuestion.points > 1 && (
+                <span className="text-xs text-gray-400 whitespace-nowrap">
+                  {currentQuestion.points} ქ.
+                </span>
+              )}
+            </div>
+            {currentQuestion.questionImage && (
+              <img
+                src={currentQuestion.questionImage}
+                alt=""
+                className="mt-4 max-w-md rounded-lg"
+              />
             )}
           </div>
 
-          {/* Progress Bar */}
-          {quiz.showProgressBar && (
-            <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+          {/* Answer options */}
+          <div className="space-y-2">
+            {currentQuestion.answers.map((answer, idx) => {
+              const isSelected = answers[currentQuestion.id]?.includes(answer.id);
+              const isMultiple = currentQuestion.type === QuestionType.MULTIPLE_CHOICE;
+              const letter = String.fromCharCode(65 + idx); // A, B, C, D
+
+              return (
+                <button
+                  key={answer.id}
+                  onClick={() => selectAnswer(currentQuestion.id, answer.id, isMultiple)}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                    isSelected
+                      ? 'border-gray-900 bg-gray-50'
+                      : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-medium flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {isSelected ? <Check className="w-4 h-4" /> : letter}
+                    </span>
+                    <span className={`pt-0.5 ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                      {answer.answer}
+                    </span>
+                  </div>
+                  {answer.answerImage && (
+                    <img src={answer.answerImage} alt="" className="mt-3 ml-10 max-w-xs rounded-lg" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => goToQuestion(currentQuestionIndex - 1)}
+            disabled={currentQuestionIndex === 0}
+            className="flex items-center gap-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            წინა
+          </button>
+
+          {/* Question dots */}
+          <div className="flex items-center gap-1.5">
+            {quiz.questions?.map((q, idx) => {
+              const isAnswered = answers[q.id]?.length > 0;
+              const isCurrent = idx === currentQuestionIndex;
+              const isMarked = markedForReview.has(q.id);
+
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => goToQuestion(idx)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    isCurrent
+                      ? 'w-6 bg-gray-900'
+                      : isMarked
+                      ? 'bg-amber-400'
+                      : isAnswered
+                      ? 'bg-gray-400'
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                  title={`კითხვა ${idx + 1}`}
                 />
-              </div>
-              <p className="text-xs text-gray-600 mt-1 text-right">
-                {progress}% დასრულებული
-              </p>
-            </div>
+              );
+            })}
+          </div>
+
+          {currentQuestionIndex === totalQuestions - 1 ? (
+            <button
+              onClick={submitQuiz}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'დასრულება'
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={() => goToQuestion(currentQuestionIndex + 1)}
+              className="flex items-center gap-1 px-3 py-2 text-sm text-gray-900 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              შემდეგი
+              <ChevronRight className="w-4 h-4" />
+            </button>
           )}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main Question Area */}
-          <div className="lg:col-span-3">
-            {currentQuestion && (
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                {/* Question */}
-                <div className="mb-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <h2 className="text-xl font-semibold flex-1">
-                      {currentQuestion.question}
-                    </h2>
-                    <span className="ml-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                      {currentQuestion.points} ქულა
-                    </span>
-                  </div>
-
-                  {currentQuestion.questionImage && (
-                    <img
-                      src={currentQuestion.questionImage}
-                      alt="Question"
-                      className="max-w-full rounded-lg mb-4"
-                    />
-                  )}
-                </div>
-
-                {/* Answers */}
-                <div className="space-y-3">
-                  {currentQuestion.answers.map((answer) => {
-                    const isSelected = answers[currentQuestion.id]?.includes(
-                      answer.id
-                    );
-                    const isMultiple =
-                      currentQuestion.type === QuestionType.MULTIPLE_CHOICE;
-
-                    return (
-                      <button
-                        key={answer.id}
-                        onClick={() =>
-                          selectAnswer(currentQuestion.id, answer.id, isMultiple)
-                        }
-                        className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                          isSelected
-                            ? 'border-blue-600 bg-blue-50'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1">
-                            {isMultiple ? (
-                              <div
-                                className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                                  isSelected
-                                    ? 'bg-blue-600 border-blue-600'
-                                    : 'border-gray-300'
-                                }`}
-                              >
-                                {isSelected && (
-                                  <CheckCircle className="w-4 h-4 text-white" />
-                                )}
-                              </div>
-                            ) : (
-                              <div
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                  isSelected
-                                    ? 'bg-blue-600 border-blue-600'
-                                    : 'border-gray-300'
-                                }`}
-                              >
-                                {isSelected && (
-                                  <div className="w-2 h-2 bg-white rounded-full" />
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1">
-                            <p className="text-gray-900">{answer.answer}</p>
-                            {answer.answerImage && (
-                              <img
-                                src={answer.answerImage}
-                                alt="Answer"
-                                className="mt-2 max-w-xs rounded"
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Navigation */}
-                <div className="flex items-center justify-between mt-8 pt-6 border-t">
-                  <button
-                    onClick={() => goToQuestion(currentQuestionIndex - 1)}
-                    disabled={currentQuestionIndex === 0}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                    წინა
-                  </button>
-
-                  <button
-                    onClick={toggleMarkForReview}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                      markedForReview.has(currentQuestion.id)
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Flag className="w-5 h-5" />
-                    {markedForReview.has(currentQuestion.id)
-                      ? 'მონიშნულია'
-                      : 'მონიშვნა'}
-                  </button>
-
-                  {currentQuestionIndex === (quiz.questions?.length || 0) - 1 ? (
-                    <button
-                      onClick={submitQuiz}
-                      disabled={isSubmitting}
-                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <Loader className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <CheckCircle className="w-5 h-5" />
-                      )}
-                      დასრულება
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => goToQuestion(currentQuestionIndex + 1)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      შემდეგი
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Question Navigation Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-4 sticky top-24">
-              <h3 className="font-semibold mb-4">კითხვები</h3>
-              <div className="grid grid-cols-5 lg:grid-cols-4 gap-2">
-                {quiz.questions?.map((q, index) => {
-                  const isAnswered = answers[q.id] && answers[q.id].length > 0;
-                  const isMarked = markedForReview.has(q.id);
-                  const isCurrent = index === currentQuestionIndex;
-
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => goToQuestion(index)}
-                      className={`w-10 h-10 rounded-lg font-medium text-sm flex items-center justify-center relative ${
-                        isCurrent
-                          ? 'bg-blue-600 text-white'
-                          : isAnswered
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {index + 1}
-                      {isMarked && (
-                        <Flag className="w-3 h-3 absolute -top-1 -right-1 text-yellow-500" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-4 pt-4 border-t space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-100 rounded" />
-                  <span>პასუხგაცემული</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-100 rounded" />
-                  <span>უპასუხო</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Flag className="w-4 h-4 text-yellow-500" />
-                  <span>მონიშნული</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Mark for review - subtle */}
+      {currentQuestion && (
+        <div className="px-6 pb-4 bg-gray-50">
+          <button
+            onClick={toggleMarkForReview}
+            className={`text-xs transition-colors ${
+              markedForReview.has(currentQuestion.id)
+                ? 'text-amber-600'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {markedForReview.has(currentQuestion.id) ? '★ მონიშნული' : '☆ მონიშვნა'}
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
