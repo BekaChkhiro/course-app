@@ -779,18 +779,10 @@ class QuizService {
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
-        chapter: {
-          include: {
-            version: true,
-          },
-        },
+        chapter: true,
         chapterContent: {
           include: {
-            chapter: {
-              include: {
-                version: true,
-              },
-            },
+            chapter: true,
           },
         },
       },
@@ -802,7 +794,7 @@ class QuizService {
     const chapter = quiz.chapter || quiz.chapterContent?.chapter;
     if (!chapter) return;
 
-    const courseVersionId = chapter.versionId;
+    const courseVersionId = chapter.courseVersionId;
     const chapterId = chapter.id;
 
     // Mark progress as completed
@@ -836,30 +828,10 @@ class QuizService {
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
-        chapter: {
-          include: {
-            version: {
-              include: {
-                chapters: {
-                  orderBy: { order: 'asc' },
-                },
-              },
-            },
-          },
-        },
+        chapter: true,
         chapterContent: {
           include: {
-            chapter: {
-              include: {
-                version: {
-                  include: {
-                    chapters: {
-                      orderBy: { order: 'asc' },
-                    },
-                  },
-                },
-              },
-            },
+            chapter: true,
           },
         },
       },
@@ -867,12 +839,23 @@ class QuizService {
 
     if (!quiz) return false;
 
-    // Get chapter and version from either direct relation or through chapterContent
+    // Get chapter from either direct relation or through chapterContent
     const chapter = quiz.chapter || quiz.chapterContent?.chapter;
-    if (!chapter || !chapter.version) return false;
+    if (!chapter) return false;
 
-    const chapters = chapter.version.chapters;
-    if (chapters.length === 0) return false;
+    // Get the course version with all chapters
+    const courseVersion = await prisma.courseVersion.findUnique({
+      where: { id: chapter.courseVersionId },
+      include: {
+        chapters: {
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    if (!courseVersion || courseVersion.chapters.length === 0) return false;
+
+    const chapters = courseVersion.chapters;
 
     // Get user's progress for all chapters
     const progress = await prisma.progress.findMany({
@@ -887,7 +870,7 @@ class QuizService {
       progress.filter((p) => p.isCompleted).map((p) => p.chapterId)
     );
 
-    return chapters.every((chapter) => completedChapterIds.has(chapter.id));
+    return chapters.every((ch) => completedChapterIds.has(ch.id));
   }
 
   /**

@@ -722,7 +722,9 @@ export default function CourseLearningPage() {
             onQuizComplete={(attempt: QuizAttempt) => {
               setCompletedAttemptId(attempt.id);
               setQuizMode('results');
+              // Invalidate both chapter and course queries to reflect completion
               queryClient.invalidateQueries({ queryKey: ['chapterForLearning', activeChapterId] });
+              queryClient.invalidateQueries({ queryKey: ['courseForLearning', slug] });
             }}
             onQuizRetry={() => {
               setQuizMode('start');
