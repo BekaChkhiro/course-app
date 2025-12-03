@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { studentApiClient, Note } from '@/lib/api/studentApi';
+import AttachmentsPreview from './AttachmentsPreview';
 
 interface TheorySectionProps {
   content: string | null;
@@ -232,6 +233,11 @@ export default function TheorySection({
           className="prose prose-indigo max-w-none prose-headings:font-semibold prose-p:text-gray-600 prose-a:text-indigo-600 prose-img:rounded-lg prose-pre:bg-gray-900"
           dangerouslySetInnerHTML={{ __html: content }}
         />
+
+        {/* Attachments */}
+        <div className="mt-8">
+          <AttachmentsPreview chapterId={chapterId} />
+        </div>
       </div>
 
       {/* Notes Panel */}

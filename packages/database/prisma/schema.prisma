@@ -227,6 +227,7 @@ model Chapter {
   quiz          Quiz?
   notes         Note[]
   bookmarks     Bookmark[]
+  attachments   ChapterAttachment[]
 
   @@index([courseVersionId])
   @@index([order])
@@ -255,6 +256,27 @@ model ChapterContent {
   @@index([type])
   @@index([order])
   @@map("chapter_contents")
+}
+
+model ChapterAttachment {
+  id          String   @id @default(cuid())
+  chapterId   String
+  title       String
+  description String?
+  fileName    String   // Original file name
+  filePath    String   // Path in uploads folder
+  fileSize    Int      // Size in bytes
+  mimeType    String   // e.g., application/pdf, image/png
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([chapterId])
+  @@index([order])
+  @@map("chapter_attachments")
 }
 
 model Quiz {

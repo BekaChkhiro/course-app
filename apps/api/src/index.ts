@@ -21,6 +21,7 @@ import messagingRoutes from './routes/messaging.routes'
 import comprehensiveAnalyticsRoutes from './routes/comprehensiveAnalyticsRoutes'
 import publicRoutes from './routes/public.routes'
 import purchaseRoutes from './routes/purchase.routes'
+import attachmentRoutes from './routes/attachment.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -127,6 +128,9 @@ app.use('/api/public', publicRoutes)
 
 // Purchase routes (requires authentication)
 app.use('/api/purchase', purchaseRoutes)
+
+// Attachment routes (file attachments for chapters)
+app.use('/api/attachments', attachmentRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

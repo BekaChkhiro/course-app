@@ -9,6 +9,7 @@ import FileUpload from '@/components/ui/FileUpload';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import QuizManager from '@/components/admin/QuizManager';
 import VideoUpload from '@/components/admin/VideoUpload';
+import ChapterAttachments from '@/components/admin/ChapterAttachments';
 import toast from 'react-hot-toast';
 
 type VideoSourceType = 'link' | 'upload';
@@ -397,24 +398,33 @@ export default function ChapterEditSidebar({
 
                 {/* Files Tab */}
                 {activeTab === 'files' && (
-                  <div className="grid grid-cols-2 gap-6">
-                    <FileUpload
-                      label="დავალება"
-                      accept=".pdf,.doc,.docx"
-                      onUpload={(file) => uploadApi.assignment(file).then(res => res.data.file)}
-                      value={formData.assignmentFile}
-                      onChange={(url) => setFormData({ ...formData, assignmentFile: url })}
-                      preview={false}
-                    />
+                  <div className="space-y-6">
+                    {/* Chapter Attachments */}
+                    <ChapterAttachments chapterId={chapterId} />
 
-                    <FileUpload
-                      label="პასუხი"
-                      accept=".pdf,.doc,.docx"
-                      onUpload={(file) => uploadApi.answer(file).then(res => res.data.file)}
-                      value={formData.answerFile}
-                      onChange={(url) => setFormData({ ...formData, answerFile: url })}
-                      preview={false}
-                    />
+                    {/* Legacy Assignment/Answer Files */}
+                    <div className="border-t pt-6">
+                      <h3 className="text-sm font-medium text-gray-700 mb-4">დავალება და პასუხი</h3>
+                      <div className="grid grid-cols-2 gap-6">
+                        <FileUpload
+                          label="დავალება"
+                          accept=".pdf,.doc,.docx"
+                          onUpload={(file) => uploadApi.assignment(file).then(res => res.data.file)}
+                          value={formData.assignmentFile}
+                          onChange={(url) => setFormData({ ...formData, assignmentFile: url })}
+                          preview={false}
+                        />
+
+                        <FileUpload
+                          label="პასუხი"
+                          accept=".pdf,.doc,.docx"
+                          onUpload={(file) => uploadApi.answer(file).then(res => res.data.file)}
+                          value={formData.answerFile}
+                          onChange={(url) => setFormData({ ...formData, answerFile: url })}
+                          preview={false}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
 

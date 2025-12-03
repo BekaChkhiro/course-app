@@ -343,4 +343,20 @@ export const cannedResponseApi = {
   delete: (id: string) => adminApi.delete(`/admin/canned-responses/${id}`)
 };
 
+// Attachment APIs (Chapter files)
+export const attachmentApi = {
+  upload: (formData: FormData) =>
+    adminApi.post('/attachments/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+  getByChapter: (chapterId: string) =>
+    adminApi.get(`/attachments/chapter/${chapterId}`),
+  update: (id: string, data: { title?: string; description?: string }) =>
+    adminApi.put(`/attachments/${id}`, data),
+  delete: (id: string) =>
+    adminApi.delete(`/attachments/${id}`),
+  reorder: (chapterId: string, attachmentIds: string[]) =>
+    adminApi.put(`/attachments/chapter/${chapterId}/reorder`, { attachmentIds })
+};
+
 export default adminApi;
