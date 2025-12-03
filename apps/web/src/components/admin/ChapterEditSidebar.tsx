@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Save, Trash2, FileText, Video, File, HelpCircle, Check } from 'lucide-react';
-import { chapterApi, uploadApi } from '@/lib/api/adminApi';
+import { X, Save, Trash2, FileText, Video, File, HelpCircle, Check, Link, Upload } from 'lucide-react';
+import { chapterApi, uploadApi, videoApi } from '@/lib/api/adminApi';
 import { quizApi } from '@/lib/api/quizApi';
 import FileUpload from '@/components/ui/FileUpload';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import QuizManager from '@/components/admin/QuizManager';
+import VideoUpload from '@/components/admin/VideoUpload';
 import toast from 'react-hot-toast';
+
+type VideoSourceType = 'link' | 'upload';
 
 type TabType = 'info' | 'content' | 'files' | 'quiz';
 
@@ -36,6 +39,7 @@ export default function ChapterEditSidebar({
 }: ChapterEditSidebarProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('info');
+  const [videoSourceType, setVideoSourceType] = useState<VideoSourceType>('link');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -46,6 +50,7 @@ export default function ChapterEditSidebar({
     isFree: false
   });
   const [chapterQuiz, setChapterQuiz] = useState<any>(null);
+  const [chapterVideo, setChapterVideo] = useState<any>(null);
 
   // Fetch chapter data
   const { data: chapterData, isLoading } = useQuery({
@@ -59,7 +64,7 @@ export default function ChapterEditSidebar({
   });
 
   // Fetch quiz for this chapter
-  const { data: quizData, refetch: refetchQuiz } = useQuery({
+  const { data: quizData } = useQuery({
     queryKey: ['chapter-quiz', chapterId],
     queryFn: async () => {
       const response = await quizApi.getAll({ includeQuestions: true });
@@ -69,6 +74,17 @@ export default function ChapterEditSidebar({
     },
     enabled: !!chapterId && isOpen,
     staleTime: 0, // Always fetch fresh data
+  });
+
+  // Fetch videos for this chapter
+  const { data: videosData, refetch: refetchVideos } = useQuery({
+    queryKey: ['chapter-videos', chapterId],
+    queryFn: async () => {
+      const response = await videoApi.getByChapter(chapterId);
+      return response.data?.data || [];
+    },
+    enabled: !!chapterId && isOpen,
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -84,6 +100,19 @@ export default function ChapterEditSidebar({
       });
     }
   }, [chapterData]);
+
+  // Set video data and source type based on existing video
+  useEffect(() => {
+    if (videosData && videosData.length > 0) {
+      // Get the most recent video
+      const video = videosData[0];
+      setChapterVideo(video);
+      setVideoSourceType('upload');
+    } else if (chapterData?.videoUrl) {
+      setVideoSourceType('link');
+      setChapterVideo(null);
+    }
+  }, [videosData, chapterData]);
 
   useEffect(() => {
     if (quizData !== undefined) {
@@ -124,7 +153,12 @@ export default function ChapterEditSidebar({
   });
 
   const handleSubmit = () => {
-    updateMutation.mutate(formData);
+    // For upload type, video is stored separately in Video table
+    const submitData = {
+      ...formData,
+      videoUrl: videoSourceType === 'link' ? formData.videoUrl : '',
+    };
+    updateMutation.mutate(submitData);
   };
 
   const handleDelete = () => {
@@ -139,7 +173,7 @@ export default function ChapterEditSidebar({
       case 'info':
         return !!formData.title;
       case 'content':
-        return !!formData.videoUrl || !!formData.theory;
+        return !!formData.videoUrl || !!chapterVideo || !!formData.theory;
       case 'files':
         return !!formData.assignmentFile || !!formData.answerFile;
       case 'quiz':
@@ -289,18 +323,64 @@ export default function ChapterEditSidebar({
                 {/* Content Tab */}
                 {activeTab === 'content' && (
                   <div className="space-y-5">
+                    {/* Video Source Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        ვიდეო URL
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        ვიდეო
                       </label>
-                      <input
-                        type="url"
-                        value={formData.videoUrl}
-                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                        placeholder="https://youtube.com/watch?v=..."
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">YouTube ან Vimeo ლინკი</p>
+
+                      {/* Video Source Type Tabs */}
+                      <div className="flex gap-2 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setVideoSourceType('link')}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            videoSourceType === 'link'
+                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                              : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                          }`}
+                        >
+                          <Link className="w-4 h-4" />
+                          ლინკი
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVideoSourceType('upload')}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            videoSourceType === 'upload'
+                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                              : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                          }`}
+                        >
+                          <Upload className="w-4 h-4" />
+                          ატვირთვა
+                        </button>
+                      </div>
+
+                      {/* Video Link Input */}
+                      {videoSourceType === 'link' && (
+                        <div>
+                          <input
+                            type="url"
+                            value={formData.videoUrl}
+                            onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                            placeholder="https://youtube.com/watch?v=..."
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">YouTube ან Vimeo ლინკი</p>
+                        </div>
+                      )}
+
+                      {/* Video Upload */}
+                      {videoSourceType === 'upload' && (
+                        <VideoUpload
+                          chapterId={chapterId}
+                          existingVideo={chapterVideo}
+                          onUploadComplete={() => {
+                            refetchVideos();
+                          }}
+                        />
+                      )}
                     </div>
 
                     <div>

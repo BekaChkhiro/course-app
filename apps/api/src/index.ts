@@ -43,7 +43,10 @@ const PORT = process.env.PORT || 4000
 app.set('trust proxy', 1)
 
 // Middleware
-app.use(helmet())
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginEmbedderPolicy: false,
+}))
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
@@ -53,8 +56,12 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+// Serve uploaded files statically with CORS headers for cross-origin access
+app.use('/uploads', (req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:3000');
+  next();
+}, express.static(path.join(__dirname, '../uploads')))
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {

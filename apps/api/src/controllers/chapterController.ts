@@ -353,3 +353,41 @@ export const toggleChapterFree = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to toggle chapter free status' });
   }
 };
+
+// Get chapter videos
+export const getChapterVideos = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const videos = await prisma.video.findMany({
+      where: { chapterId: id },
+      select: {
+        id: true,
+        originalName: true,
+        originalSize: true,
+        mimeType: true,
+        duration: true,
+        width: true,
+        height: true,
+        processingStatus: true,
+        processingProgress: true,
+        processingError: true,
+        hlsMasterUrl: true,
+        hls480pUrl: true,
+        hls720pUrl: true,
+        hls1080pUrl: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: videos
+    });
+  } catch (error) {
+    console.error('Get chapter videos error:', error);
+    res.status(500).json({ error: 'Failed to fetch chapter videos' });
+  }
+};

@@ -8,7 +8,8 @@ import {
   deleteChapter,
   reorderChapters,
   bulkDeleteChapters,
-  toggleChapterFree
+  toggleChapterFree,
+  getChapterVideos
 } from '../controllers/chapterController';
 
 const router = express.Router();
@@ -26,5 +27,6 @@ router.delete('/:id', deleteChapter);
 router.post('/reorder', reorderChapters);
 router.post('/bulk/delete', bulkDeleteChapters);
 router.patch('/:id/toggle-free', toggleChapterFree);
+router.get('/:id/videos', getChapterVideos);
 
 export default router;

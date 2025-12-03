@@ -5,6 +5,7 @@ import {
   getProcessingStatus,
   generateVideoAccessToken,
   streamVideo,
+  streamVideoFile,
   trackAnalytics,
   getVideoThumbnails,
   deleteVideo,
@@ -16,6 +17,7 @@ const router = express.Router();
 
 // Public routes (with token validation)
 router.get('/stream', streamVideo);
+router.get('/file/:videoId', streamVideoFile);
 
 // Protected routes (authenticated users)
 router.use(requireAuth);

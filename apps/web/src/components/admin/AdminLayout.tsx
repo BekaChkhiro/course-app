@@ -173,11 +173,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex flex-col h-full">
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-4 border-b">
-          <Link href="/admin" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-6 h-6 text-white" />
+          <Link href="/admin" className="flex items-center space-x-3">
+            <div className="flex items-center">
+              <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Edu
+              </span>
+              <span className="text-2xl font-bold text-gray-900">Platform</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">ადმინ პანელი</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

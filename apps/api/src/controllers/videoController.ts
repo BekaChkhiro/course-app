@@ -4,21 +4,20 @@ import { prisma } from '../config/database';
 import multer from 'multer';
 import path from 'path';
 import { promises as fs } from 'fs';
-import r2Service from '../services/r2.service';
-import queueService from '../services/queue.service';
+import { createReadStream, statSync } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 import videoAccessService from '../services/videoAccess.service';
-import videoService from '../services/video.service';
 
-// Configure multer for video uploads
+// Configure multer for video uploads - save directly to uploads folder
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'temp', 'uploads');
+    const uploadDir = path.join(process.cwd(), 'uploads', 'videos');
     await fs.mkdir(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${uniqueSuffix}-${file.originalname}`);
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
   },
 });
 
@@ -43,7 +42,7 @@ const upload = multer({
 export const uploadMiddleware = upload.single('video');
 
 /**
- * Upload video
+ * Upload video - Local storage version
  */
 export const uploadVideo = async (req: AuthRequest, res: Response) => {
   try {
@@ -55,7 +54,6 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
     }
 
     const { chapterId } = req.body;
-    const userId = req.user?.id;
 
     if (!chapterId) {
       await fs.unlink(req.file.path);
@@ -85,17 +83,10 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const courseId = chapter.courseVersion.courseId;
-
-    // Upload original file to R2
-    const r2Key = r2Service.generateVideoKey(
-      courseId,
-      chapterId,
-      req.file.originalname
-    );
-
-    const fileBuffer = await fs.readFile(req.file.path);
-    await r2Service.uploadFile(r2Key, fileBuffer, req.file.mimetype);
+    // Local file path (relative for storage in DB)
+    const localPath = `videos/${req.file.filename}`;
+    const apiUrl = process.env.API_URL || 'http://localhost:4000';
+    const videoUrl = `${apiUrl}/uploads/${localPath}`;
 
     // Create video record
     const video = await prisma.video.create({
@@ -104,34 +95,26 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
         originalName: req.file.originalname,
         originalSize: req.file.size,
         mimeType: req.file.mimetype,
-        r2Key,
-        r2Bucket: process.env.R2_BUCKET_NAME || 'course-platform-videos',
-        processingStatus: 'PENDING',
+        r2Key: localPath, // Using r2Key field to store local path
+        r2Bucket: 'local', // Mark as local storage
+        processingStatus: 'COMPLETED', // No processing needed for direct upload
+        hlsMasterUrl: videoUrl, // Direct video URL
       },
     });
 
-    // Add to processing queue
-    await queueService.addVideoProcessingJob(
-      {
-        videoId: video.id,
-        chapterId,
-        courseId,
-        originalFilePath: req.file.path,
-        r2Key,
-        userId: userId || '',
-      },
-      1 // High priority
-    );
-
-    // Clean up local file
-    await fs.unlink(req.file.path);
+    // Update chapter with video URL
+    await prisma.chapter.update({
+      where: { id: chapterId },
+      data: { videoUrl },
+    });
 
     res.json({
       success: true,
-      message: 'Video uploaded successfully and queued for processing',
+      message: 'Video uploaded successfully',
       data: {
         videoId: video.id,
         status: video.processingStatus,
+        url: videoUrl,
       },
     });
   } catch (error) {
@@ -338,6 +321,70 @@ export const streamVideo = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Stream video file directly with range support
+ */
+export const streamVideoFile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { videoId } = req.params;
+
+    const video = await prisma.video.findUnique({
+      where: { id: videoId },
+    });
+
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found',
+      });
+    }
+
+    const videoPath = path.join(process.cwd(), 'uploads', video.r2Key);
+
+    try {
+      const stat = statSync(videoPath);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+
+      if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunkSize = end - start + 1;
+
+        const stream = createReadStream(videoPath, { start, end });
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize,
+          'Content-Type': video.mimeType,
+        });
+
+        stream.pipe(res);
+      } else {
+        res.writeHead(200, {
+          'Content-Length': fileSize,
+          'Content-Type': video.mimeType,
+        });
+
+        createReadStream(videoPath).pipe(res);
+      }
+    } catch (err) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video file not found',
+      });
+    }
+  } catch (error) {
+    console.error('Stream video file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to stream video',
+    });
+  }
+};
+
+/**
  * Track video analytics
  */
 export const trackAnalytics = async (req: AuthRequest, res: Response) => {
@@ -452,21 +499,15 @@ export const deleteVideo = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Delete from R2
-    const keysToDelete = [video.r2Key];
+    // Delete local file
+    const videoPath = path.join(process.cwd(), 'uploads', video.r2Key);
+    await fs.unlink(videoPath).catch(() => {});
 
-    // Add HLS keys if they exist
-    if (video.hlsMasterUrl) {
-      // List and delete all HLS segments
-      const hlsPrefix = video.r2Key.replace(/\/[^/]+$/, '/hls/');
-      const hlsFiles = await r2Service.listFiles(hlsPrefix);
-      keysToDelete.push(...hlsFiles.map(f => f.key));
+    // Delete thumbnails
+    for (const thumb of video.thumbnails) {
+      const thumbPath = path.join(process.cwd(), 'uploads', thumb.r2Key);
+      await fs.unlink(thumbPath).catch(() => {});
     }
-
-    // Add thumbnail keys
-    keysToDelete.push(...video.thumbnails.map(t => t.r2Key));
-
-    await r2Service.deleteFiles(keysToDelete);
 
     // Delete from database (cascades to thumbnails, tokens, analytics)
     await prisma.video.delete({
@@ -499,7 +540,6 @@ export const replaceVideo = async (req: AuthRequest, res: Response) => {
     }
 
     const { videoId } = req.params;
-    const userId = req.user?.id;
 
     // Get existing video
     const existingVideo = await prisma.video.findUnique({
@@ -525,27 +565,14 @@ export const replaceVideo = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const courseId = existingVideo.chapter.courseVersion.courseId;
-    const chapterId = existingVideo.chapterId;
+    // Delete old file
+    const oldVideoPath = path.join(process.cwd(), 'uploads', existingVideo.r2Key);
+    await fs.unlink(oldVideoPath).catch(() => {});
 
-    // Upload new file to R2
-    const r2Key = r2Service.generateVideoKey(
-      courseId,
-      chapterId,
-      req.file.originalname
-    );
-
-    const fileBuffer = await fs.readFile(req.file.path);
-    await r2Service.uploadFile(r2Key, fileBuffer, req.file.mimetype);
-
-    // Delete old files from R2
-    const keysToDelete = [existingVideo.r2Key];
-    if (existingVideo.hlsMasterUrl) {
-      const hlsPrefix = existingVideo.r2Key.replace(/\/[^/]+$/, '/hls/');
-      const hlsFiles = await r2Service.listFiles(hlsPrefix);
-      keysToDelete.push(...hlsFiles.map(f => f.key));
-    }
-    await r2Service.deleteFiles(keysToDelete);
+    // Local file path
+    const localPath = `videos/${req.file.filename}`;
+    const apiUrl = process.env.API_URL || 'http://localhost:4000';
+    const videoUrl = `${apiUrl}/uploads/${localPath}`;
 
     // Update video record
     await prisma.video.update({
@@ -554,42 +581,33 @@ export const replaceVideo = async (req: AuthRequest, res: Response) => {
         originalName: req.file.originalname,
         originalSize: req.file.size,
         mimeType: req.file.mimetype,
-        r2Key,
-        processingStatus: 'PENDING',
-        processingProgress: 0,
+        r2Key: localPath,
+        processingStatus: 'COMPLETED',
+        processingProgress: 100,
         processingError: null,
-        hlsMasterUrl: null,
+        hlsMasterUrl: videoUrl,
         hls480pUrl: null,
         hls720pUrl: null,
         hls1080pUrl: null,
       },
     });
 
+    // Update chapter with video URL
+    await prisma.chapter.update({
+      where: { id: existingVideo.chapterId },
+      data: { videoUrl },
+    });
+
     // Revoke all existing access tokens
     await videoAccessService.revokeAllVideoTokens(videoId);
 
-    // Add to processing queue
-    await queueService.addVideoProcessingJob(
-      {
-        videoId,
-        chapterId,
-        courseId,
-        originalFilePath: req.file.path,
-        r2Key,
-        userId: userId || '',
-      },
-      1
-    );
-
-    // Clean up local file
-    await fs.unlink(req.file.path);
-
     res.json({
       success: true,
-      message: 'Video replaced successfully and queued for processing',
+      message: 'Video replaced successfully',
       data: {
         videoId,
-        status: 'PENDING',
+        status: 'COMPLETED',
+        url: videoUrl,
       },
     });
   } catch (error) {

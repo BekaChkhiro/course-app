@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Save, FileText, Video, File, HelpCircle, Plus, Trash2, Check } from 'lucide-react';
-import { chapterApi, uploadApi } from '@/lib/api/adminApi';
+import { X, Save, FileText, Video, File, HelpCircle, Plus, Trash2, Check, Link, Upload, Loader2 } from 'lucide-react';
+import { chapterApi, uploadApi, videoApi } from '@/lib/api/adminApi';
 import { quizApi } from '@/lib/api/quizApi';
 import FileUpload from '@/components/ui/FileUpload';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import toast from 'react-hot-toast';
+
+type VideoSourceType = 'link' | 'upload';
 
 type TabType = 'info' | 'content' | 'files' | 'quiz';
 
@@ -40,6 +42,7 @@ export default function ChapterCreateSidebar({
 }: ChapterCreateSidebarProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('info');
+  const [videoSourceType, setVideoSourceType] = useState<VideoSourceType>('link');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -49,6 +52,12 @@ export default function ChapterCreateSidebar({
     answerFile: '',
     isFree: false
   });
+
+  // Video upload state
+  const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Quiz state
   const [createQuiz, setCreateQuiz] = useState(false);
@@ -65,6 +74,10 @@ export default function ChapterCreateSidebar({
       answerFile: '',
       isFree: false
     });
+    setVideoSourceType('link');
+    setPendingVideoFile(null);
+    setVideoUploadProgress(0);
+    setIsUploadingVideo(false);
     setCreateQuiz(false);
     setQuizTitle('');
     setQuizQuestions([]);
@@ -80,6 +93,22 @@ export default function ChapterCreateSidebar({
       return response.data.chapter;
     },
     onSuccess: async (chapter) => {
+      // Upload video if pending
+      if (videoSourceType === 'upload' && pendingVideoFile) {
+        try {
+          setIsUploadingVideo(true);
+          await videoApi.upload(pendingVideoFile, chapter.id, (progress) => {
+            setVideoUploadProgress(progress);
+          });
+          toast.success('ვიდეო აიტვირთა და მუშავდება');
+        } catch (error) {
+          console.error('Video upload error:', error);
+          toast.error('თავი შეიქმნა, მაგრამ ვიდეოს ატვირთვა ვერ მოხერხდა');
+        } finally {
+          setIsUploadingVideo(false);
+        }
+      }
+
       // Create quiz if enabled
       if (createQuiz && quizTitle && quizQuestions.length > 0) {
         try {
@@ -115,7 +144,40 @@ export default function ChapterCreateSidebar({
       setActiveTab('info');
       return;
     }
-    createMutation.mutate(formData);
+    // For upload type, videoUrl will be empty - video uploads after chapter creation
+    const submitData = {
+      ...formData,
+      videoUrl: videoSourceType === 'link' ? formData.videoUrl : '',
+    };
+    createMutation.mutate(submitData);
+  };
+
+  // Handle video file selection
+  const handleVideoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('მხოლოდ MP4, MOV, AVI, MKV და WebM ფორმატებია დაშვებული');
+      return;
+    }
+
+    // Validate file size (2GB limit)
+    if (file.size > 2 * 1024 * 1024 * 1024) {
+      toast.error('ფაილის ზომა არ უნდა აღემატებოდეს 2GB-ს');
+      return;
+    }
+
+    setPendingVideoFile(file);
+  };
+
+  const removeVideoFile = () => {
+    setPendingVideoFile(null);
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
   };
 
   const handleClose = () => {
@@ -165,7 +227,7 @@ export default function ChapterCreateSidebar({
       case 'info':
         return !!formData.title;
       case 'content':
-        return !!formData.videoUrl || !!formData.theory;
+        return !!formData.videoUrl || !!pendingVideoFile || !!formData.theory;
       case 'files':
         return !!formData.assignmentFile || !!formData.answerFile;
       case 'quiz':
@@ -299,18 +361,109 @@ export default function ChapterCreateSidebar({
             {/* Content Tab */}
             {activeTab === 'content' && (
               <div className="space-y-5">
+                {/* Video Source Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    ვიდეო URL
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    ვიდეო
                   </label>
-                  <input
-                    type="url"
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                    placeholder="https://youtube.com/watch?v=..."
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">YouTube ან Vimeo ლინკი</p>
+
+                  {/* Video Source Type Tabs */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setVideoSourceType('link')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        videoSourceType === 'link'
+                          ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                          : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                      }`}
+                    >
+                      <Link className="w-4 h-4" />
+                      ლინკი
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVideoSourceType('upload')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        videoSourceType === 'upload'
+                          ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                          : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                      }`}
+                    >
+                      <Upload className="w-4 h-4" />
+                      ატვირთვა
+                    </button>
+                  </div>
+
+                  {/* Video Link Input */}
+                  {videoSourceType === 'link' && (
+                    <div>
+                      <input
+                        type="url"
+                        value={formData.videoUrl}
+                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                        placeholder="https://youtube.com/watch?v=..."
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">YouTube ან Vimeo ლინკი</p>
+                    </div>
+                  )}
+
+                  {/* Video Upload */}
+                  {videoSourceType === 'upload' && (
+                    <div className="space-y-2">
+                      {pendingVideoFile ? (
+                        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border">
+                          <Video className="w-5 h-5 text-blue-500" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {pendingVideoFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(pendingVideoFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                          </div>
+                          {isUploadingVideo ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                              <span className="text-sm text-blue-600">{videoUploadProgress}%</span>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={removeVideoFile}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div
+                          className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
+                          onClick={() => videoInputRef.current?.click()}
+                        >
+                          <Upload className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm font-medium text-gray-700">
+                            დააწკაპუნეთ ვიდეოს ასარჩევად
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            MP4, MOV, AVI, MKV, WebM (მაქს. 2GB)
+                          </p>
+                        </div>
+                      )}
+                      <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm"
+                        onChange={handleVideoFileSelect}
+                        className="hidden"
+                      />
+                      <p className="text-xs text-gray-500">
+                        ვიდეო აიტვირთება თავის შექმნის შემდეგ
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>

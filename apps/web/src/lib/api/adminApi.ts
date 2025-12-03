@@ -82,6 +82,40 @@ export const uploadApi = {
   }
 };
 
+// Video APIs (for database storage with R2)
+export const videoApi = {
+  upload: (file: File, chapterId: string, onProgress?: (progress: number) => void) => {
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('chapterId', chapterId);
+    return adminApi.post('/videos/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(progress);
+        }
+      }
+    });
+  },
+  getStatus: (videoId: string) => adminApi.get(`/videos/${videoId}/status`),
+  delete: (videoId: string) => adminApi.delete(`/videos/${videoId}`),
+  replace: (videoId: string, file: File, onProgress?: (progress: number) => void) => {
+    const formData = new FormData();
+    formData.append('video', file);
+    return adminApi.put(`/videos/${videoId}/replace`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(progress);
+        }
+      }
+    });
+  },
+  getByChapter: (chapterId: string) => adminApi.get(`/chapters/${chapterId}/videos`)
+};
+
 // Category APIs
 export const categoryApi = {
   getAll: (params?: { includeChildren?: boolean }) =>
