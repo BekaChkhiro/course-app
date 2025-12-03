@@ -185,7 +185,14 @@ export default function CoursePage() {
                         href={`/dashboard/courses/${course.slug}/learn`}
                         className="block w-full text-center bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
                       >
-                        გააგრძელე სწავლა
+                        {course.progressPercentage && course.progressPercentage > 0 ? (
+                          <>
+                            <span>გაგრძელება</span>
+                            <span className="ml-2 text-green-200">({Math.round(course.progressPercentage)}%)</span>
+                          </>
+                        ) : (
+                          'დაწყება'
+                        )}
                       </Link>
                     ) : (
                       <>
@@ -203,7 +210,7 @@ export default function CoursePage() {
                               მიმდინარეობს...
                             </span>
                           ) : (
-                            course.price === 0 ? 'დაიწყე სწავლა' : 'ჩაირიცხე კურსზე'
+                            course.price === 0 ? 'დაიწყე უფასოდ' : 'ყიდვა'
                           )}
                         </button>
                         {enrollError && (
@@ -216,7 +223,7 @@ export default function CoursePage() {
                       href={`/auth/login?redirect=/courses/${course.slug}`}
                       className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
                     >
-                      შედი სისტემაში
+                      {course.price === 0 ? 'დაიწყე უფასოდ' : 'ყიდვა'}
                     </Link>
                   )}
 
