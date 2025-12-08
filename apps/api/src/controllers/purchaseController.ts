@@ -275,6 +275,7 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
 
 /**
  * გადახდის სტატუსის შემოწმება
+ * თუ სტატუსი PENDING-ია, BOG-დან პირდაპირ შევამოწმებთ
  */
 export const checkPaymentStatus = async (req: AuthRequest, res: Response) => {
   try {
@@ -288,7 +289,7 @@ export const checkPaymentStatus = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    const purchase = await prisma.purchase.findFirst({
+    let purchase = await prisma.purchase.findFirst({
       where: {
         externalOrderId: orderId,
         userId,
@@ -309,6 +310,53 @@ export const checkPaymentStatus = async (req: AuthRequest, res: Response) => {
         success: false,
         message: 'შეკვეთა ვერ მოიძებნა',
       })
+    }
+
+    // თუ სტატუსი PENDING-ია და გვაქვს bogOrderId, BOG-დან შევამოწმოთ
+    if (purchase.status === 'PENDING' && purchase.bogOrderId) {
+      try {
+        const bogDetails = await bogService.getOrderDetails(purchase.bogOrderId)
+
+        if (bogDetails.order_status?.key === 'completed') {
+          // BOG-ში completed-ია, განვაახლოთ database
+          purchase = await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: {
+              status: 'COMPLETED',
+              transactionId: bogDetails.payment_detail?.transaction_id,
+              paymentMethod: bogDetails.payment_detail?.transfer_method?.key,
+              paidAt: new Date(),
+            },
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  title: true,
+                  slug: true,
+                },
+              },
+            },
+          })
+          console.log(`✅ Payment verified from BOG for order: ${orderId}`)
+        } else if (bogDetails.order_status?.key === 'rejected') {
+          purchase = await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { status: 'FAILED' },
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  title: true,
+                  slug: true,
+                },
+              },
+            },
+          })
+        }
+      } catch (bogError) {
+        console.error('Error checking BOG status:', bogError)
+        // BOG შემოწმება ვერ მოხერხდა, დავაბრუნოთ არსებული სტატუსი
+      }
     }
 
     return res.json({
