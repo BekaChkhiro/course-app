@@ -1,10 +1,13 @@
+// Load environment variables FIRST (before any other imports)
+import dotenv from 'dotenv'
+import path from 'path'
+dotenv.config({ path: path.resolve(__dirname, '../.env') })
+
 import express, { Application, Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
-import path from 'path'
 import authRoutes from './routes/authRoutes'
 import uploadRoutes from './routes/uploadRoutes'
 import categoryRoutes from './routes/categoryRoutes'
@@ -25,9 +28,6 @@ import attachmentRoutes from './routes/attachment.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
-
-// Load environment variables from the correct path
-dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 // Validate required environment variables
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {

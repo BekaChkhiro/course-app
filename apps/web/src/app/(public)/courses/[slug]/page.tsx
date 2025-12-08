@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { publicApi } from '@/lib/api/publicApi';
 import { studentApiClient } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
+import BuyButton from '@/components/payment/BuyButton';
 
 export default function CoursePage() {
   const params = useParams();
@@ -169,14 +170,12 @@ export default function CoursePage() {
                 </div>
 
                 <div className="p-6">
-                  {/* Price */}
-                  <div className="text-3xl font-bold text-gray-900 mb-4">
-                    {course.price === 0 ? (
-                      <span className="text-green-600">უფასო</span>
-                    ) : (
-                      <>{course.price} ₾</>
-                    )}
-                  </div>
+                  {/* Price - მხოლოდ უფასო კურსებისთვის, ფასიანებისთვის BuyButton-ში აჩვენებს */}
+                  {course.price === 0 && (
+                    <div className="text-3xl font-bold text-green-600 mb-4">
+                      უფასო
+                    </div>
+                  )}
 
                   {/* CTA Button */}
                   {isAuthenticated ? (
@@ -194,7 +193,14 @@ export default function CoursePage() {
                           'დაწყება'
                         )}
                       </Link>
+                    ) : course.price > 0 ? (
+                      // ფასიანი კურსისთვის - BOG გადახდა
+                      <BuyButton
+                        courseId={course.id}
+                        price={course.price}
+                      />
                     ) : (
+                      // უფასო კურსისთვის - პირდაპირი ჩარიცხვა
                       <>
                         <button
                           onClick={handleEnroll}
@@ -210,7 +216,7 @@ export default function CoursePage() {
                               მიმდინარეობს...
                             </span>
                           ) : (
-                            course.price === 0 ? 'დაიწყე უფასოდ' : 'ყიდვა'
+                            'დაიწყე უფასოდ'
                           )}
                         </button>
                         {enrollError && (
@@ -223,7 +229,7 @@ export default function CoursePage() {
                       href={`/auth/login?redirect=/courses/${course.slug}`}
                       className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
                     >
-                      {course.price === 0 ? 'დაიწყე უფასოდ' : 'ყიდვა'}
+                      {course.price === 0 ? 'დაიწყე უფასოდ' : 'შესვლა'}
                     </Link>
                   )}
 

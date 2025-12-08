@@ -1,23 +1,57 @@
-import express from 'express';
+import express from 'express'
 import {
+  initiatePayment,
+  handleBOGCallback,
+  checkPaymentStatus,
   enrollInCourse,
-  enrollBySlug,
   checkEnrollment,
-} from '../controllers/purchaseController';
-import { requireAuth } from '../middleware/auth';
+} from '../controllers/purchaseController'
+import { requireAuth } from '../middleware/auth'
 
-const router = express.Router();
+const router = express.Router()
 
-// All routes require authentication
-router.use(requireAuth);
+// ==========================================
+// Public Routes (არ საჭიროებს authentication-ს)
+// ==========================================
 
-// Enroll in a course (by courseId in body)
-router.post('/enroll', enrollInCourse);
+/**
+ * BOG Callback Endpoint
+ * BOG ამ URL-ზე აგზავნის გადახდის შედეგს
+ * მნიშვნელოვანი: არ უნდა მოითხოვდეს auth-ს!
+ */
+router.post('/callback', handleBOGCallback)
 
-// Enroll in a course (by slug in URL)
-router.post('/enroll/:slug', enrollBySlug);
+// ==========================================
+// Protected Routes (საჭიროებს authentication-ს)
+// ==========================================
 
-// Check enrollment status
-router.get('/check/:courseId', checkEnrollment);
+router.use(requireAuth)
 
-export default router;
+/**
+ * გადახდის დაწყება
+ * POST /api/purchase/initiate
+ * Body: { courseId: string, promoCode?: string }
+ * Response: { redirectUrl: string, orderId: string, amount: number }
+ */
+router.post('/initiate', initiatePayment)
+
+/**
+ * გადახდის სტატუსის შემოწმება
+ * GET /api/purchase/status/:orderId
+ */
+router.get('/status/:orderId', checkPaymentStatus)
+
+/**
+ * უფასო კურსზე ჩარიცხვა
+ * POST /api/purchase/enroll
+ * Body: { courseId: string }
+ */
+router.post('/enroll', enrollInCourse)
+
+/**
+ * ჩარიცხვის სტატუსის შემოწმება
+ * GET /api/purchase/check/:courseId
+ */
+router.get('/check/:courseId', checkEnrollment)
+
+export default router
