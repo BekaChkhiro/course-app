@@ -87,7 +87,7 @@ function PaymentSuccessContent() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">გადახდა წარმატებულია!</h1>
         <p className="text-gray-600 mb-6">თქვენ წარმატებით შეიძინეთ კურსი</p>
         <button
-          onClick={() => router.push(`/dashboard/courses/${courseSlug}`)}
+          onClick={() => router.push(`/dashboard/courses/${courseSlug}/learn`)}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
         >
           სწავლის დაწყება
