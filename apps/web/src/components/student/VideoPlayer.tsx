@@ -385,15 +385,29 @@ export default function VideoPlayer({
                   </svg>
                 )}
               </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
-                className="w-0 group-hover/volume:w-20 transition-all duration-300 accent-indigo-500"
-              />
+              <div className="w-0 group-hover/volume:w-24 overflow-hidden transition-all duration-300">
+                <div className="relative h-1 bg-white/30 rounded-full cursor-pointer"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const percentage = (e.clientX - rect.left) / rect.width;
+                    const newVolume = Math.max(0, Math.min(1, percentage));
+                    if (videoRef.current) {
+                      videoRef.current.volume = newVolume;
+                      setVolume(newVolume);
+                      setIsMuted(newVolume === 0);
+                    }
+                  }}
+                >
+                  <div
+                    className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full"
+                    style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
+                  />
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md"
+                    style={{ left: `calc(${(isMuted ? 0 : volume) * 100}% - 6px)` }}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Time */}
