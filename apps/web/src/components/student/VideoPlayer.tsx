@@ -2,6 +2,11 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
+interface WatermarkInfo {
+  text: string;
+  visibleText: string;
+}
+
 interface VideoPlayerProps {
   src: string;
   poster?: string;
@@ -9,6 +14,7 @@ interface VideoPlayerProps {
   onEnded?: () => void;
   initialTime?: number;
   title?: string;
+  watermark?: WatermarkInfo;
 }
 
 export default function VideoPlayer({
@@ -18,6 +24,7 @@ export default function VideoPlayer({
   onEnded,
   initialTime = 0,
   title,
+  watermark,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,15 +73,6 @@ export default function VideoPlayer({
     }
   }, [isMuted]);
 
-  // Handle volume change
-  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
-      setVolume(newVolume);
-      setIsMuted(newVolume === 0);
-    }
-  }, []);
 
   // Handle seek
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -273,6 +271,47 @@ export default function VideoPlayer({
         onClick={togglePlay}
         playsInline
       />
+
+      {/* Watermark Overlay */}
+      {watermark && (
+        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+          {/* Semi-transparent moving watermark */}
+          <div
+            className="absolute text-white/20 text-sm font-medium whitespace-nowrap"
+            style={{
+              top: '15%',
+              left: '10%',
+              transform: 'rotate(-15deg)',
+            }}
+          >
+            {watermark.visibleText}
+          </div>
+          <div
+            className="absolute text-white/15 text-xs whitespace-nowrap"
+            style={{
+              top: '45%',
+              right: '15%',
+              transform: 'rotate(-15deg)',
+            }}
+          >
+            {watermark.text}
+          </div>
+          <div
+            className="absolute text-white/20 text-sm font-medium whitespace-nowrap"
+            style={{
+              bottom: '25%',
+              left: '25%',
+              transform: 'rotate(-15deg)',
+            }}
+          >
+            {watermark.visibleText}
+          </div>
+          {/* Fixed corner watermark */}
+          <div className="absolute bottom-16 right-4 bg-black/30 backdrop-blur-sm px-3 py-1 rounded text-white/70 text-xs">
+            {watermark.visibleText}
+          </div>
+        </div>
+      )}
 
       {/* Loading Spinner */}
       {isLoading && (

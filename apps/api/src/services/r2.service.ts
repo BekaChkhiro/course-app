@@ -38,6 +38,8 @@ class R2Service {
         accessKeyId: this.config.accessKeyId,
         secretAccessKey: this.config.secretAccessKey,
       },
+      // Force path-style URLs for R2 compatibility
+      forcePathStyle: true,
     });
   }
 
@@ -117,6 +119,25 @@ class R2Service {
     } catch (error) {
       console.error('R2 get file error:', error);
       throw new Error(`Failed to get file from R2: ${error}`);
+    }
+  }
+
+  /**
+   * Get a file range from R2 (for video seeking)
+   */
+  async getFileRange(key: string, start: number, end: number): Promise<Readable> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.config.bucketName,
+        Key: key,
+        Range: `bytes=${start}-${end}`,
+      });
+
+      const response = await this.client.send(command);
+      return response.Body as Readable;
+    } catch (error) {
+      console.error('R2 get file range error:', error);
+      throw new Error(`Failed to get file range from R2: ${error}`);
     }
   }
 

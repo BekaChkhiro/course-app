@@ -317,7 +317,45 @@ purchaseApi.interceptors.request.use(
 );
 
 // API Functions
+// Video API for secure video URLs
+const videoApi = axios.create({
+  baseURL: `${API_URL}/api/videos`,
+  withCredentials: true,
+});
+
+videoApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export interface SecureVideoUrl {
+  url: string;
+  expiresAt: string;
+  watermark: {
+    text: string;
+    visibleText: string;
+  };
+}
+
 export const studentApiClient = {
+  // Get secure video URL with watermark info
+  getSecureVideoUrl: async (
+    videoId: string
+  ): Promise<{
+    success: boolean;
+    data: SecureVideoUrl;
+    message?: string;
+  }> => {
+    const response = await videoApi.get(`/${videoId}/secure-url`);
+    return response.data;
+  },
+
   // Enroll in a course (without payment)
   enrollInCourse: async (
     courseId: string

@@ -10,6 +10,8 @@ import {
   getVideoThumbnails,
   deleteVideo,
   replaceVideo,
+  getSecureVideoUrl,
+  proxyStreamVideo,
 } from '../controllers/videoController';
 import { requireAuth, requireAdmin } from '../middleware/auth';
 
@@ -18,11 +20,13 @@ const router = express.Router();
 // Public routes (with token validation)
 router.get('/stream', streamVideo);
 router.get('/file/:videoId', streamVideoFile);
+router.get('/proxy-stream/:streamToken', proxyStreamVideo); // Proxied video stream (no auth needed, token validates)
 
 // Protected routes (authenticated users)
 router.use(requireAuth);
 router.get('/:videoId/status', getProcessingStatus);
 router.get('/:videoId/access-token', generateVideoAccessToken);
+router.get('/:videoId/secure-url', getSecureVideoUrl);
 router.post('/:videoId/analytics', trackAnalytics);
 router.get('/:videoId/thumbnails', getVideoThumbnails);
 

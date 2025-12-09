@@ -6,8 +6,22 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { createReadStream, statSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import videoAccessService from '../services/videoAccess.service';
 import r2Service from '../services/r2.service';
+
+// In-memory store for stream tokens (in production, use Redis)
+const streamTokens = new Map<string, { videoId: string; userId: string; expiresAt: Date; watermark: { text: string; visibleText: string } }>();
+
+// Clean expired tokens periodically
+setInterval(() => {
+  const now = new Date();
+  for (const [token, data] of streamTokens.entries()) {
+    if (data.expiresAt < now) {
+      streamTokens.delete(token);
+    }
+  }
+}, 60000); // Clean every minute
 
 // Configure multer for video uploads - save directly to uploads folder
 const storage = multer.diskStorage({
@@ -453,6 +467,227 @@ export const trackAnalytics = async (req: AuthRequest, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to track analytics',
+    });
+  }
+};
+
+/**
+ * Get secure video URL (returns proxied stream URL - no R2 URL exposed)
+ */
+export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
+  try {
+    const { videoId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get video info
+    const video = await prisma.video.findUnique({
+      where: { id: videoId },
+      include: {
+        chapter: {
+          include: {
+            courseVersion: {
+              include: {
+                course: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found',
+      });
+    }
+
+    const courseId = video.chapter.courseVersion.courseId;
+
+    // Check if user has access (purchased or free chapter)
+    if (!video.chapter.isFree) {
+      const purchase = await prisma.purchase.findUnique({
+        where: {
+          userId_courseId: {
+            userId,
+            courseId,
+          },
+        },
+      });
+
+      if (!purchase || purchase.status !== 'COMPLETED') {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have access to this video',
+        });
+      }
+    }
+
+    // Get user info for watermark
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    });
+
+    const watermark = {
+      text: user?.email || userId,
+      visibleText: user?.name || user?.email?.split('@')[0] || 'User',
+    };
+
+    // Generate secure stream token (expires in 2 hours)
+    const streamToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
+
+    // Store token
+    streamTokens.set(streamToken, {
+      videoId,
+      userId,
+      expiresAt,
+      watermark,
+    });
+
+    // Return proxied URL (no R2 URL exposed in browser)
+    const apiUrl = process.env.API_URL || 'http://localhost:4000';
+    const proxyUrl = `${apiUrl}/api/videos/proxy-stream/${streamToken}`;
+
+    res.json({
+      success: true,
+      data: {
+        url: proxyUrl,
+        expiresAt: expiresAt.toISOString(),
+        watermark,
+      },
+    });
+  } catch (error) {
+    console.error('Get secure video URL error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get secure video URL',
+    });
+  }
+};
+
+/**
+ * Proxy stream video - hides real R2 URL from client
+ */
+export const proxyStreamVideo = async (req: AuthRequest, res: Response) => {
+  try {
+    const { streamToken } = req.params;
+    const range = req.headers.range;
+    const referer = req.headers.referer || req.headers.origin || '';
+    const userAgent = req.headers['user-agent'] || '';
+
+    // Validate stream token
+    const tokenData = streamTokens.get(streamToken);
+    if (!tokenData) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired stream token',
+      });
+    }
+
+    // Check if token expired
+    if (tokenData.expiresAt < new Date()) {
+      streamTokens.delete(streamToken);
+      return res.status(401).json({
+        success: false,
+        message: 'Stream token expired',
+      });
+    }
+
+    // Security checks
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://localhost:3000',
+      process.env.CORS_ORIGIN || '',
+      process.env.FRONTEND_URL || '',
+    ].filter(Boolean);
+
+    // Check referer - MUST come from our site (empty referer = direct URL access = blocked)
+    const isValidReferer = referer && allowedOrigins.some(origin => referer.startsWith(origin));
+
+    // Check user-agent - block common download tools
+    const blockedAgents = ['wget', 'curl', 'python', 'java', 'libwww', 'httpclient', 'okhttp', 'postman', 'insomnia'];
+    const isBlockedAgent = blockedAgents.some(agent => userAgent.toLowerCase().includes(agent));
+
+    // Check if request looks like a direct browser navigation (not video element)
+    const acceptHeader = req.headers.accept || '';
+    const isDirectNavigation = acceptHeader.includes('text/html') && !acceptHeader.includes('video');
+
+    if (!isValidReferer || isBlockedAgent || isDirectNavigation) {
+      console.log(`Blocked video request - Referer: ${referer}, User-Agent: ${userAgent}, Accept: ${acceptHeader}`);
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - Video can only be played within the course platform',
+      });
+    }
+
+    // Get video info
+    const video = await prisma.video.findUnique({
+      where: { id: tokenData.videoId },
+    });
+
+    if (!video || !video.r2Key) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found',
+      });
+    }
+
+    // Get file from R2 and stream it
+    try {
+      const fileStream = await r2Service.getFile(video.r2Key);
+      const metadata = await r2Service.getFileMetadata(video.r2Key);
+      const fileSize = metadata.size;
+
+      // Handle range requests for video seeking
+      if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunkSize = end - start + 1;
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize,
+          'Content-Type': video.mimeType || 'video/mp4',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        });
+
+        // For range requests, we need to fetch a specific range from R2
+        // S3/R2 GetObjectCommand supports Range header
+        const rangeStream = await r2Service.getFileRange(video.r2Key, start, end);
+        rangeStream.pipe(res);
+      } else {
+        res.writeHead(200, {
+          'Content-Length': fileSize,
+          'Content-Type': video.mimeType || 'video/mp4',
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        });
+
+        fileStream.pipe(res);
+      }
+    } catch (err) {
+      console.error('R2 stream error:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to stream video',
+      });
+    }
+  } catch (error) {
+    console.error('Proxy stream video error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to stream video',
     });
   }
 };

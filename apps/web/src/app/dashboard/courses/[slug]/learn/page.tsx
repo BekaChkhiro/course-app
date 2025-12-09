@@ -256,6 +256,15 @@ function ChapterContent({
   const { chapter, progress } = chapterData;
   const [showAnswer, setShowAnswer] = useState(false);
 
+  // Fetch secure video URL
+  const { data: secureVideoData, isLoading: isSecureUrlLoading } = useQuery({
+    queryKey: ['secureVideoUrl', chapter.video?.id],
+    queryFn: () => studentApiClient.getSecureVideoUrl(chapter.video!.id),
+    enabled: !!chapter.video?.id && activeTab === 'video' && !chapter.video.hlsMasterUrl?.includes('youtube.com') && !chapter.video.hlsMasterUrl?.includes('youtu.be'),
+    staleTime: 30 * 60 * 1000, // 30 minutes (URL expires in 2 hours)
+    refetchOnWindowFocus: false,
+  });
+
   const tabs: { id: ActiveTab; label: string; available: boolean }[] = [
     { id: 'video', label: 'ვიდეო', available: !!chapter.video },
     { id: 'theory', label: 'თეორია', available: !!chapter.theory },
@@ -345,13 +354,38 @@ function ChapterContent({
                     allowFullScreen
                   />
                 </div>
+              ) : isSecureUrlLoading ? (
+                // Loading secure URL
+                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[1300px] flex items-center justify-center text-white">
+                  <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
+                    <p>ვიდეო იტვირთება...</p>
+                  </div>
+                </div>
+              ) : secureVideoData?.data ? (
+                // Use secure signed URL with watermark
+                <div className="w-full max-w-[1300px]">
+                  <VideoPlayer
+                    src={secureVideoData.data.url}
+                    title={chapter.title}
+                    initialTime={progress.lastPosition || 0}
+                    watermark={secureVideoData.data.watermark}
+                    onProgress={() => {
+                      // Optional: Save progress to backend periodically
+                    }}
+                    onEnded={() => {
+                      // Optional: Mark as completed when video ends
+                    }}
+                  />
+                </div>
               ) : (
+                // Fallback to direct URL (for development or if secure URL fails)
                 <div className="w-full max-w-[1300px]">
                   <VideoPlayer
                     src={chapter.video.hlsMasterUrl}
                     title={chapter.title}
                     initialTime={progress.lastPosition || 0}
-                    onProgress={(data) => {
+                    onProgress={() => {
                       // Optional: Save progress to backend periodically
                     }}
                     onEnded={() => {
