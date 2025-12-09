@@ -703,7 +703,7 @@ export class ReviewService {
 
     const where = Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {};
 
-    const [total, approved, rejected, pending, flagged, avgRating] = await Promise.all([
+    const [total, approved, rejected, pending, flagged, avgRating, ratingDistribution, reviewsOverTime] = await Promise.all([
       prisma.review.count({ where }),
       prisma.review.count({ where: { ...where, status: ReviewStatus.APPROVED } }),
       prisma.review.count({ where: { ...where, status: ReviewStatus.REJECTED } }),
@@ -713,15 +713,45 @@ export class ReviewService {
         where: { ...where, status: ReviewStatus.APPROVED },
         _avg: { rating: true },
       }),
+      // Rating distribution
+      prisma.review.groupBy({
+        where: { ...where, status: ReviewStatus.APPROVED },
+        by: ['rating'],
+        _count: true,
+      }),
+      // Reviews over time
+      prisma.$queryRaw<any[]>`
+        SELECT
+          DATE(created_at) as date,
+          COUNT(*) as count
+        FROM reviews
+        WHERE created_at >= ${startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)}
+          AND created_at <= ${endDate || new Date()}
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `
     ]);
 
+    // Convert rating distribution to object format
+    const ratingDistObj: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    ratingDistribution.forEach(item => {
+      // Rating is stored as 1-50, convert to 1-5
+      const stars = Math.round(item.rating / 10);
+      ratingDistObj[stars] = (ratingDistObj[stars] || 0) + item._count;
+    });
+
     return {
-      total,
-      approved,
-      rejected,
-      pending,
-      flagged,
+      totalReviews: total,
+      pendingReviews: pending,
+      approvedReviews: approved,
+      rejectedReviews: rejected,
+      flaggedReviews: flagged,
       averageRating: avgRating._avg.rating ? avgRating._avg.rating / 10 : 0,
+      ratingDistribution: ratingDistObj,
+      reviewsOverTime: reviewsOverTime.map((r: any) => ({
+        date: r.date,
+        count: parseInt(r.count)
+      })),
       approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
     };
   }

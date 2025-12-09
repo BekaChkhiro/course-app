@@ -579,13 +579,17 @@ export class MessagingService {
       inProgress,
       answered,
       resolved,
-      avgResponseTime,
+      messagesWithResponseTime,
+      messagesWithResolutionTime,
+      byPriority,
+      messagesOverTime,
     ] = await Promise.all([
       prisma.studentMessage.count({ where }),
       prisma.studentMessage.count({ where: { ...where, status: MessageStatus.NEW } }),
       prisma.studentMessage.count({ where: { ...where, status: MessageStatus.IN_PROGRESS } }),
       prisma.studentMessage.count({ where: { ...where, status: MessageStatus.ANSWERED } }),
       prisma.studentMessage.count({ where: { ...where, status: MessageStatus.RESOLVED } }),
+      // For response time calculation
       prisma.studentMessage.findMany({
         where: {
           ...where,
@@ -596,47 +600,94 @@ export class MessagingService {
           firstResponseAt: true,
         },
       }),
+      // For resolution time calculation
+      prisma.studentMessage.findMany({
+        where: {
+          ...where,
+          status: MessageStatus.RESOLVED,
+          resolvedAt: { not: null },
+        },
+        select: {
+          createdAt: true,
+          resolvedAt: true,
+        },
+      }),
+      // Get messages by priority
+      prisma.studentMessage.groupBy({
+        by: ['priority'],
+        where,
+        _count: true,
+      }),
+      // Messages over time
+      prisma.$queryRaw<any[]>`
+        SELECT
+          DATE(created_at) as date,
+          COUNT(*) as count
+        FROM student_messages
+        WHERE created_at >= ${startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)}
+          AND created_at <= ${endDate || new Date()}
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `
     ]);
 
-    // Calculate average response time
-    let avgResponseTimeMinutes = 0;
-    if (avgResponseTime.length > 0) {
-      const totalResponseTime = avgResponseTime.reduce((sum, m) => {
+    // Calculate average response time (in seconds)
+    let avgResponseTime = 0;
+    if (messagesWithResponseTime.length > 0) {
+      const totalResponseTime = messagesWithResponseTime.reduce((sum, m) => {
         if (m.firstResponseAt) {
           return sum + (m.firstResponseAt.getTime() - m.createdAt.getTime());
         }
         return sum;
       }, 0);
-      avgResponseTimeMinutes = Math.round(totalResponseTime / avgResponseTime.length / 60000);
+      avgResponseTime = Math.round(totalResponseTime / messagesWithResponseTime.length / 1000); // in seconds
     }
 
-    // Get messages by priority
-    const byPriority = await prisma.studentMessage.groupBy({
-      by: ['priority'],
-      where,
-      _count: true,
-    });
+    // Calculate average resolution time (in seconds)
+    let avgResolutionTime = 0;
+    if (messagesWithResolutionTime.length > 0) {
+      const totalResolutionTime = messagesWithResolutionTime.reduce((sum, m) => {
+        if (m.resolvedAt) {
+          return sum + (m.resolvedAt.getTime() - m.createdAt.getTime());
+        }
+        return sum;
+      }, 0);
+      avgResolutionTime = Math.round(totalResolutionTime / messagesWithResolutionTime.length / 1000); // in seconds
+    }
 
-    // Get messages by course
-    const byCourse = await prisma.studentMessage.groupBy({
-      by: ['courseId'],
-      where: { ...where, courseId: { not: null } },
-      _count: true,
+    // Open messages = NEW + IN_PROGRESS
+    const openMessages = newMessages + inProgress;
+
+    // Format messages by priority for frontend
+    const messagesByPriority: Record<string, number> = {
+      LOW: 0,
+      MEDIUM: 0,
+      HIGH: 0,
+      URGENT: 0,
+    };
+    byPriority.forEach(p => {
+      messagesByPriority[p.priority] = p._count;
     });
 
     return {
+      totalMessages: total,
+      openMessages,
+      resolvedMessages: resolved,
+      avgResponseTime, // in seconds
+      avgResolutionTime, // in seconds
+      messagesByPriority,
+      messagesOverTime: messagesOverTime.map((m: any) => ({
+        date: m.date,
+        count: parseInt(m.count)
+      })),
+      // Legacy fields for backward compatibility
       total,
       newMessages,
       inProgress,
       answered,
       resolved,
-      avgResponseTimeMinutes,
+      avgResponseTimeMinutes: Math.round(avgResponseTime / 60),
       resolutionRate: total > 0 ? Math.round((resolved / total) * 100) : 0,
-      byPriority: byPriority.reduce((acc, p) => {
-        acc[p.priority] = p._count;
-        return acc;
-      }, {} as Record<string, number>),
-      topCourses: byCourse.slice(0, 5),
     };
   }
 
@@ -657,6 +708,7 @@ export class MessagingService {
         id: true,
         name: true,
         surname: true,
+        email: true,
         avatar: true,
       },
     });
@@ -664,27 +716,48 @@ export class MessagingService {
     // Get performance for each admin
     const performance = await Promise.all(
       admins.map(async (admin) => {
-        const [assigned, resolved, replied] = await Promise.all([
+        const [assigned, resolved, messagesWithResponseTime] = await Promise.all([
           prisma.studentMessage.count({
             where: { ...where, assignedToId: admin.id },
           }),
           prisma.studentMessage.count({
             where: { ...where, assignedToId: admin.id, status: MessageStatus.RESOLVED },
           }),
-          prisma.messageReply.count({
+          // Get messages with response time for this admin
+          prisma.studentMessage.findMany({
             where: {
               ...where,
-              userId: admin.id,
-              isInternal: false,
+              assignedToId: admin.id,
+              firstResponseAt: { not: null },
+            },
+            select: {
+              createdAt: true,
+              firstResponseAt: true,
             },
           }),
         ]);
 
+        // Calculate average response time for this admin
+        let avgResponseTime = 0;
+        if (messagesWithResponseTime.length > 0) {
+          const totalResponseTime = messagesWithResponseTime.reduce((sum, m) => {
+            if (m.firstResponseAt) {
+              return sum + (m.firstResponseAt.getTime() - m.createdAt.getTime());
+            }
+            return sum;
+          }, 0);
+          avgResponseTime = Math.round(totalResponseTime / messagesWithResponseTime.length / 1000); // in seconds
+        }
+
         return {
-          admin,
-          assigned,
-          resolved,
-          replied,
+          id: admin.id,
+          name: admin.name,
+          surname: admin.surname,
+          email: admin.email,
+          avatar: admin.avatar,
+          messagesHandled: assigned,
+          messagesResolved: resolved,
+          avgResponseTime, // in seconds
           resolutionRate: assigned > 0 ? Math.round((resolved / assigned) * 100) : 0,
         };
       })

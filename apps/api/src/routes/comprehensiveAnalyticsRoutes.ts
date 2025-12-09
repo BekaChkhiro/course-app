@@ -113,4 +113,37 @@ router.get('/export/revenue', controller.exportRevenueData);
 // GET /api/admin/analytics/export/students - Export students data as CSV
 router.get('/export/students', controller.exportStudentsData);
 
+// GET /api/admin/analytics/export/courses - Export courses data as CSV
+router.get('/export/courses', controller.exportCoursesData);
+
+// ==========================================
+// PREDICTIVE ANALYTICS ROUTES
+// ==========================================
+
+// GET /api/admin/analytics/predictive - Get predictive analytics overview
+router.get('/predictive', controller.getPredictiveAnalytics);
+
+// GET /api/admin/analytics/predictive/churn - Get churn prediction
+router.get('/predictive/churn', controller.getChurnPrediction);
+
+// GET /api/admin/analytics/predictive/revenue-forecast - Get revenue forecast
+router.get('/predictive/revenue-forecast', controller.getRevenueForecast);
+
+// GET /api/admin/analytics/predictive/demand - Get demand prediction
+router.get('/predictive/demand', controller.getDemandPrediction);
+
+// ==========================================
+// LIVE USERS ROUTES
+// ==========================================
+
+// GET /api/admin/analytics/realtime/users - Get live users
+router.get('/realtime/users', controller.getLiveUsers);
+
+// ==========================================
+// RUN CUSTOM REPORT ROUTE
+// ==========================================
+
+// POST /api/admin/analytics/reports/:reportId/run - Run custom report
+router.post('/reports/:reportId/run', controller.runCustomReport);
+
 export default router;

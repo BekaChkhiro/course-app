@@ -99,7 +99,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">ჩვენი მისია</h2>
               <p className="text-lg text-gray-600 mb-4">
-                EduPlatform შეიქმნა იმ იდეით, რომ ხარისხიანი განათლება უნდა იყოს ხელმისაწვდომი ყველასთვის,
+                Kursebi Online შეიქმნა იმ იდეით, რომ ხარისხიანი განათლება უნდა იყოს ხელმისაწვდომი ყველასთვის,
                 მიუხედავად გეოგრაფიული მდებარეობისა თუ ფინანსური შესაძლებლობებისა.
               </p>
               <p className="text-lg text-gray-600 mb-4">

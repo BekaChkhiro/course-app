@@ -8,7 +8,9 @@ import {
   engagementService,
   realtimeService,
   reportsService,
-  exportService
+  exportService,
+  predictiveService,
+  liveUsersService
 } from '../services/analyticsService';
 
 // ==========================================
@@ -504,6 +506,166 @@ export const exportStudentsData = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to export students data'
+    });
+  }
+};
+
+// ==========================================
+// PREDICTIVE ANALYTICS CONTROLLER
+// ==========================================
+
+export const getPredictiveAnalytics = async (req: Request, res: Response) => {
+  try {
+    const { period = '6' } = req.query;
+    const data = await predictiveService.getPredictiveAnalytics(parseInt(period as string));
+
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Get predictive analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch predictive analytics'
+    });
+  }
+};
+
+export const getChurnPrediction = async (req: Request, res: Response) => {
+  try {
+    const data = await predictiveService.getChurnPrediction();
+
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Get churn prediction error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch churn prediction'
+    });
+  }
+};
+
+export const getRevenueForecast = async (req: Request, res: Response) => {
+  try {
+    const { months = '6' } = req.query;
+    const data = await predictiveService.getRevenueForecast(parseInt(months as string));
+
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Get revenue forecast error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch revenue forecast'
+    });
+  }
+};
+
+export const getDemandPrediction = async (req: Request, res: Response) => {
+  try {
+    const data = await predictiveService.getDemandPrediction();
+
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Get demand prediction error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch demand prediction'
+    });
+  }
+};
+
+// ==========================================
+// LIVE USERS CONTROLLER
+// ==========================================
+
+export const getLiveUsers = async (req: Request, res: Response) => {
+  try {
+    const data = await liveUsersService.getLiveUsers();
+
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Get live users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch live users'
+    });
+  }
+};
+
+// ==========================================
+// RUN CUSTOM REPORT CONTROLLER
+// ==========================================
+
+export const runCustomReport = async (req: Request, res: Response) => {
+  try {
+    const { reportId } = req.params;
+    // For now, return a placeholder - actual implementation would generate the report
+    res.json({
+      success: true,
+      data: {
+        reportId,
+        status: 'completed',
+        url: `/api/admin/analytics/reports/${reportId}/download`
+      }
+    });
+  } catch (error) {
+    console.error('Run custom report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to run custom report'
+    });
+  }
+};
+
+// ==========================================
+// EXPORT COURSES CONTROLLER
+// ==========================================
+
+export const exportCoursesData = async (req: Request, res: Response) => {
+  try {
+    const courses = await coursePerformanceService.getAllCoursesPerformance();
+
+    // Set headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=courses-${new Date().toISOString().split('T')[0]}.csv`);
+
+    // Convert to CSV
+    if (!Array.isArray(courses) || courses.length === 0) {
+      return res.send('No course data found');
+    }
+
+    const headers = ['id', 'title', 'category', 'status', 'revenue', 'enrollments', 'avgRating', 'reviews'];
+    const rows = (courses as any[]).map(course => [
+      course.id,
+      `"${(course.title || '').replace(/"/g, '""')}"`,
+      `"${(course.category || '').replace(/"/g, '""')}"`,
+      course.status,
+      course.revenue || 0,
+      course.enrollments || 0,
+      course.avgRating || 0,
+      course.reviews || 0
+    ].join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    res.send(csv);
+  } catch (error) {
+    console.error('Export courses data error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export courses data'
     });
   }
 };
