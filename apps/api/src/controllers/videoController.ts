@@ -23,6 +23,16 @@ setInterval(() => {
   }
 }, 60000); // Clean every minute
 
+// Helper to decode filename with proper UTF-8 encoding
+const decodeFilename = (filename: string): string => {
+  try {
+    // Try to decode as UTF-8 (handles cases where filename is incorrectly encoded)
+    return Buffer.from(filename, 'latin1').toString('utf8');
+  } catch {
+    return filename;
+  }
+};
+
 // Configure multer for video uploads - save directly to uploads folder
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
@@ -31,6 +41,8 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
+    // Decode the original filename properly
+    file.originalname = decodeFilename(file.originalname);
     const ext = path.extname(file.originalname);
     cb(null, `${uuidv4()}${ext}`);
   },
@@ -42,9 +54,11 @@ const upload = multer({
     fileSize: 2 * 1024 * 1024 * 1024, // 2GB limit
   },
   fileFilter: (req, file, cb) => {
+    // Decode filename for proper extension check
+    const decodedName = decodeFilename(file.originalname);
     const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'];
     const allowedExts = ['.mp4', '.mov', '.avi', '.mkv'];
-    const ext = path.extname(file.originalname).toLowerCase();
+    const ext = path.extname(decodedName).toLowerCase();
 
     if (allowedTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
       cb(null, true);
@@ -538,7 +552,7 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
 
     const watermark = {
       text: user?.email || userId,
-      visibleText: user?.name || user?.email?.split('@')[0] || 'User',
+      visibleText: user?.email || userId,
     };
 
     // Generate secure stream token (expires in 2 hours)
