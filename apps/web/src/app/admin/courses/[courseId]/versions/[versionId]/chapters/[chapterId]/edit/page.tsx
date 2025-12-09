@@ -7,7 +7,8 @@ import { ArrowLeft, Save, Trash2, FileText, Video, File, HelpCircle, Check } fro
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import QuizManager from '@/components/admin/QuizManager';
-import { chapterApi, uploadApi } from '@/lib/api/adminApi';
+import { chapterApi, uploadApi, videoApi } from '@/lib/api/adminApi';
+import VideoUpload from '@/components/admin/VideoUpload';
 import { quizApi } from '@/lib/api/quizApi';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import FileUpload from '@/components/ui/FileUpload';
@@ -36,13 +37,13 @@ export default function ChapterEditPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    videoUrl: '',
     theory: '',
     assignmentFile: '',
     answerFile: '',
     isFree: false
   });
   const [chapterQuiz, setChapterQuiz] = useState<any>(null);
+  const [existingVideo, setExistingVideo] = useState<any>(null);
 
   // Fetch chapter data
   const { data: chapterData, isLoading } = useQuery({
@@ -73,7 +74,6 @@ export default function ChapterEditPage() {
       setFormData({
         title: chapterData.title,
         description: chapterData.description || '',
-        videoUrl: chapterData.videoUrl || '',
         theory: chapterData.theory || '',
         assignmentFile: chapterData.assignmentFile || '',
         answerFile: chapterData.answerFile || '',
@@ -87,6 +87,22 @@ export default function ChapterEditPage() {
       setChapterQuiz(quizData);
     }
   }, [quizData]);
+
+  // Fetch existing video for chapter
+  const { data: videoData } = useQuery({
+    queryKey: ['chapter-video', chapterId],
+    queryFn: async () => {
+      const response = await videoApi.getByChapter(chapterId);
+      return response.data?.video || null;
+    },
+    enabled: !!chapterId,
+  });
+
+  useEffect(() => {
+    if (videoData !== undefined) {
+      setExistingVideo(videoData);
+    }
+  }, [videoData]);
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => chapterApi.update(chapterId, data),
@@ -129,7 +145,7 @@ export default function ChapterEditPage() {
       case 'info':
         return !!formData.title;
       case 'content':
-        return !!formData.videoUrl || !!formData.theory;
+        return !!existingVideo || !!formData.theory;
       case 'files':
         return !!formData.assignmentFile || !!formData.answerFile;
       case 'quiz':
@@ -289,34 +305,23 @@ export default function ChapterEditPage() {
                 {activeTab === 'content' && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-lg font-medium text-gray-900 mb-4">ვიდეო და თეორია</h2>
-                      <div className="space-y-5">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            ვიდეო URL
-                          </label>
-                          <input
-                            type="url"
-                            value={formData.videoUrl}
-                            onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                            placeholder="https://youtube.com/watch?v=..."
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            YouTube ან Vimeo ლინკი
-                          </p>
-                        </div>
+                      <h2 className="text-lg font-medium text-gray-900 mb-4">ვიდეო</h2>
+                      <VideoUpload
+                        chapterId={chapterId}
+                        existingVideo={existingVideo}
+                        onUploadComplete={() => {
+                          queryClient.invalidateQueries({ queryKey: ['chapter-video', chapterId] });
+                          toast.success('ვიდეო წარმატებით აიტვირთა');
+                        }}
+                      />
+                    </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            თეორია
-                          </label>
-                          <RichTextEditor
-                            content={formData.theory}
-                            onChange={(html) => setFormData({ ...formData, theory: html })}
-                          />
-                        </div>
-                      </div>
+                    <div>
+                      <h2 className="text-lg font-medium text-gray-900 mb-4">თეორია</h2>
+                      <RichTextEditor
+                        content={formData.theory}
+                        onChange={(html) => setFormData({ ...formData, theory: html })}
+                      />
                     </div>
                   </div>
                 )}

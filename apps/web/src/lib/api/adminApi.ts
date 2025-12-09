@@ -349,8 +349,8 @@ export const attachmentApi = {
     adminApi.post('/attachments/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     }),
-  getByChapter: (chapterId: string) =>
-    adminApi.get(`/attachments/chapter/${chapterId}`),
+  getByChapter: (chapterId: string, type?: string) =>
+    adminApi.get(`/attachments/chapter/${chapterId}${type ? `?type=${type}` : ''}`),
   update: (id: string, data: { title?: string; description?: string }) =>
     adminApi.put(`/attachments/${id}`, data),
   delete: (id: string) =>

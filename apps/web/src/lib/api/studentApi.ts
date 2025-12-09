@@ -188,6 +188,17 @@ export interface CourseForLearning {
   } | null;
 }
 
+export interface ChapterAttachment {
+  id: string;
+  title: string;
+  description: string | null;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  type: string;
+  url: string;
+}
+
 export interface ChapterForLearning {
   chapter: {
     id: string;
@@ -197,6 +208,9 @@ export interface ChapterForLearning {
     theory: string | null;
     assignmentFile: string | null;
     answerFile: string | null;
+    materials: ChapterAttachment[];
+    assignments: ChapterAttachment[];
+    answers: ChapterAttachment[];
     video: {
       id: string;
       duration: number | null;

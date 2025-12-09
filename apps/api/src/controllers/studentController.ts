@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../config/database';
+import r2Service from '../services/r2.service';
 
 /**
  * Get student dashboard data
@@ -537,6 +538,9 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
           },
         },
         videos: true,
+        attachments: {
+          orderBy: { order: 'asc' },
+        },
         quiz: {
           include: {
             questions: {
@@ -608,6 +612,28 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
     // Update study streak (mark as studied today)
     await updateStudyStreak(userId);
 
+    // Build attachments with URLs (R2) - grouped by type
+    const buildAttachment = (att: any) => ({
+      id: att.id,
+      title: att.title,
+      description: att.description,
+      fileName: att.fileName,
+      fileSize: att.fileSize,
+      mimeType: att.mimeType,
+      type: att.type,
+      url: r2Service.getPublicUrl(att.filePath),
+    });
+
+    const materials = chapter.attachments
+      .filter(att => att.type === 'material')
+      .map(buildAttachment);
+    const assignments = chapter.attachments
+      .filter(att => att.type === 'assignment')
+      .map(buildAttachment);
+    const answers = chapter.attachments
+      .filter(att => att.type === 'answer')
+      .map(buildAttachment);
+
     res.json({
       success: true,
       data: {
@@ -617,8 +643,11 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
           description: chapter.description,
           order: chapter.order,
           theory: chapter.theory,
-          assignmentFile: chapter.assignmentFile,
-          answerFile: chapter.answerFile,
+          assignmentFile: chapter.assignmentFile, // Legacy
+          answerFile: chapter.answerFile, // Legacy
+          materials,
+          assignments,
+          answers,
           video: chapter.videos[0]
             ? chapter.videos[0]
             : chapter.videoUrl

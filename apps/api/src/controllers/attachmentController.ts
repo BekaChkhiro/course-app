@@ -5,6 +5,17 @@ import multer from 'multer';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import r2Service from '../services/r2.service';
+
+// Helper to decode filename with proper UTF-8 encoding
+const decodeFilename = (filename: string): string => {
+  try {
+    // Try to decode as UTF-8 (handles cases where filename is incorrectly encoded)
+    return Buffer.from(filename, 'latin1').toString('utf8');
+  } catch {
+    return filename;
+  }
+};
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -14,6 +25,8 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
+    // Decode the original filename properly
+    file.originalname = decodeFilename(file.originalname);
     const ext = path.extname(file.originalname);
     cb(null, `${uuidv4()}${ext}`);
   },
@@ -67,7 +80,7 @@ export const uploadAttachment = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const { chapterId, title, description } = req.body;
+    const { chapterId, title, description, type = 'material' } = req.body;
 
     if (!chapterId) {
       await fs.unlink(req.file.path);
@@ -96,9 +109,20 @@ export const uploadAttachment = async (req: AuthRequest, res: Response) => {
       _max: { order: true },
     });
 
-    const filePath = `attachments/${req.file.filename}`;
-    const apiUrl = process.env.API_URL || 'http://localhost:4000';
-    const fileUrl = `${apiUrl}/uploads/${filePath}`;
+    // Read file buffer for R2 upload
+    const fileBuffer = await fs.readFile(req.file.path);
+
+    // Generate R2 key
+    const r2Key = r2Service.generateAttachmentKey(chapterId, req.file.originalname);
+
+    // Upload to R2
+    const r2Result = await r2Service.uploadFile(r2Key, fileBuffer, req.file.mimetype, {
+      originalname: req.file.originalname,
+      chapterId,
+    });
+
+    // Delete local file after upload
+    await fs.unlink(req.file.path).catch(() => {});
 
     // Create attachment record
     const attachment = await prisma.chapterAttachment.create({
@@ -107,9 +131,10 @@ export const uploadAttachment = async (req: AuthRequest, res: Response) => {
         title: title || req.file.originalname,
         description,
         fileName: req.file.originalname,
-        filePath,
+        filePath: r2Key,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
+        type, // material, assignment, or answer
         order: (maxOrder._max.order || 0) + 1,
       },
     });
@@ -119,7 +144,7 @@ export const uploadAttachment = async (req: AuthRequest, res: Response) => {
       message: 'File uploaded successfully',
       data: {
         ...attachment,
-        url: fileUrl,
+        url: r2Result.url,
       },
     });
   } catch (error) {
@@ -143,16 +168,19 @@ export const uploadAttachment = async (req: AuthRequest, res: Response) => {
 export const getChapterAttachments = async (req: AuthRequest, res: Response) => {
   try {
     const { chapterId } = req.params;
+    const { type } = req.query; // Optional: filter by type (material, assignment, answer)
 
     const attachments = await prisma.chapterAttachment.findMany({
-      where: { chapterId },
+      where: {
+        chapterId,
+        ...(type && { type: type as string }),
+      },
       orderBy: { order: 'asc' },
     });
 
-    const apiUrl = process.env.API_URL || 'http://localhost:4000';
     const attachmentsWithUrls = attachments.map(att => ({
       ...att,
-      url: `${apiUrl}/uploads/${att.filePath}`,
+      url: r2Service.getPublicUrl(att.filePath),
     }));
 
     res.json({
@@ -185,13 +213,11 @@ export const updateAttachment = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    const apiUrl = process.env.API_URL || 'http://localhost:4000';
-
     res.json({
       success: true,
       data: {
         ...attachment,
-        url: `${apiUrl}/uploads/${attachment.filePath}`,
+        url: r2Service.getPublicUrl(attachment.filePath),
       },
     });
   } catch (error) {
@@ -221,9 +247,10 @@ export const deleteAttachment = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Delete file from disk
-    const filePath = path.join(process.cwd(), 'uploads', attachment.filePath);
-    await fs.unlink(filePath).catch(() => {});
+    // Delete file from R2
+    await r2Service.deleteFile(attachment.filePath).catch((err) => {
+      console.error('Failed to delete file from R2:', err);
+    });
 
     // Delete from database
     await prisma.chapterAttachment.delete({

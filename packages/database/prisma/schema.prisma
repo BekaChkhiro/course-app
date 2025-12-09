@@ -264,9 +264,10 @@ model ChapterAttachment {
   title       String
   description String?
   fileName    String   // Original file name
-  filePath    String   // Path in uploads folder
+  filePath    String   // Path in R2 storage
   fileSize    Int      // Size in bytes
   mimeType    String   // e.g., application/pdf, image/png
+  type        String   @default("material") // material, assignment, answer
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -275,6 +276,7 @@ model ChapterAttachment {
   chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@index([chapterId])
+  @@index([chapterId, type])
   @@index([order])
   @@map("chapter_attachments")
 }

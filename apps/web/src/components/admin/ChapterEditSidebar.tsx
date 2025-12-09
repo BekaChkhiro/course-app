@@ -2,23 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Save, Trash2, FileText, Video, File, HelpCircle, Check, Link, Upload } from 'lucide-react';
-import { chapterApi, uploadApi, videoApi } from '@/lib/api/adminApi';
+import { X, Save, Trash2, FileText, Video, File, HelpCircle, Check } from 'lucide-react';
+import { chapterApi, videoApi } from '@/lib/api/adminApi';
 import { quizApi } from '@/lib/api/quizApi';
-import FileUpload from '@/components/ui/FileUpload';
 import RichTextEditor from '@/components/ui/RichTextEditor';
 import QuizManager from '@/components/admin/QuizManager';
 import VideoUpload from '@/components/admin/VideoUpload';
 import ChapterAttachments from '@/components/admin/ChapterAttachments';
 import toast from 'react-hot-toast';
 
-type VideoSourceType = 'link' | 'upload';
-
-type TabType = 'info' | 'content' | 'files' | 'quiz';
+type TabType = 'info' | 'video' | 'theory' | 'files' | 'quiz';
 
 const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
   { id: 'info', label: 'ინფორმაცია', icon: <FileText className="w-4 h-4" /> },
-  { id: 'content', label: 'კონტენტი', icon: <Video className="w-4 h-4" /> },
+  { id: 'video', label: 'ვიდეო', icon: <Video className="w-4 h-4" /> },
+  { id: 'theory', label: 'თეორია', icon: <FileText className="w-4 h-4" /> },
   { id: 'files', label: 'ფაილები', icon: <File className="w-4 h-4" /> },
   { id: 'quiz', label: 'ქვიზი', icon: <HelpCircle className="w-4 h-4" /> },
 ];
@@ -40,11 +38,9 @@ export default function ChapterEditSidebar({
 }: ChapterEditSidebarProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('info');
-  const [videoSourceType, setVideoSourceType] = useState<VideoSourceType>('link');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    videoUrl: '',
     theory: '',
     assignmentFile: '',
     answerFile: '',
@@ -93,7 +89,6 @@ export default function ChapterEditSidebar({
       setFormData({
         title: chapterData.title,
         description: chapterData.description || '',
-        videoUrl: chapterData.videoUrl || '',
         theory: chapterData.theory || '',
         assignmentFile: chapterData.assignmentFile || '',
         answerFile: chapterData.answerFile || '',
@@ -102,18 +97,15 @@ export default function ChapterEditSidebar({
     }
   }, [chapterData]);
 
-  // Set video data and source type based on existing video
+  // Set video data based on existing video
   useEffect(() => {
     if (videosData && videosData.length > 0) {
-      // Get the most recent video
       const video = videosData[0];
       setChapterVideo(video);
-      setVideoSourceType('upload');
-    } else if (chapterData?.videoUrl) {
-      setVideoSourceType('link');
+    } else {
       setChapterVideo(null);
     }
-  }, [videosData, chapterData]);
+  }, [videosData]);
 
   useEffect(() => {
     if (quizData !== undefined) {
@@ -154,12 +146,7 @@ export default function ChapterEditSidebar({
   });
 
   const handleSubmit = () => {
-    // For upload type, video is stored separately in Video table
-    const submitData = {
-      ...formData,
-      videoUrl: videoSourceType === 'link' ? formData.videoUrl : '',
-    };
-    updateMutation.mutate(submitData);
+    updateMutation.mutate(formData);
   };
 
   const handleDelete = () => {
@@ -173,8 +160,10 @@ export default function ChapterEditSidebar({
     switch (tabId) {
       case 'info':
         return !!formData.title;
-      case 'content':
-        return !!formData.videoUrl || !!chapterVideo || !!formData.theory;
+      case 'video':
+        return !!chapterVideo;
+      case 'theory':
+        return !!formData.theory;
       case 'files':
         return !!formData.assignmentFile || !!formData.answerFile;
       case 'quiz':
@@ -321,109 +310,55 @@ export default function ChapterEditSidebar({
                   </div>
                 )}
 
-                {/* Content Tab */}
-                {activeTab === 'content' && (
-                  <div className="space-y-5">
-                    {/* Video Source Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        ვიდეო
-                      </label>
+                {/* Video Tab */}
+                {activeTab === 'video' && (
+                  <div>
+                    <VideoUpload
+                      chapterId={chapterId}
+                      existingVideo={chapterVideo}
+                      onUploadComplete={() => {
+                        refetchVideos();
+                      }}
+                    />
+                  </div>
+                )}
 
-                      {/* Video Source Type Tabs */}
-                      <div className="flex gap-2 mb-4">
-                        <button
-                          type="button"
-                          onClick={() => setVideoSourceType('link')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            videoSourceType === 'link'
-                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
-                              : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          <Link className="w-4 h-4" />
-                          ლინკი
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setVideoSourceType('upload')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            videoSourceType === 'upload'
-                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
-                              : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          <Upload className="w-4 h-4" />
-                          ატვირთვა
-                        </button>
-                      </div>
-
-                      {/* Video Link Input */}
-                      {videoSourceType === 'link' && (
-                        <div>
-                          <input
-                            type="url"
-                            value={formData.videoUrl}
-                            onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                            placeholder="https://youtube.com/watch?v=..."
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">YouTube ან Vimeo ლინკი</p>
-                        </div>
-                      )}
-
-                      {/* Video Upload */}
-                      {videoSourceType === 'upload' && (
-                        <VideoUpload
-                          chapterId={chapterId}
-                          existingVideo={chapterVideo}
-                          onUploadComplete={() => {
-                            refetchVideos();
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        თეორია
-                      </label>
-                      <RichTextEditor
-                        content={formData.theory}
-                        onChange={(html) => setFormData({ ...formData, theory: html })}
-                      />
-                    </div>
+                {/* Theory Tab */}
+                {activeTab === 'theory' && (
+                  <div>
+                    <RichTextEditor
+                      content={formData.theory}
+                      onChange={(html) => setFormData({ ...formData, theory: html })}
+                    />
                   </div>
                 )}
 
                 {/* Files Tab */}
                 {activeTab === 'files' && (
                   <div className="space-y-6">
-                    {/* Chapter Attachments */}
-                    <ChapterAttachments chapterId={chapterId} />
+                    {/* Materials */}
+                    <ChapterAttachments
+                      chapterId={chapterId}
+                      type="material"
+                      title="დამატებითი მასალები"
+                    />
 
-                    {/* Legacy Assignment/Answer Files */}
+                    {/* Assignments */}
                     <div className="border-t pt-6">
-                      <h3 className="text-sm font-medium text-gray-700 mb-4">დავალება და პასუხი</h3>
-                      <div className="grid grid-cols-2 gap-6">
-                        <FileUpload
-                          label="დავალება"
-                          accept=".pdf,.doc,.docx"
-                          onUpload={(file) => uploadApi.assignment(file).then(res => res.data.file)}
-                          value={formData.assignmentFile}
-                          onChange={(url) => setFormData({ ...formData, assignmentFile: url })}
-                          preview={false}
-                        />
+                      <ChapterAttachments
+                        chapterId={chapterId}
+                        type="assignment"
+                        title="დავალებები"
+                      />
+                    </div>
 
-                        <FileUpload
-                          label="პასუხი"
-                          accept=".pdf,.doc,.docx"
-                          onUpload={(file) => uploadApi.answer(file).then(res => res.data.file)}
-                          value={formData.answerFile}
-                          onChange={(url) => setFormData({ ...formData, answerFile: url })}
-                          preview={false}
-                        />
-                      </div>
+                    {/* Answers */}
+                    <div className="border-t pt-6">
+                      <ChapterAttachments
+                        chapterId={chapterId}
+                        type="answer"
+                        title="პასუხები"
+                      />
                     </div>
                   </div>
                 )}

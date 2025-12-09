@@ -13,7 +13,7 @@ import CourseCompletionModal from '@/components/student/learning/CourseCompletio
 import VideoPlayer from '@/components/student/VideoPlayer';
 import { QuizAttempt } from '@/lib/api/quizApi';
 
-type ActiveTab = 'video' | 'theory' | 'assignment' | 'quiz';
+type ActiveTab = 'video' | 'theory' | 'files' | 'quiz';
 
 // Helper function to extract YouTube video ID
 const getYouTubeVideoId = (url: string): string | null => {
@@ -29,6 +29,159 @@ const getYouTubeVideoId = (url: string): string | null => {
   }
   return null;
 };
+
+// File icon helper
+const getFileIconConfig = (previewType: string | null) => {
+  if (previewType === 'pdf') {
+    return {
+      bg: 'bg-red-100',
+      icon: (
+        <svg className="w-5 h-5 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
+          <path d="M8 12h1.5v4H8v-4zm3 0h1.2l.8 2.5.8-2.5H15v4h-1v-2.5l-.7 2.5h-.6l-.7-2.5V16h-1v-4zm5 0h2v1h-1v.5h1v1h-1v.5h1v1h-2v-4z"/>
+        </svg>
+      )
+    };
+  }
+  if (previewType === 'image') {
+    return {
+      bg: 'bg-green-100',
+      icon: (
+        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      )
+    };
+  }
+  if (previewType === 'text') {
+    return {
+      bg: 'bg-yellow-100',
+      icon: (
+        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      )
+    };
+  }
+  return {
+    bg: 'bg-indigo-100',
+    icon: (
+      <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    )
+  };
+};
+
+// File Section Component
+function FileSection({
+  title,
+  files,
+  getPreviewType,
+  handleFilePreview,
+  isAnswer = false,
+  showAnswer = true,
+  setShowAnswer,
+}: {
+  title: string;
+  files: any[];
+  getPreviewType: (mimeType: string, fileName: string) => string | null;
+  handleFilePreview: (url: string, title: string, mimeType: string, fileName: string) => void;
+  isAnswer?: boolean;
+  showAnswer?: boolean;
+  setShowAnswer?: (show: boolean) => void;
+}) {
+  // For answers, show hide/reveal functionality
+  if (isAnswer && !showAnswer) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100">
+          <h3 className="font-medium text-gray-900">{title}</h3>
+        </div>
+        <div className="p-6 text-center">
+          <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <p className="text-gray-600 mb-3">ჯერ სცადეთ დავალების შესრულება</p>
+          <button
+            onClick={() => setShowAnswer?.(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            პასუხების ნახვა
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 className="font-medium text-gray-900">{title}</h3>
+        {isAnswer && showAnswer && setShowAnswer && (
+          <button
+            onClick={() => setShowAnswer(false)}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            დამალვა
+          </button>
+        )}
+      </div>
+      <div className="divide-y divide-gray-100">
+        {files.map((attachment: any) => {
+          const previewType = getPreviewType(attachment.mimeType, attachment.fileName);
+          const canPreview = previewType !== null;
+          const fileIcon = getFileIconConfig(previewType);
+
+          return (
+            <div key={attachment.id} className="p-4 flex items-center gap-4">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${fileIcon.bg}`}>
+                {fileIcon.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 truncate">{attachment.title}</p>
+                {attachment.description && (
+                  <p className="text-sm text-gray-500 truncate">{attachment.description}</p>
+                )}
+                <p className="text-xs text-gray-400">
+                  {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {canPreview && (
+                  <button
+                    onClick={() => handleFilePreview(attachment.url, attachment.title, attachment.mimeType, attachment.fileName)}
+                    className="px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    ნახვა
+                  </button>
+                )}
+                <a
+                  href={attachment.url}
+                  download={attachment.fileName}
+                  className="px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  ჩამოტვირთვა
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function ChapterSidebar({
   chapters,
@@ -255,6 +408,64 @@ function ChapterContent({
 }) {
   const { chapter, progress } = chapterData;
   const [showAnswer, setShowAnswer] = useState(false);
+  const [previewFile, setPreviewFile] = useState<{
+    url: string;
+    title: string;
+    type: 'pdf' | 'image' | 'text';
+    blobUrl?: string;
+    textContent?: string;
+  } | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+  // Determine file preview type
+  const getPreviewType = (mimeType: string, fileName: string): 'pdf' | 'image' | 'text' | null => {
+    const ext = fileName?.toLowerCase().split('.').pop();
+
+    if (mimeType === 'application/pdf' || ext === 'pdf') return 'pdf';
+    if (mimeType?.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) return 'image';
+    if (mimeType === 'text/plain' || ext === 'txt') return 'text';
+
+    return null;
+  };
+
+  // Load file for preview (handles CORS issues)
+  const handleFilePreview = async (url: string, title: string, mimeType: string, fileName: string) => {
+    const previewType = getPreviewType(mimeType, fileName);
+    if (!previewType) return;
+
+    setPreviewFile({ url, title, type: previewType });
+    setIsLoadingPreview(true);
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(url, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+
+      if (response.ok) {
+        if (previewType === 'text') {
+          const textContent = await response.text();
+          setPreviewFile({ url, title, type: previewType, textContent });
+        } else {
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          setPreviewFile({ url, title, type: previewType, blobUrl });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load file:', error);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  // Cleanup blob URL when modal closes
+  const closeFilePreview = () => {
+    if (previewFile?.blobUrl) {
+      URL.revokeObjectURL(previewFile.blobUrl);
+    }
+    setPreviewFile(null);
+  };
 
   // Fetch secure video URL
   const { data: secureVideoData, isLoading: isSecureUrlLoading } = useQuery({
@@ -265,19 +476,25 @@ function ChapterContent({
     refetchOnWindowFocus: false,
   });
 
+  // Check if there are any files
+  const hasFiles =
+    (chapter.materials && chapter.materials.length > 0) ||
+    (chapter.assignments && chapter.assignments.length > 0) ||
+    (chapter.answers && chapter.answers.length > 0);
+
   const tabs: { id: ActiveTab; label: string; available: boolean }[] = [
     { id: 'video', label: 'ვიდეო', available: !!chapter.video },
     { id: 'theory', label: 'თეორია', available: !!chapter.theory },
-    { id: 'assignment', label: 'დავალება', available: !!chapter.assignmentFile },
+    { id: 'files', label: 'ფაილები', available: hasFiles },
     { id: 'quiz', label: 'ტესტი', available: !!chapter.quiz },
   ];
 
   const availableTabs = tabs.filter((t) => t.available);
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      {/* Chapter Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {/* Chapter Header - Sticky */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">თავი {chapter.order}</p>
@@ -337,8 +554,8 @@ function ChapterContent({
         )}
       </div>
 
-      {/* Tab Content */}
-      <div className="p-4 pb-20">
+      {/* Tab Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 pb-20">
         {/* Video Tab */}
         {activeTab === 'video' && chapter.video && (
           <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 230px)' }}>
@@ -356,7 +573,7 @@ function ChapterContent({
                 </div>
               ) : isSecureUrlLoading ? (
                 // Loading secure URL
-                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[1300px] flex items-center justify-center text-white">
+                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[1200px] flex items-center justify-center text-white">
                   <div className="text-center">
                     <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
                     <p>ვიდეო იტვირთება...</p>
@@ -364,7 +581,7 @@ function ChapterContent({
                 </div>
               ) : secureVideoData?.data ? (
                 // Use secure signed URL with watermark
-                <div className="w-full max-w-[1300px]">
+                <div className="w-full max-w-[1200px]">
                   <VideoPlayer
                     src={secureVideoData.data.url}
                     title={chapter.title}
@@ -380,7 +597,7 @@ function ChapterContent({
                 </div>
               ) : (
                 // Fallback to direct URL (for development or if secure URL fails)
-                <div className="w-full max-w-[1300px]">
+                <div className="w-full max-w-[1200px]">
                   <VideoPlayer
                     src={chapter.video.hlsMasterUrl}
                     title={chapter.title}
@@ -416,93 +633,112 @@ function ChapterContent({
           />
         )}
 
-        {/* Assignment Tab */}
-        {activeTab === 'assignment' && (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden max-w-xl">
-            {/* Assignment Download */}
-            {chapter.assignmentFile && (
-              <div className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+        {/* Files Tab */}
+        {activeTab === 'files' && (
+          <div className="space-y-4">
+            {/* File Preview Modal */}
+            {previewFile && (
+              <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                <div className={`bg-white rounded-xl w-full flex flex-col ${
+                  previewFile.type === 'image' ? 'max-w-4xl max-h-[90vh]' : 'max-w-5xl h-[90vh]'
+                }`}>
+                  <div className="flex items-center justify-between p-4 border-b">
+                    <h3 className="font-medium text-gray-900 truncate">{previewFile.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={previewFile.url}
+                        download
+                        className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        ჩამოტვირთვა
+                      </a>
+                      <button
+                        onClick={closeFilePreview}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 mb-1">დავალება</h3>
-                    <p className="text-sm text-gray-500 mb-3">ჩამოტვირთეთ დავალების ფაილი</p>
-                    <a
-                      href={chapter.assignmentFile}
-                      download
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      ჩამოტვირთვა
-                    </a>
+                  <div className={`flex-1 overflow-hidden ${previewFile.type === 'text' ? 'overflow-y-auto' : ''}`}>
+                    {isLoadingPreview ? (
+                      <div className="w-full h-full flex items-center justify-center min-h-[200px]">
+                        <div className="text-center">
+                          <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+                          <p className="text-gray-600">იტვირთება...</p>
+                        </div>
+                      </div>
+                    ) : previewFile.type === 'pdf' && previewFile.blobUrl ? (
+                      <iframe
+                        src={`${previewFile.blobUrl}#toolbar=1&navpanes=0`}
+                        className="w-full h-full"
+                        title={previewFile.title}
+                      />
+                    ) : previewFile.type === 'image' && previewFile.blobUrl ? (
+                      <div className="p-4 flex items-center justify-center">
+                        <img
+                          src={previewFile.blobUrl}
+                          alt={previewFile.title}
+                          className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                        />
+                      </div>
+                    ) : previewFile.type === 'text' && previewFile.textContent !== undefined ? (
+                      <pre className="p-6 text-sm text-gray-800 whitespace-pre-wrap font-mono bg-gray-50 min-h-full">
+                        {previewFile.textContent}
+                      </pre>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center min-h-[200px]">
+                        <div className="text-center text-red-500">
+                          <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <p>ფაილის ჩატვირთვა ვერ მოხერხდა</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Answer Section */}
-            {chapter.answerFile && (
-              <>
-                <div className="border-t border-gray-100" />
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      showAnswer ? 'bg-emerald-100' : 'bg-gray-100'
-                    }`}>
-                      <svg className={`w-6 h-6 ${showAnswer ? 'text-emerald-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 mb-1">პასუხი</h3>
-                      {!showAnswer ? (
-                        <>
-                          <p className="text-sm text-gray-500 mb-3">ჯერ სცადეთ დავალების შესრულება</p>
-                          <button
-                            onClick={() => setShowAnswer(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            პასუხის ნახვა
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-sm text-gray-500 mb-3">პასუხი ხელმისაწვდომია</p>
-                          <div className="flex items-center gap-3">
-                            <a
-                              href={chapter.answerFile}
-                              download
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                              </svg>
-                              ჩამოტვირთვა
-                            </a>
-                            <button
-                              onClick={() => setShowAnswer(false)}
-                              className="text-sm text-gray-500 hover:text-gray-700"
-                            >
-                              დამალვა
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </>
+            {/* Materials Section */}
+            {chapter.materials && chapter.materials.length > 0 && (
+              <FileSection
+                title="დამატებითი მასალები"
+                files={chapter.materials}
+                getPreviewType={getPreviewType}
+                handleFilePreview={handleFilePreview}
+              />
             )}
+
+            {/* Assignments Section */}
+            {chapter.assignments && chapter.assignments.length > 0 && (
+              <FileSection
+                title="დავალებები"
+                files={chapter.assignments}
+                getPreviewType={getPreviewType}
+                handleFilePreview={handleFilePreview}
+              />
+            )}
+
+            {/* Answers Section */}
+            {chapter.answers && chapter.answers.length > 0 && (
+              <FileSection
+                title="პასუხები"
+                files={chapter.answers}
+                getPreviewType={getPreviewType}
+                handleFilePreview={handleFilePreview}
+                isAnswer={true}
+                showAnswer={showAnswer}
+                setShowAnswer={setShowAnswer}
+              />
+            )}
+
           </div>
         )}
 
@@ -608,9 +844,13 @@ export default function CourseLearningPage() {
   useEffect(() => {
     if (chapterData?.data.chapter) {
       const ch = chapterData.data.chapter;
+      const hasFilesContent =
+        (ch.materials && ch.materials.length > 0) ||
+        (ch.assignments && ch.assignments.length > 0) ||
+        (ch.answers && ch.answers.length > 0);
       if (ch.video) setActiveTab('video');
       else if (ch.theory) setActiveTab('theory');
-      else if (ch.assignmentFile) setActiveTab('assignment');
+      else if (hasFilesContent) setActiveTab('files');
       else if (ch.quiz) setActiveTab('quiz');
     }
   }, [chapterData]);
@@ -697,7 +937,7 @@ export default function CourseLearningPage() {
   const { course, progress } = courseData.data;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen bg-gray-50 overflow-hidden">
       {/* Chapter Sidebar */}
       <ChapterSidebar
         chapters={chapters}
@@ -744,7 +984,7 @@ export default function CourseLearningPage() {
 
       {/* Main Content */}
       <div
-        className={`transition-all duration-300 ${
+        className={`transition-all duration-300 h-screen flex flex-col ${
           isMobile ? 'ml-0 pt-16' : (sidebarCollapsed ? 'ml-16' : 'ml-80')
         }`}
         {...(isMobile ? swipeHandlers : {})}

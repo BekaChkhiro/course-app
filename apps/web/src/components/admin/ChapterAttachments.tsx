@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 
 interface ChapterAttachmentsProps {
   chapterId: string;
+  type?: 'material' | 'assignment' | 'answer';
+  title?: string;
 }
 
 interface Attachment {
@@ -18,6 +20,7 @@ interface Attachment {
   filePath: string;
   fileSize: number;
   mimeType: string;
+  type: string;
   order: number;
   url: string;
 }
@@ -40,7 +43,11 @@ const getFileIcon = (mimeType: string) => {
   return <File className="w-5 h-5 text-blue-500" />;
 };
 
-export default function ChapterAttachments({ chapterId }: ChapterAttachmentsProps) {
+export default function ChapterAttachments({
+  chapterId,
+  type = 'material',
+  title = 'დამატებითი მასალები'
+}: ChapterAttachmentsProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -48,11 +55,11 @@ export default function ChapterAttachments({ chapterId }: ChapterAttachmentsProp
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
-  // Fetch attachments
+  // Fetch attachments by type
   const { data: attachments = [], isLoading } = useQuery({
-    queryKey: ['chapter-attachments', chapterId],
+    queryKey: ['chapter-attachments', chapterId, type],
     queryFn: async () => {
-      const response = await attachmentApi.getByChapter(chapterId);
+      const response = await attachmentApi.getByChapter(chapterId, type);
       return response.data.data || [];
     },
     enabled: !!chapterId,
@@ -65,10 +72,11 @@ export default function ChapterAttachments({ chapterId }: ChapterAttachmentsProp
       formData.append('file', file);
       formData.append('chapterId', chapterId);
       formData.append('title', file.name);
+      formData.append('type', type);
       return attachmentApi.upload(formData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapter-attachments', chapterId] });
+      queryClient.invalidateQueries({ queryKey: ['chapter-attachments', chapterId, type] });
       toast.success('ფაილი აიტვირთა');
     },
     onError: (error: any) => {
@@ -81,7 +89,7 @@ export default function ChapterAttachments({ chapterId }: ChapterAttachmentsProp
     mutationFn: ({ id, data }: { id: string; data: { title?: string; description?: string } }) =>
       attachmentApi.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapter-attachments', chapterId] });
+      queryClient.invalidateQueries({ queryKey: ['chapter-attachments', chapterId, type] });
       setEditingId(null);
       toast.success('განახლდა');
     },
@@ -94,7 +102,7 @@ export default function ChapterAttachments({ chapterId }: ChapterAttachmentsProp
   const deleteMutation = useMutation({
     mutationFn: (id: string) => attachmentApi.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chapter-attachments', chapterId] });
+      queryClient.invalidateQueries({ queryKey: ['chapter-attachments', chapterId, type] });
       toast.success('ფაილი წაიშალა');
     },
     onError: () => {
@@ -142,7 +150,7 @@ export default function ChapterAttachments({ chapterId }: ChapterAttachmentsProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-700">დამატებითი მასალები</h3>
+        <h3 className="text-sm font-medium text-gray-700">{title}</h3>
         <span className="text-xs text-gray-500">{attachments.length} ფაილი</span>
       </div>
 

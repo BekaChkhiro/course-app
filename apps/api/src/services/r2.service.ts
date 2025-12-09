@@ -18,29 +18,37 @@ interface R2Config {
 }
 
 class R2Service {
-  private client: S3Client;
-  private config: R2Config;
+  private _client: S3Client | null = null;
+  private _config: R2Config | null = null;
 
-  constructor() {
-    this.config = {
-      accountId: process.env.R2_ACCOUNT_ID || '',
-      accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-      bucketName: process.env.R2_BUCKET_NAME || 'course-platform-videos',
-      publicUrl: process.env.R2_PUBLIC_URL || '',
-    };
+  // Lazy initialization to ensure dotenv has loaded
+  private get config(): R2Config {
+    if (!this._config) {
+      this._config = {
+        accountId: process.env.R2_ACCOUNT_ID || '',
+        accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        bucketName: process.env.R2_BUCKET_NAME || 'course-platform-videos',
+        publicUrl: process.env.R2_PUBLIC_URL || '',
+      };
+    }
+    return this._config;
+  }
 
-    // Initialize S3 client for R2
-    this.client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${this.config.accountId}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: this.config.accessKeyId,
-        secretAccessKey: this.config.secretAccessKey,
-      },
-      // Force path-style URLs for R2 compatibility
-      forcePathStyle: true,
-    });
+  private get client(): S3Client {
+    if (!this._client) {
+      this._client = new S3Client({
+        region: 'auto',
+        endpoint: `https://${this.config.accountId}.r2.cloudflarestorage.com`,
+        credentials: {
+          accessKeyId: this.config.accessKeyId,
+          secretAccessKey: this.config.secretAccessKey,
+        },
+        // Force path-style URLs for R2 compatibility
+        forcePathStyle: true,
+      });
+    }
+    return this._client;
   }
 
   /**
@@ -53,12 +61,26 @@ class R2Service {
     metadata?: Record<string, string>
   ): Promise<{ key: string; url: string; size: number }> {
     try {
+      // Sanitize metadata - encode non-ASCII characters to Base64
+      const sanitizedMetadata: Record<string, string> = {};
+      if (metadata) {
+        for (const [k, v] of Object.entries(metadata)) {
+          // Check if value contains non-ASCII characters
+          if (/[^\x00-\x7F]/.test(v)) {
+            // Encode as Base64 and prefix with 'base64:'
+            sanitizedMetadata[k] = 'base64:' + Buffer.from(v, 'utf8').toString('base64');
+          } else {
+            sanitizedMetadata[k] = v;
+          }
+        }
+      }
+
       const command = new PutObjectCommand({
         Bucket: this.config.bucketName,
         Key: key,
         Body: fileBuffer,
         ContentType: contentType,
-        Metadata: metadata,
+        Metadata: Object.keys(sanitizedMetadata).length > 0 ? sanitizedMetadata : undefined,
       });
 
       await this.client.send(command);
@@ -306,6 +328,30 @@ class R2Service {
    */
   getPublicUrl(key: string): string {
     return `${this.config.publicUrl}/${key}`;
+  }
+
+  /**
+   * Generate a key path for attachment files
+   */
+  generateAttachmentKey(
+    chapterId: string,
+    filename: string
+  ): string {
+    const timestamp = Date.now();
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `attachments/${chapterId}/${timestamp}_${sanitizedFilename}`;
+  }
+
+  /**
+   * Generate a key path for assignment/answer files
+   */
+  generateDocumentKey(
+    type: 'assignment' | 'answer',
+    filename: string
+  ): string {
+    const timestamp = Date.now();
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `documents/${type}s/${timestamp}_${sanitizedFilename}`;
   }
 }
 
