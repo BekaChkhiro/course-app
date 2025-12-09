@@ -332,7 +332,7 @@ function ChapterContent({
       <div className="p-4 pb-20">
         {/* Video Tab */}
         {activeTab === 'video' && chapter.video && (
-          <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 160px)' }}>
+          <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 210px)' }}>
             {chapter.video.hlsMasterUrl ? (
               // Check if it's a YouTube URL
               chapter.video.hlsMasterUrl.includes('youtube.com') || chapter.video.hlsMasterUrl.includes('youtu.be') ? (
