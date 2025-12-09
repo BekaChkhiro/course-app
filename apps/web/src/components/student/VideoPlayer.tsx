@@ -260,7 +260,7 @@ export default function VideoPlayer({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-black rounded-xl overflow-hidden group ${isFullscreen ? 'fixed inset-0 z-50' : 'aspect-video max-h-[70vh]'}`}
+      className={`relative bg-black rounded-xl overflow-hidden group ${isFullscreen ? 'fixed inset-0 z-50' : 'aspect-video'}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >

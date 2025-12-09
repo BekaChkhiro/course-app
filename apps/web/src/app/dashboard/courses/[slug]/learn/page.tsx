@@ -329,14 +329,14 @@ function ChapterContent({
       </div>
 
       {/* Tab Content */}
-      <div className="p-6">
+      <div className="p-4 pb-20">
         {/* Video Tab */}
         {activeTab === 'video' && chapter.video && (
-          <div className="mb-6">
+          <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 200px)' }}>
             {chapter.video.hlsMasterUrl ? (
               // Check if it's a YouTube URL
               chapter.video.hlsMasterUrl.includes('youtube.com') || chapter.video.hlsMasterUrl.includes('youtu.be') ? (
-                <div className="bg-black rounded-xl overflow-hidden aspect-video">
+                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-h-full">
                   <iframe
                     className="w-full h-full"
                     src={`https://www.youtube.com/embed/${getYouTubeVideoId(chapter.video.hlsMasterUrl)}?rel=0&modestbranding=1`}
@@ -346,20 +346,22 @@ function ChapterContent({
                   />
                 </div>
               ) : (
-                <VideoPlayer
-                  src={chapter.video.hlsMasterUrl}
-                  title={chapter.title}
-                  initialTime={progress.lastPosition || 0}
-                  onProgress={(data) => {
-                    // Optional: Save progress to backend periodically
-                  }}
-                  onEnded={() => {
-                    // Optional: Mark as completed when video ends
-                  }}
-                />
+                <div className="w-full max-w-6xl">
+                  <VideoPlayer
+                    src={chapter.video.hlsMasterUrl}
+                    title={chapter.title}
+                    initialTime={progress.lastPosition || 0}
+                    onProgress={(data) => {
+                      // Optional: Save progress to backend periodically
+                    }}
+                    onEnded={() => {
+                      // Optional: Mark as completed when video ends
+                    }}
+                  />
+                </div>
               )
             ) : (
-              <div className="bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center text-white">
+              <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-h-full flex items-center justify-center text-white">
                 <div className="text-center">
                   <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
