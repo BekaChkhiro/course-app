@@ -49,6 +49,7 @@ function CoursesContent() {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [sort, setSort] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'popular');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   // Fetch categories
   const { data: categories } = useQuery({
@@ -147,7 +148,7 @@ function CoursesContent() {
               {/* Categories */}
               <div className="mb-6">
                 <h4 className="font-medium text-gray-900 mb-3">კატეგორია</h4>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <button
                     onClick={() => {
                       setSelectedCategory('');
@@ -161,23 +162,88 @@ function CoursesContent() {
                   >
                     ყველა კატეგორია
                   </button>
-                  {categories?.map((category: any) => (
-                    <button
-                      key={category.id}
-                      onClick={() => {
-                        setSelectedCategory(category.slug);
-                        setPage(1);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                        selectedCategory === category.slug
-                          ? 'bg-indigo-100 text-indigo-700'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                    >
-                      {category.name}
-                      <span className="text-gray-400 ml-1">({category._count?.courses || 0})</span>
-                    </button>
-                  ))}
+                  {/* Parent categories */}
+                  {categories
+                    ?.filter((cat: any) => !cat.parent)
+                    .map((parentCat: any) => {
+                      const children = categories?.filter((c: any) => c.parent?.id === parentCat.id) || [];
+                      const isParentSelected = selectedCategory === parentCat.slug;
+                      const isChildSelected = children.some((c: any) => c.slug === selectedCategory);
+                      const isExpanded = expandedCategories.has(parentCat.id) || isParentSelected || isChildSelected;
+
+                      const toggleExpand = (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        setExpandedCategories(prev => {
+                          const next = new Set(prev);
+                          if (next.has(parentCat.id)) {
+                            next.delete(parentCat.id);
+                          } else {
+                            next.add(parentCat.id);
+                          }
+                          return next;
+                        });
+                      };
+
+                      return (
+                        <div key={parentCat.id}>
+                          {/* Parent category */}
+                          <div className="flex items-center">
+                            {children.length > 0 && (
+                              <button
+                                onClick={toggleExpand}
+                                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                              >
+                                <svg
+                                  className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedCategory(parentCat.slug);
+                                setPage(1);
+                              }}
+                              className={`flex-1 text-left px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                isParentSelected
+                                  ? 'bg-indigo-100 text-indigo-700'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                              } ${children.length === 0 ? 'ml-5' : ''}`}
+                            >
+                              {parentCat.name}
+                              <span className="text-gray-400 ml-1 font-normal">({parentCat._count?.courses || 0})</span>
+                            </button>
+                          </div>
+
+                          {/* Child categories - collapsible */}
+                          {children.length > 0 && isExpanded && (
+                            <div className="ml-5 border-l-2 border-gray-200 pl-2 space-y-1 mt-1">
+                              {children.map((child: any) => (
+                                <button
+                                  key={child.id}
+                                  onClick={() => {
+                                    setSelectedCategory(child.slug);
+                                    setPage(1);
+                                  }}
+                                  className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                                    selectedCategory === child.slug
+                                      ? 'bg-indigo-100 text-indigo-700'
+                                      : 'text-gray-600 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  {child.name}
+                                  <span className="text-gray-400 ml-1">({child._count?.courses || 0})</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
 

@@ -426,11 +426,22 @@ function CourseModal({
               required
             >
               <option value="">აირჩიეთ კატეგორია</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
+              {/* Parent categories */}
+              {categories
+                .filter((cat) => !cat.parent)
+                .map((parentCat) => {
+                  const children = categories.filter((c) => c.parent?.id === parentCat.id);
+                  return (
+                    <optgroup key={parentCat.id} label={parentCat.name}>
+                      <option value={parentCat.id}>{parentCat.name} (მთავარი)</option>
+                      {children.map((child) => (
+                        <option key={child.id} value={child.id}>
+                          └─ {child.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
             </select>
           </div>
         </div>

@@ -66,14 +66,122 @@ export default function CoursePage() {
     );
   }
 
+  // Purchase Card Component - reusable for mobile and desktop
+  const PurchaseCard = ({ className = '' }: { className?: string }) => (
+    <div className={`bg-white rounded-2xl shadow-xl overflow-hidden ${className}`}>
+      {/* Course Image */}
+      <div className="relative h-48 bg-gray-200">
+        {course.thumbnail ? (
+          <Image
+            src={course.thumbnail}
+            alt={course.title}
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <svg className="w-20 h-20 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6">
+        {/* Price */}
+        {course.price === 0 && (
+          <div className="text-3xl font-bold text-green-600 mb-4">
+            უფასო
+          </div>
+        )}
+
+        {/* CTA Button */}
+        {isAuthenticated ? (
+          course.isEnrolled ? (
+            <Link
+              href={`/dashboard/courses/${course.slug}/learn`}
+              className="block w-full text-center bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
+            >
+              {course.progressPercentage && course.progressPercentage > 0 ? (
+                <>
+                  <span>გაგრძელება</span>
+                  <span className="ml-2 text-green-200">({Math.round(course.progressPercentage)}%)</span>
+                </>
+              ) : (
+                'დაწყება'
+              )}
+            </Link>
+          ) : course.price > 0 ? (
+            <BuyButton
+              courseId={course.id}
+              price={course.price}
+            />
+          ) : (
+            <>
+              <button
+                onClick={handleEnroll}
+                disabled={isEnrolling}
+                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isEnrolling ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    მიმდინარეობს...
+                  </span>
+                ) : (
+                  'დაიწყე უფასოდ'
+                )}
+              </button>
+              {enrollError && (
+                <p className="mt-2 text-sm text-red-600 text-center">{enrollError}</p>
+              )}
+            </>
+          )
+        ) : (
+          <Link
+            href={`/auth/login?redirect=/courses/${course.slug}`}
+            className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+          >
+            {course.price === 0 ? 'დაიწყე უფასოდ' : 'შესვლა'}
+          </Link>
+        )}
+
+        {/* Features */}
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center text-sm text-gray-600">
+            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            შეუზღუდავი წვდომა
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            სერტიფიკატი დასრულებისას
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            პრაქტიკული დავალებები
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Course Info */}
-            <div className="lg:col-span-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Course Info & Content */}
+          <div className="lg:col-span-2">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 -mx-4 sm:-mx-6 lg:-mx-0 lg:rounded-2xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 mt-0 lg:mt-10">
               <nav className="text-sm mb-4">
                 <ol className="flex items-center space-x-2 text-gray-400">
                   <li>
@@ -82,6 +190,16 @@ export default function CoursePage() {
                     </Link>
                   </li>
                   <li>/</li>
+                  {course.category?.parent && (
+                    <>
+                      <li>
+                        <Link href={`/courses?category=${course.category.parent.slug}`} className="hover:text-white">
+                          {course.category.parent.name}
+                        </Link>
+                      </li>
+                      <li>/</li>
+                    </>
+                  )}
                   {course.category && (
                     <>
                       <li>
@@ -97,7 +215,7 @@ export default function CoursePage() {
               </nav>
 
               <h1 className="text-3xl sm:text-4xl font-bold text-white">{course.title}</h1>
-              <p className="mt-4 text-lg text-gray-300">{course.shortDescription}</p>
+              <p className="mt-4 text-lg text-gray-300" dangerouslySetInnerHTML={{ __html: course.shortDescription || '' }} />
 
               <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-300">
                 {/* Rating */}
@@ -148,186 +266,79 @@ export default function CoursePage() {
               </div>
             </div>
 
-            {/* Purchase Card */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden sticky top-24">
-                {/* Course Image */}
-                <div className="relative h-48 bg-gray-200">
-                  {course.thumbnail ? (
-                    <Image
-                      src={course.thumbnail}
-                      alt={course.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                      <svg className="w-20 h-20 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
+            {/* Mobile Purchase Card - visible only on mobile */}
+            <div className="lg:hidden mt-6">
+              <PurchaseCard />
+            </div>
 
-                <div className="p-6">
-                  {/* Price - მხოლოდ უფასო კურსებისთვის, ფასიანებისთვის BuyButton-ში აჩვენებს */}
-                  {course.price === 0 && (
-                    <div className="text-3xl font-bold text-green-600 mb-4">
-                      უფასო
-                    </div>
-                  )}
+            {/* Content Section */}
+            <div className="py-6 lg:py-8 space-y-6 lg:space-y-8">
+              {/* Description */}
+              <section className="bg-white rounded-2xl p-6 shadow-sm">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">კურსის აღწერა</h2>
+                <div className="prose max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: course.description || '' }} />
+              </section>
 
-                  {/* CTA Button */}
-                  {isAuthenticated ? (
-                    course.isEnrolled ? (
-                      <Link
-                        href={`/dashboard/courses/${course.slug}/learn`}
-                        className="block w-full text-center bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
-                      >
-                        {course.progressPercentage && course.progressPercentage > 0 ? (
-                          <>
-                            <span>გაგრძელება</span>
-                            <span className="ml-2 text-green-200">({Math.round(course.progressPercentage)}%)</span>
-                          </>
-                        ) : (
-                          'დაწყება'
-                        )}
-                      </Link>
-                    ) : course.price > 0 ? (
-                      // ფასიანი კურსისთვის - BOG გადახდა
-                      <BuyButton
-                        courseId={course.id}
-                        price={course.price}
-                      />
-                    ) : (
-                      // უფასო კურსისთვის - პირდაპირი ჩარიცხვა
-                      <>
-                        <button
-                          onClick={handleEnroll}
-                          disabled={isEnrolling}
-                          className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isEnrolling ? (
-                            <span className="flex items-center justify-center">
-                              <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              მიმდინარეობს...
-                            </span>
-                          ) : (
-                            'დაიწყე უფასოდ'
-                          )}
-                        </button>
-                        {enrollError && (
-                          <p className="mt-2 text-sm text-red-600 text-center">{enrollError}</p>
-                        )}
-                      </>
-                    )
-                  ) : (
-                    <Link
-                      href={`/auth/login?redirect=/courses/${course.slug}`}
-                      className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
-                    >
-                      {course.price === 0 ? 'დაიწყე უფასოდ' : 'შესვლა'}
-                    </Link>
-                  )}
-
-                  {/* Features */}
-                  <div className="mt-6 space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      შეუზღუდავი წვდომა
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      სერტიფიკატი დასრულებისას
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      პრაქტიკული დავალებები
-                    </div>
+              {/* What You'll Learn */}
+              {course.learningOutcomes && course.learningOutcomes.length > 0 && (
+                <section className="bg-white rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">რას ისწავლი</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {course.learningOutcomes.map((outcome: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <svg className="w-5 h-5 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-gray-600">{outcome}</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
+                </section>
+              )}
+
+              {/* Course Content */}
+              {course.chapters && course.chapters.length > 0 && (
+                <section className="bg-white rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">კურსის შინაარსი</h2>
+                  <p className="text-gray-600 mb-4">
+                    {course.chapterCount} თავი • {formatDuration(course.totalDuration || 0)} ჯამური ხანგრძლივობა
+                  </p>
+                  <div className="space-y-2">
+                    {course.chapters.map((chapter: any, index: number) => (
+                      <div
+                        key={chapter.id}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </span>
+                          <div>
+                            <h3 className="font-medium text-gray-900">{chapter.title}</h3>
+                            {chapter.description && (
+                              <p className="text-sm text-gray-500">{chapter.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        {chapter.duration && (
+                          <span className="text-sm text-gray-500">{formatDuration(chapter.duration)}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Reviews */}
+              <ReviewsSection courseId={course.id} />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Description */}
-            <section className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">კურსის აღწერა</h2>
-              <div className="prose max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: course.description || '' }} />
-            </section>
-
-            {/* What You'll Learn */}
-            {course.learningOutcomes && course.learningOutcomes.length > 0 && (
-              <section className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">რას ისწავლი</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {course.learningOutcomes.map((outcome: string, index: number) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <svg className="w-5 h-5 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-gray-600">{outcome}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Course Content */}
-            {course.chapters && course.chapters.length > 0 && (
-              <section className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">კურსის შინაარსი</h2>
-                <p className="text-gray-600 mb-4">
-                  {course.chapterCount} თავი • {formatDuration(course.totalDuration || 0)} ჯამური ხანგრძლივობა
-                </p>
-                <div className="space-y-2">
-                  {course.chapters.map((chapter: any, index: number) => (
-                    <div
-                      key={chapter.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-medium">
-                          {index + 1}
-                        </span>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{chapter.title}</h3>
-                          {chapter.description && (
-                            <p className="text-sm text-gray-500">{chapter.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      {chapter.duration && (
-                        <span className="text-sm text-gray-500">{formatDuration(chapter.duration)}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Reviews */}
-            <ReviewsSection courseId={course.id} />
-          </div>
-
-          {/* Sidebar - Hidden on mobile, purchase card takes its place */}
-          <div className="hidden lg:block">
-            {/* This space is for the sticky purchase card */}
+          {/* Right Column - Desktop Purchase Card (Sticky) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="lg:sticky lg:top-[70px] lg:bottom-[70px] pt-0 lg:pt-[34px]">
+              <PurchaseCard />
+            </div>
           </div>
         </div>
       </div>
@@ -411,20 +422,63 @@ function ReviewsSection({ courseId }: { courseId: string }) {
 function LoadingSkeleton() {
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-700 rounded w-48 mb-4" />
-            <div className="h-10 bg-gray-700 rounded w-3/4 mb-4" />
-            <div className="h-4 bg-gray-700 rounded w-1/2" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-2">
+            {/* Hero Skeleton */}
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 -mx-4 sm:-mx-6 lg:-mx-0 lg:rounded-2xl px-4 sm:px-6 lg:px-8 py-12 mt-0 lg:mt-10">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-700 rounded w-48 mb-4" />
+                <div className="h-10 bg-gray-700 rounded w-3/4 mb-4" />
+                <div className="h-4 bg-gray-700 rounded w-full mb-2" />
+                <div className="h-4 bg-gray-700 rounded w-2/3 mb-6" />
+                <div className="flex gap-4">
+                  <div className="h-4 bg-gray-700 rounded w-24" />
+                  <div className="h-4 bg-gray-700 rounded w-24" />
+                  <div className="h-4 bg-gray-700 rounded w-24" />
+                </div>
+              </div>
+            </div>
+
+            {/* Content Skeleton */}
+            <div className="py-8 space-y-8">
+              <div className="bg-white rounded-2xl p-6 shadow-sm animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-40 mb-4" />
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm animate-pulse">
+                <div className="h-6 bg-gray-200 rounded w-48 mb-4" />
+                <div className="space-y-3">
+                  <div className="h-16 bg-gray-200 rounded" />
+                  <div className="h-16 bg-gray-200 rounded" />
+                  <div className="h-16 bg-gray-200 rounded" />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse space-y-8">
-          <div className="bg-white rounded-2xl p-6 h-64" />
-          <div className="bg-white rounded-2xl p-6 h-48" />
-          <div className="bg-white rounded-2xl p-6 h-96" />
+
+          {/* Right Column - Purchase Card Skeleton */}
+          <div className="lg:col-span-1">
+            <div className="pt-0 lg:pt-[34px]">
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200" />
+                <div className="p-6">
+                  <div className="h-8 bg-gray-200 rounded w-24 mb-4" />
+                  <div className="h-12 bg-gray-200 rounded mb-6" />
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -110,9 +111,26 @@ export const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-gray-800">
-          <p className="text-center text-gray-400 text-sm">
-            &copy; {currentYear} Kursebi Online. ყველა უფლება დაცულია.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-gray-400 text-sm">
+              &copy; {currentYear} Kursebi Online. ყველა უფლება დაცულია.
+            </p>
+            <a
+              href="https://infinity.ge/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              <span>Powered by</span>
+              <Image
+                src="/infinity-logo.webp"
+                alt="Infinity Solutions"
+                width={100}
+                height={24}
+                className="h-5 w-auto"
+              />
+            </a>
+          </div>
         </div>
       </div>
     </footer>

@@ -24,13 +24,23 @@ router.get('/courses', async (req: Request, res: Response) => {
       status: 'PUBLISHED',
     };
 
-    // Category filter
+    // Category filter - include courses from child categories too
     if (category) {
       const categoryRecord = await prisma.category.findFirst({
         where: { slug: category as string },
+        include: {
+          children: {
+            select: { id: true },
+          },
+        },
       });
       if (categoryRecord) {
-        where.categoryId = categoryRecord.id;
+        // Get IDs of this category and all its children
+        const categoryIds = [
+          categoryRecord.id,
+          ...categoryRecord.children.map((child) => child.id),
+        ];
+        where.categoryId = { in: categoryIds };
       }
     }
 
@@ -156,7 +166,14 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
       },
       include: {
         category: {
-          select: { id: true, name: true, slug: true },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parent: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
         },
         author: {
           select: { id: true, name: true, surname: true, avatar: true, bio: true },
@@ -355,6 +372,12 @@ router.get('/categories', async (req: Request, res: Response) => {
     const categories = await prisma.category.findMany({
       orderBy: { order: 'asc' },
       include: {
+        parent: {
+          select: { id: true, name: true, slug: true },
+        },
+        children: {
+          select: { id: true },
+        },
         _count: {
           select: {
             courses: {
@@ -365,16 +388,42 @@ router.get('/categories', async (req: Request, res: Response) => {
       },
     });
 
-    res.json({
-      success: true,
-      data: categories.map((cat) => ({
+    // Calculate total course count including children for parent categories
+    const categoryMap = new Map(categories.map((cat) => [cat.id, cat]));
+
+    const categoriesWithTotalCount = categories.map((cat) => {
+      // Start with own course count
+      let totalCourses = cat._count.courses;
+
+      // Add children's course counts if this is a parent category
+      if (cat.children && cat.children.length > 0) {
+        for (const child of cat.children) {
+          const childCat = categoryMap.get(child.id);
+          if (childCat) {
+            totalCourses += childCat._count.courses;
+          }
+        }
+      }
+
+      return {
         id: cat.id,
         name: cat.name,
         slug: cat.slug,
         description: cat.description,
         icon: cat.icon,
-        _count: cat._count,
-      })),
+        parent: cat.parent,
+        parentId: cat.parent?.id || null,
+        _count: {
+          courses: totalCourses,
+          ownCourses: cat._count.courses, // Keep original count too
+        },
+        childrenCount: cat.children?.length || 0,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: categoriesWithTotalCount,
     });
   } catch (error) {
     console.error('Error fetching categories:', error);

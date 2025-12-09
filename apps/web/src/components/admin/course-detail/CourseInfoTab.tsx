@@ -112,11 +112,22 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
             required
           >
             <option value="">აირჩიეთ...</option>
-            {categories.map((cat: any) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
+            {/* Parent categories with children */}
+            {categories
+              .filter((cat: any) => !cat.parent)
+              .map((parentCat: any) => {
+                const children = categories.filter((c: any) => c.parent?.id === parentCat.id);
+                return (
+                  <optgroup key={parentCat.id} label={parentCat.name}>
+                    <option value={parentCat.id}>{parentCat.name} (მთავარი)</option>
+                    {children.map((child: any) => (
+                      <option key={child.id} value={child.id}>
+                        └─ {child.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
           </select>
         </div>
 

@@ -1,11 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ColumnDef } from '@tanstack/react-table';
-import { Plus, Edit, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical, ChevronRight, ChevronDown, FolderOpen, Folder } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import AdminLayout from '@/components/admin/AdminLayout';
-import DataTable from '@/components/ui/DataTable';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
 import { categoryApi } from '@/lib/api/adminApi';
 import { slugify } from '@/lib/utils';
@@ -23,10 +38,139 @@ type Category = {
   _count: { courses: number; children: number };
 };
 
+// Sortable Category Item Component
+function SortableCategoryItem({
+  category,
+  children,
+  isExpanded,
+  onToggle,
+  onEdit,
+  onDelete,
+  level = 0,
+}: {
+  category: Category;
+  children: Category[];
+  isExpanded: boolean;
+  onToggle: () => void;
+  onEdit: (cat: Category) => void;
+  onDelete: (cat: Category) => void;
+  level?: number;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const hasChildren = children.length > 0;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`${isDragging ? 'opacity-50' : ''}`}
+    >
+      <div
+        className={`flex items-center gap-2 p-3 bg-white border rounded-lg mb-2 hover:shadow-sm transition-shadow ${
+          level > 0 ? 'ml-8 border-l-4 border-l-blue-200' : ''
+        }`}
+      >
+        {/* Drag Handle */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </button>
+
+        {/* Expand/Collapse Button */}
+        {hasChildren ? (
+          <button
+            onClick={onToggle}
+            className="p-1 hover:bg-gray-100 rounded"
+          >
+            {isExpanded ? (
+              <ChevronDown className="w-4 h-4 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            )}
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
+
+        {/* Icon */}
+        {hasChildren ? (
+          isExpanded ? (
+            <FolderOpen className="w-5 h-5 text-blue-500" />
+          ) : (
+            <Folder className="w-5 h-5 text-blue-500" />
+          )
+        ) : (
+          <div className="w-5 h-5 rounded bg-gray-200" />
+        )}
+
+        {/* Category Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-gray-900">{category.name}</span>
+            <span className="text-xs text-gray-400">({category.slug})</span>
+          </div>
+          {category.description && (
+            <p className="text-sm text-gray-500 truncate">{category.description}</p>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-sm text-gray-500">
+          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+            {category._count.courses} კურსი
+          </span>
+          {hasChildren && (
+            <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded">
+              {category._count.children} ქვეკატეგორია
+            </span>
+          )}
+          <span className="text-gray-400">#{category.order}</span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onEdit(category)}
+            className="p-2 hover:bg-gray-100 rounded text-gray-600"
+            title="რედაქტირება"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(category)}
+            className="p-2 hover:bg-red-50 rounded text-red-600"
+            title="წაშლა"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CategoriesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [localCategories, setLocalCategories] = useState<Category[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -34,6 +178,13 @@ export default function CategoriesPage() {
     queryKey: ['categories'],
     queryFn: () => categoryApi.getAll().then(res => res.data)
   });
+
+  // Sync local state with fetched data
+  useEffect(() => {
+    if (categoriesData?.categories) {
+      setLocalCategories(categoriesData.categories);
+    }
+  }, [categoriesData]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => categoryApi.delete(id),
@@ -46,7 +197,34 @@ export default function CategoriesPage() {
     }
   });
 
-  const categories = categoriesData?.categories || [];
+  const reorderMutation = useMutation({
+    mutationFn: (categories: { id: string; order: number }[]) => categoryApi.reorder(categories),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('თანმიმდევრობა შენახულია');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'თანმიმდევრობის შენახვა ვერ მოხერხდა');
+    }
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Get parent categories
+  const parentCategories = localCategories
+    .filter(cat => !cat.parent)
+    .sort((a, b) => a.order - b.order);
+
+  // Get children for a parent
+  const getChildren = (parentId: string) =>
+    localCategories
+      .filter(cat => cat.parent?.id === parentId)
+      .sort((a, b) => a.order - b.order);
 
   const handleDelete = (category: Category) => {
     if (category._count.courses > 0) {
@@ -62,104 +240,176 @@ export default function CategoriesPage() {
     }
   };
 
-  const columns: ColumnDef<Category>[] = [
-    {
-      accessorKey: 'name',
-      header: 'სახელი',
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-          <div className="text-sm text-gray-500">{row.original.slug}</div>
-        </div>
-      )
-    },
-    {
-      accessorKey: 'parent.name',
-      header: 'მშობელი კატეგორია',
-      cell: ({ row }) => row.original.parent?.name || '-'
-    },
-    {
-      accessorKey: 'description',
-      header: 'აღწერა',
-      cell: ({ row }) => row.original.description || '-'
-    },
-    {
-      accessorKey: '_count.courses',
-      header: 'კურსები'
-    },
-    {
-      accessorKey: '_count.children',
-      header: 'ქვე-კატეგორიები'
-    },
-    {
-      accessorKey: 'order',
-      header: 'რიგი'
-    },
-    {
-      id: 'actions',
-      header: 'მოქმედებები',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedCategory(row.original);
-              setIsEditModalOpen(true);
-            }}
-            className="p-1 hover:bg-gray-100 rounded"
-            title="რედაქტირება"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDelete(row.original);
-            }}
-            className="p-1 hover:bg-red-100 rounded text-red-600"
-            title="წაშლა"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )
+  const handleEdit = (category: Category) => {
+    setSelectedCategory(category);
+    setIsEditModalOpen(true);
+  };
+
+  const toggleExpand = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const expandAll = () => {
+    const allParentIds = parentCategories
+      .filter(cat => cat._count.children > 0)
+      .map(cat => cat.id);
+    setExpandedCategories(new Set(allParentIds));
+  };
+
+  const collapseAll = () => {
+    setExpandedCategories(new Set());
+  };
+
+  const handleDragEnd = (event: DragEndEvent, parentId: string | null = null) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const items = parentId ? getChildren(parentId) : parentCategories;
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newItems = arrayMove(items, oldIndex, newIndex);
+
+        // Update local state
+        const updatedCategories = localCategories.map(cat => {
+          const newIdx = newItems.findIndex(item => item.id === cat.id);
+          if (newIdx !== -1) {
+            return { ...cat, order: newIdx };
+          }
+          return cat;
+        });
+        setLocalCategories(updatedCategories);
+
+        // Save to server
+        const reorderData = newItems.map((item, index) => ({
+          id: item.id,
+          order: index
+        }));
+        reorderMutation.mutate(reorderData);
+      }
     }
-  ];
+  };
 
   if (isLoading) return <PageLoader />;
 
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">კატეგორიები</h1>
             <p className="mt-1 text-sm text-gray-500">
-              მართეთ კურსების კატეგორიები
+              მართეთ კურსების კატეგორიები და მათი თანმიმდევრობა
             </p>
           </div>
 
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            ახალი კატეგორია
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={expandAll}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              ყველას გახსნა
+            </button>
+            <button
+              onClick={collapseAll}
+              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              ყველას დაკეცვა
+            </button>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              ახალი კატეგორია
+            </button>
+          </div>
         </div>
 
-        <DataTable
-          columns={columns}
-          data={categories}
-          searchKey="name"
-          searchPlaceholder="კატეგორიის ძიება..."
-          onRowClick={(category) => {
-            setSelectedCategory(category);
-            setIsEditModalOpen(true);
-          }}
-        />
+        {/* Info */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+          <strong>მინიშნება:</strong> გადაათრიეთ კატეგორიები თანმიმდევრობის შესაცვლელად.
+          ქვეკატეგორიების სანახავად დააჭირეთ ისარს.
+        </div>
+
+        {/* Categories Tree */}
+        <div className="bg-gray-50 rounded-xl p-4">
+          {parentCategories.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              კატეგორიები არ მოიძებნა
+            </div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event) => handleDragEnd(event, null)}
+            >
+              <SortableContext
+                items={parentCategories.map(c => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {parentCategories.map(parentCat => {
+                  const children = getChildren(parentCat.id);
+                  const isExpanded = expandedCategories.has(parentCat.id);
+
+                  return (
+                    <div key={parentCat.id}>
+                      <SortableCategoryItem
+                        category={parentCat}
+                        children={children}
+                        isExpanded={isExpanded}
+                        onToggle={() => toggleExpand(parentCat.id)}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        level={0}
+                      />
+
+                      {/* Children */}
+                      {isExpanded && children.length > 0 && (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleDragEnd(event, parentCat.id)}
+                        >
+                          <SortableContext
+                            items={children.map(c => c.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {children.map(child => (
+                              <SortableCategoryItem
+                                key={child.id}
+                                category={child}
+                                children={[]}
+                                isExpanded={false}
+                                onToggle={() => {}}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                level={1}
+                              />
+                            ))}
+                          </SortableContext>
+                        </DndContext>
+                      )}
+                    </div>
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
+          )}
+        </div>
       </div>
 
+      {/* Create/Edit Modal */}
       <CategoryModal
         isOpen={isCreateModalOpen || isEditModalOpen}
         onClose={() => {
@@ -168,7 +418,7 @@ export default function CategoriesPage() {
           setSelectedCategory(null);
         }}
         category={selectedCategory}
-        categories={categories}
+        categories={localCategories}
       />
     </AdminLayout>
   );
@@ -186,13 +436,44 @@ function CategoryModal({
   categories: Category[];
 }) {
   const [formData, setFormData] = useState({
-    name: category?.name || '',
-    slug: category?.slug || '',
-    description: category?.description || '',
-    icon: category?.icon || '',
-    parentId: category?.parent?.id || '',
-    order: category?.order || 0
+    name: '',
+    slug: '',
+    description: '',
+    icon: '',
+    parentId: '',
+    order: 0
   });
+
+  // Update form data when category changes
+  useEffect(() => {
+    if (category) {
+      setFormData({
+        name: category.name || '',
+        slug: category.slug || '',
+        description: category.description || '',
+        icon: category.icon || '',
+        parentId: category.parent?.id || '',
+        order: category.order || 0
+      });
+    } else {
+      setFormData({
+        name: '',
+        slug: '',
+        description: '',
+        icon: '',
+        parentId: '',
+        order: 0
+      });
+    }
+  }, [category]);
+
+  // Get children of this category for display
+  const childCategories = category
+    ? categories.filter(cat => cat.parent?.id === category.id)
+    : [];
+
+  // Get only parent categories for the dropdown
+  const parentCategoriesForSelect = categories.filter(cat => !cat.parent);
 
   const queryClient = useQueryClient();
 
@@ -281,7 +562,7 @@ function CategoryModal({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
             <option value="">არცერთი (მთავარი კატეგორია)</option>
-            {categories
+            {parentCategoriesForSelect
               .filter((cat) => cat.id !== category?.id)
               .map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -289,17 +570,32 @@ function CategoryModal({
                 </option>
               ))}
           </select>
+          {category?.parent && (
+            <p className="text-xs text-gray-500 mt-1">
+              მიმდინარე მშობელი: {category.parent.name}
+            </p>
+          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">რიგი</label>
-          <input
-            type="number"
-            value={formData.order}
-            onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        {/* Show child categories when editing */}
+        {category && childCategories.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">ქვეკატეგორიები</label>
+            <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+              {childCategories.map((child) => (
+                <div
+                  key={child.id}
+                  className="flex items-center justify-between text-sm p-2 bg-white rounded border border-gray-100"
+                >
+                  <span className="font-medium text-gray-900">{child.name}</span>
+                  <span className="text-gray-500 text-xs">
+                    {child._count.courses} კურსი
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <ModalFooter>
           <button
