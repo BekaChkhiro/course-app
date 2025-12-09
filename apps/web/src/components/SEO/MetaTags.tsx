@@ -31,7 +31,7 @@ export default function MetaTags({
   currency,
   noIndex = false,
 }: MetaTagsProps) {
-  const siteName = 'E-Learning Platform';
+  const siteName = 'Kursebi Online';
   const fullTitle = `${title} | ${siteName}`;
   const defaultImage = '/images/og-default.png';
 
@@ -64,7 +64,7 @@ export function generateCourseSchema(course: {
     image: course.thumbnail,
     provider: {
       '@type': 'Organization',
-      name: 'E-Learning Platform',
+      name: 'Kursebi Online',
       sameAs: process.env.NEXT_PUBLIC_APP_URL,
     },
     creator: {
@@ -111,7 +111,7 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'E-Learning Platform',
+    name: 'Kursebi Online',
     url: process.env.NEXT_PUBLIC_APP_URL,
     logo: `${process.env.NEXT_PUBLIC_APP_URL}/images/logo.png`,
     sameAs: [
@@ -129,7 +129,7 @@ export function generateWebsiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'E-Learning Platform',
+    name: 'Kursebi Online',
     url: process.env.NEXT_PUBLIC_APP_URL,
     potentialAction: {
       '@type': 'SearchAction',
