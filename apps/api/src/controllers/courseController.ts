@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient, CourseStatus } from '@prisma/client';
 import { deleteFile, getFilenameFromUrl } from '../services/uploadService';
+import r2Service from '../services/r2.service';
 
 const prisma = new PrismaClient();
 
@@ -238,9 +239,16 @@ export const updateCourse = async (req: Request, res: Response) => {
 
     // Delete old thumbnail if being replaced
     if (thumbnail && existingCourse.thumbnail && thumbnail !== existingCourse.thumbnail) {
-      const oldFilename = getFilenameFromUrl(existingCourse.thumbnail);
-      if (oldFilename) {
-        await deleteFile(oldFilename).catch(console.error);
+      // Try R2 deletion first (for new thumbnails)
+      const r2Key = r2Service.getKeyFromUrl(existingCourse.thumbnail);
+      if (r2Key) {
+        await r2Service.deleteFile(r2Key).catch(console.error);
+      } else {
+        // Fallback to local file deletion (for legacy thumbnails)
+        const oldFilename = getFilenameFromUrl(existingCourse.thumbnail);
+        if (oldFilename) {
+          await deleteFile(oldFilename).catch(console.error);
+        }
       }
     }
 
@@ -299,9 +307,16 @@ export const deleteCourse = async (req: Request, res: Response) => {
 
     // Delete thumbnail file if exists
     if (course.thumbnail) {
-      const filename = getFilenameFromUrl(course.thumbnail);
-      if (filename) {
-        await deleteFile(filename).catch(console.error);
+      // Try R2 deletion first (for new thumbnails)
+      const r2Key = r2Service.getKeyFromUrl(course.thumbnail);
+      if (r2Key) {
+        await r2Service.deleteFile(r2Key).catch(console.error);
+      } else {
+        // Fallback to local file deletion (for legacy thumbnails)
+        const filename = getFilenameFromUrl(course.thumbnail);
+        if (filename) {
+          await deleteFile(filename).catch(console.error);
+        }
       }
     }
 

@@ -353,6 +353,29 @@ class R2Service {
     const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
     return `documents/${type}s/${timestamp}_${sanitizedFilename}`;
   }
+
+  /**
+   * Generate a key path for course thumbnails
+   */
+  generateCourseThumbnailKey(filename: string): string {
+    const timestamp = Date.now();
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `thumbnails/courses/${timestamp}_${sanitizedFilename}`;
+  }
+
+  /**
+   * Extract R2 key from public URL
+   */
+  getKeyFromUrl(url: string): string | null {
+    try {
+      if (!url.startsWith(this.config.publicUrl)) {
+        return null;
+      }
+      return url.replace(`${this.config.publicUrl}/`, '');
+    } catch {
+      return null;
+    }
+  }
 }
 
 export default new R2Service();
