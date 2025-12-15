@@ -148,6 +148,7 @@ export const addQuestion = async (req: AuthRequest, res: Response) => {
       quizId,
       type: req.body.type,
       question: req.body.question,
+      questionImage: req.body.questionImage,
       explanation: req.body.explanation,
       points: req.body.points || 1,
       order: req.body.order ?? 0,
@@ -540,6 +541,44 @@ export const createQuizFromTemplate = async (
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Failed to create quiz',
+    });
+  }
+};
+
+/**
+ * Regenerate certificate for a passed attempt
+ */
+export const regenerateCertificate = async (req: AuthRequest, res: Response) => {
+  try {
+    const { attemptId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
+
+    const certificate = await quizService.regenerateCertificate(attemptId, userId);
+
+    if (!certificate) {
+      return res.status(400).json({
+        success: false,
+        message: 'სერტიფიკატის გენერაცია ვერ მოხერხდა. დარწმუნდით რომ გამოცდა ჩაბარებულია და ყველა თავი დასრულებულია.',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: certificate,
+      message: 'სერტიფიკატი წარმატებით შეიქმნა',
+    });
+  } catch (error) {
+    console.error('Regenerate certificate error:', error);
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to regenerate certificate',
     });
   }
 };

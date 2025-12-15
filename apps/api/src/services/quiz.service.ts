@@ -834,24 +834,34 @@ class QuizService {
             chapter: true,
           },
         },
+        courseVersion: {
+          include: {
+            chapters: {
+              orderBy: { order: 'asc' },
+            },
+          },
+        },
       },
     });
 
     if (!quiz) return false;
 
-    // Get chapter from either direct relation or through chapterContent
-    const chapter = quiz.chapter || quiz.chapterContent?.chapter;
-    if (!chapter) return false;
+    let courseVersion = quiz.courseVersion;
 
-    // Get the course version with all chapters
-    const courseVersion = await prisma.courseVersion.findUnique({
-      where: { id: chapter.courseVersionId },
-      include: {
-        chapters: {
-          orderBy: { order: 'asc' },
+    // If not a final exam (no direct courseVersion), try to get via chapter
+    if (!courseVersion) {
+      const chapter = quiz.chapter || quiz.chapterContent?.chapter;
+      if (!chapter) return false;
+
+      courseVersion = await prisma.courseVersion.findUnique({
+        where: { id: chapter.courseVersionId },
+        include: {
+          chapters: {
+            orderBy: { order: 'asc' },
+          },
         },
-      },
-    });
+      });
+    }
 
     if (!courseVersion || courseVersion.chapters.length === 0) return false;
 
@@ -881,27 +891,58 @@ class QuizService {
       where: { id: attempt.userId },
     });
 
-    const course = await prisma.course.findFirst({
-      where: {
-        versions: {
-          some: {
-            chapters: {
-              some: {
-                contents: {
-                  some: {
-                    quiz: {
-                      id: attempt.quizId,
-                    },
-                  },
-                },
-              },
-            },
+    if (!user) return;
+
+    // First try to find course via courseVersionId (for final exams)
+    let course = null;
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: attempt.quizId },
+      include: {
+        courseVersion: {
+          include: {
+            course: true,
           },
         },
       },
     });
 
-    if (!user || !course) return;
+    if (quiz?.courseVersion?.course) {
+      // Final exam - get course from version
+      course = quiz.courseVersion.course;
+    } else {
+      // Chapter quiz - find course via chapter contents
+      course = await prisma.course.findFirst({
+        where: {
+          versions: {
+            some: {
+              chapters: {
+                some: {
+                  OR: [
+                    {
+                      contents: {
+                        some: {
+                          quiz: {
+                            id: attempt.quizId,
+                          },
+                        },
+                      },
+                    },
+                    {
+                      quiz: {
+                        id: attempt.quizId,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (!course) return;
 
     const certificateNumber = `CERT-${Date.now()}-${Math.random()
       .toString(36)
@@ -922,6 +963,59 @@ class QuizService {
         completionDate: attempt.completedAt || new Date(),
       },
     });
+  }
+
+  /**
+   * Regenerate certificate for a passed attempt (public method)
+   */
+  async regenerateCertificate(attemptId: string, userId: string) {
+    // Get the attempt
+    const attempt = await prisma.quizAttempt.findUnique({
+      where: { id: attemptId },
+      include: {
+        quiz: true,
+        certificate: true,
+      },
+    });
+
+    if (!attempt) {
+      throw new Error('მცდელობა ვერ მოიძებნა');
+    }
+
+    // Verify ownership
+    if (attempt.userId !== userId) {
+      throw new Error('არ გაქვთ უფლება');
+    }
+
+    // Check if passed
+    if (!attempt.passed) {
+      throw new Error('გამოცდა არ არის ჩაბარებული');
+    }
+
+    // Check if certificate already exists
+    if (attempt.certificate) {
+      return attempt.certificate;
+    }
+
+    // Check if all chapters are completed
+    const allChaptersCompleted = await this.checkAllChaptersCompleted(
+      userId,
+      attempt.quizId
+    );
+
+    if (!allChaptersCompleted) {
+      throw new Error('ყველა თავი უნდა იყოს დასრულებული');
+    }
+
+    // Generate certificate
+    await this.generateCertificate(attempt);
+
+    // Return the newly created certificate
+    const certificate = await prisma.certificate.findFirst({
+      where: { attemptId },
+    });
+
+    return certificate;
   }
 
   /**

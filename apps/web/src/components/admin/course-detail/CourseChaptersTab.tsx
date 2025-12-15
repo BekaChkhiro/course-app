@@ -19,8 +19,8 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Trash2, GripVertical, Video, FileText, File, HelpCircle } from 'lucide-react';
-import { chapterApi } from '@/lib/api/adminApi';
+import { Plus, Trash2, GripVertical, Video, FileText, File, HelpCircle, Lock, Copy } from 'lucide-react';
+import { chapterApi, versionApi } from '@/lib/api/adminApi';
 import Badge from '@/components/ui/Badge';
 import ChapterEditSidebar from '@/components/admin/ChapterEditSidebar';
 import ChapterCreateSidebar from '@/components/admin/ChapterCreateSidebar';
@@ -29,6 +29,7 @@ import toast from 'react-hot-toast';
 interface CourseChaptersTabProps {
   courseId: string;
   selectedVersionId: string;
+  versionStatus?: 'DRAFT' | 'PUBLISHED';
 }
 
 type Chapter = {
@@ -47,13 +48,15 @@ type Chapter = {
 
 export default function CourseChaptersTab({
   courseId,
-  selectedVersionId
+  selectedVersionId,
+  versionStatus = 'DRAFT'
 }: CourseChaptersTabProps) {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const queryClient = useQueryClient();
+  const isPublished = versionStatus === 'PUBLISHED';
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -82,6 +85,9 @@ export default function CourseChaptersTab({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersionId] });
       toast.success('თავები გადალაგდა');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'შეცდომა');
     }
   });
 
@@ -96,7 +102,23 @@ export default function CourseChaptersTab({
     }
   });
 
+  const createDraftCopyMutation = useMutation({
+    mutationFn: (id: string) => versionApi.createDraftCopy(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['versions', courseId] });
+      toast.success('Draft ასლი შეიქმნა. გადადით ვერსიებში.');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'შეცდომა');
+    }
+  });
+
   const handleDragEnd = (event: DragEndEvent) => {
+    if (isPublished) {
+      toast.error('Published ვერსიის რედაქტირება შეუძლებელია');
+      return;
+    }
+
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -117,24 +139,69 @@ export default function CourseChaptersTab({
   };
 
   const handleDelete = (chapter: Chapter) => {
+    if (isPublished) {
+      toast.error('Published ვერსიის რედაქტირება შეუძლებელია');
+      return;
+    }
     if (confirm(`წავშალოთ "${chapter.title}"?`)) {
       deleteMutation.mutate(chapter.id);
+    }
+  };
+
+  const handleEdit = (chapterId: string) => {
+    if (isPublished) {
+      toast.error('Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.');
+      return;
+    }
+    setEditingChapterId(chapterId);
+  };
+
+  const handleCreateDraftCopy = () => {
+    if (confirm('შევქმნათ ამ ვერსიის Draft ასლი?')) {
+      createDraftCopyMutation.mutate(selectedVersionId);
     }
   };
 
   return (
     <>
       <div className="space-y-6">
+        {/* Published Version Warning Banner */}
+        {isPublished && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-amber-800">
+                  Published ვერსია - რედაქტირება დაბლოკილია
+                </h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  ცვლილებების შესატანად შექმენით Draft ასლი.
+                </p>
+              </div>
+              <button
+                onClick={handleCreateDraftCopy}
+                disabled={createDraftCopyMutation.isPending}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Copy className="w-4 h-4" />
+                Draft ასლი
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            ახალი თავი
-          </button>
+          {!isPublished && (
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4" />
+              ახალი თავი
+            </button>
+          )}
         </div>
 
         {/* Chapters List */}
@@ -143,23 +210,30 @@ export default function CourseChaptersTab({
         ) : chapters.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-gray-500 mb-4">თავები არ არის</p>
-            <button
-              onClick={() => setIsCreateOpen(true)}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              დაამატე პირველი თავი
-            </button>
+            {!isPublished && (
+              <button
+                onClick={() => setIsCreateOpen(true)}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                დაამატე პირველი თავი
+              </button>
+            )}
           </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext
+            sensors={isPublished ? [] : sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
             <SortableContext items={chapters.map(c => c.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-2">
                 {chapters.map((chapter) => (
                   <SortableChapterItem
                     key={chapter.id}
                     chapter={chapter}
-                    onEdit={() => setEditingChapterId(chapter.id)}
+                    onEdit={() => handleEdit(chapter.id)}
                     onDelete={() => handleDelete(chapter)}
+                    isPublished={isPublished}
                   />
                 ))}
               </div>
@@ -169,7 +243,7 @@ export default function CourseChaptersTab({
       </div>
 
       {/* Edit Sidebar - Outside of space-y-6 */}
-      {editingChapterId && (
+      {editingChapterId && !isPublished && (
         <ChapterEditSidebar
           isOpen={!!editingChapterId}
           onClose={() => setEditingChapterId(null)}
@@ -179,14 +253,16 @@ export default function CourseChaptersTab({
       )}
 
       {/* Create Sidebar - Outside of space-y-6 */}
-      <ChapterCreateSidebar
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        versionId={selectedVersionId}
-        onCreated={() => {
-          queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersionId] });
-        }}
-      />
+      {!isPublished && (
+        <ChapterCreateSidebar
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+          versionId={selectedVersionId}
+          onCreated={() => {
+            queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersionId] });
+          }}
+        />
+      )}
     </>
   );
 }
@@ -195,14 +271,17 @@ export default function CourseChaptersTab({
 function SortableChapterItem({
   chapter,
   onEdit,
-  onDelete
+  onDelete,
+  isPublished = false
 }: {
   chapter: Chapter;
   onEdit: () => void;
   onDelete: () => void;
+  isPublished?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: chapter.id
+    id: chapter.id,
+    disabled: isPublished
   });
 
   const style = {
@@ -215,11 +294,13 @@ function SortableChapterItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-4 p-4 bg-white border rounded-lg hover:shadow-md transition-shadow"
+      className={`flex items-center gap-4 p-4 bg-white border rounded-lg transition-shadow ${isPublished ? 'opacity-75' : 'hover:shadow-md'}`}
     >
-      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-        <GripVertical className="w-5 h-5 text-gray-400" />
-      </button>
+      {!isPublished && (
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          <GripVertical className="w-5 h-5 text-gray-400" />
+        </button>
+      )}
 
       <div className="flex-1 cursor-pointer" onClick={onEdit}>
         <div className="flex items-center gap-2">
@@ -253,16 +334,18 @@ function SortableChapterItem({
         </div>
       </div>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="p-2 hover:bg-red-100 rounded text-red-600"
-        title="წაშლა"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
+      {!isPublished && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="p-2 hover:bg-red-100 rounded text-red-600"
+          title="წაშლა"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

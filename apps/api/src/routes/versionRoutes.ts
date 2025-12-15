@@ -7,6 +7,8 @@ import {
   updateVersion,
   deleteVersion,
   setActiveVersion,
+  publishVersion,
+  createDraftCopy,
   compareVersions
 } from '../controllers/versionController';
 
@@ -24,5 +26,7 @@ router.post('/', createVersion);
 router.put('/:id', updateVersion);
 router.delete('/:id', deleteVersion);
 router.post('/:id/activate', setActiveVersion);
+router.post('/:id/publish', publishVersion);
+router.post('/:id/draft-copy', createDraftCopy);
 
 export default router;

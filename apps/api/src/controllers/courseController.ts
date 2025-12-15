@@ -389,8 +389,8 @@ export const duplicateCourse = async (req: Request, res: Response) => {
             title: version.title,
             description: version.description,
             changelog: version.changelog,
-            upgradePrice: version.upgradePrice,
-            discountPercentage: version.discountPercentage,
+            upgradePriceType: version.upgradePriceType,
+            upgradePriceValue: version.upgradePriceValue,
             isActive: false,
             chapters: {
               create: version.chapters.map((chapter) => ({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Clock, Target, Trash2, Plus, Settings,
@@ -33,6 +33,165 @@ const emptyQuestion: QuestionForm = {
     { answer: '', isCorrect: false }
   ]
 };
+
+// Moved outside to prevent re-creation on every render
+interface QuestionFormFieldsProps {
+  currentQuestion: QuestionForm;
+  setCurrentQuestion: (q: QuestionForm) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  isEditing?: boolean;
+  isSaving?: boolean;
+}
+
+function QuestionFormFields({
+  currentQuestion,
+  setCurrentQuestion,
+  onSave,
+  onCancel,
+  isEditing = false,
+  isSaving = false
+}: QuestionFormFieldsProps) {
+
+  const handleAnswerChange = (index: number, field: 'answer' | 'isCorrect', value: any) => {
+    const newAnswers = [...currentQuestion.answers];
+    if (field === 'isCorrect' && currentQuestion.type === QuestionType.SINGLE_CHOICE) {
+      newAnswers.forEach((a, i) => { a.isCorrect = i === index ? value : false; });
+    } else {
+      newAnswers[index] = { ...newAnswers[index], [field]: value };
+    }
+    setCurrentQuestion({ ...currentQuestion, answers: newAnswers });
+  };
+
+  const addAnswer = () => {
+    setCurrentQuestion({
+      ...currentQuestion,
+      answers: [...currentQuestion.answers, { answer: '', isCorrect: false }]
+    });
+  };
+
+  const removeAnswer = (index: number) => {
+    setCurrentQuestion({
+      ...currentQuestion,
+      answers: currentQuestion.answers.filter((_, i) => i !== index)
+    });
+  };
+
+  return (
+    <div className={`space-y-4 ${isEditing ? '' : 'p-5 bg-gray-50 rounded-xl mb-6'}`}>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <label className="block text-sm text-gray-600 mb-1.5">ტიპი</label>
+          <select
+            value={currentQuestion.type}
+            onChange={(e) => setCurrentQuestion({ ...currentQuestion, type: e.target.value as QuestionType })}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+          >
+            <option value={QuestionType.SINGLE_CHOICE}>ერთი სწორი</option>
+            <option value={QuestionType.MULTIPLE_CHOICE}>რამდენიმე სწორი</option>
+            <option value={QuestionType.TRUE_FALSE}>ჭეშმარიტი/მცდარი</option>
+          </select>
+        </div>
+        <div className="w-24">
+          <label className="block text-sm text-gray-600 mb-1.5">ქულა</label>
+          <input
+            type="number"
+            value={currentQuestion.points}
+            onChange={(e) => setCurrentQuestion({ ...currentQuestion, points: parseInt(e.target.value) || 1 })}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-600 mb-1.5">კითხვა</label>
+        <textarea
+          value={currentQuestion.question}
+          onChange={(e) => setCurrentQuestion({ ...currentQuestion, question: e.target.value })}
+          rows={2}
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+          placeholder="შეიყვანეთ კითხვა..."
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm text-gray-600">პასუხები</label>
+          <button
+            type="button"
+            onClick={addAnswer}
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            + დამატება
+          </button>
+        </div>
+        <div className="space-y-2">
+          {currentQuestion.answers.map((answer, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleAnswerChange(index, 'isCorrect', !answer.isCorrect)}
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  answer.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                {answer.isCorrect && <CheckCircle className="w-3 h-3 text-white" />}
+              </button>
+              <input
+                type="text"
+                value={answer.answer}
+                onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
+                placeholder={`პასუხი ${index + 1}`}
+                className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 ${
+                  answer.isCorrect ? 'border-green-200 bg-green-50' : 'border-gray-200'
+                }`}
+              />
+              {currentQuestion.answers.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => removeAnswer(index)}
+                  className="p-1.5 text-gray-400 hover:text-red-500"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm text-gray-600 mb-1.5">განმარტება (არასავალდებულო)</label>
+        <textarea
+          value={currentQuestion.explanation}
+          onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanation: e.target.value })}
+          rows={2}
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+          placeholder="რატომ არის ეს პასუხი სწორი..."
+        />
+      </div>
+
+      <div className="flex gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={isSaving}
+          className="flex-1 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          {isSaving ? 'შენახვა...' : isEditing ? 'შენახვა' : 'დამატება'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+        >
+          გაუქმება
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps) {
   const [examData, setExamData] = useState({
@@ -168,9 +327,9 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
     }
   });
 
-  const resetQuestionForm = () => {
+  const resetQuestionForm = useCallback(() => {
     setCurrentQuestion({ ...emptyQuestion });
-  };
+  }, []);
 
   const handleCreateExam = (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,7 +358,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
     setExpandedQuestions(prev => prev.includes(question.id) ? prev : [...prev, question.id]);
   };
 
-  const handleSaveQuestion = () => {
+  const handleSaveQuestion = useCallback(() => {
     if (!currentQuestion.question.trim()) {
       toast.error('შეიყვანეთ კითხვა');
       return;
@@ -235,23 +394,13 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
         order: existingExam?.questions?.length || 0
       });
     }
-  };
+  }, [currentQuestion, editingQuestionId, existingExam, addQuestionMutation, updateQuestionMutation]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditingQuestionId(null);
     setShowQuestionForm(false);
     resetQuestionForm();
-  };
-
-  const handleAnswerChange = (index: number, field: 'answer' | 'isCorrect', value: any) => {
-    const newAnswers = [...currentQuestion.answers];
-    if (field === 'isCorrect' && currentQuestion.type === QuestionType.SINGLE_CHOICE) {
-      newAnswers.forEach((a, i) => { a.isCorrect = i === index ? value : false; });
-    } else {
-      newAnswers[index] = { ...newAnswers[index], [field]: value };
-    }
-    setCurrentQuestion({ ...currentQuestion, answers: newAnswers });
-  };
+  }, [resetQuestionForm]);
 
   const toggleQuestion = (id: string) => {
     if (editingQuestionId === id) return;
@@ -265,128 +414,6 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
       </div>
     );
   }
-
-  // Question Form Component
-  const QuestionFormFields = ({ isEditing = false }: { isEditing?: boolean }) => (
-    <div className={`space-y-4 ${isEditing ? '' : 'p-5 bg-gray-50 rounded-xl mb-6'}`}>
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label className="block text-sm text-gray-600 mb-1.5">ტიპი</label>
-          <select
-            value={currentQuestion.type}
-            onChange={(e) => setCurrentQuestion({ ...currentQuestion, type: e.target.value as QuestionType })}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
-          >
-            <option value={QuestionType.SINGLE_CHOICE}>ერთი სწორი</option>
-            <option value={QuestionType.MULTIPLE_CHOICE}>რამდენიმე სწორი</option>
-            <option value={QuestionType.TRUE_FALSE}>ჭეშმარიტი/მცდარი</option>
-          </select>
-        </div>
-        <div className="w-24">
-          <label className="block text-sm text-gray-600 mb-1.5">ქულა</label>
-          <input
-            type="number"
-            value={currentQuestion.points}
-            onChange={(e) => setCurrentQuestion({ ...currentQuestion, points: parseInt(e.target.value) || 1 })}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm text-gray-600 mb-1.5">კითხვა</label>
-        <textarea
-          value={currentQuestion.question}
-          onChange={(e) => setCurrentQuestion({ ...currentQuestion, question: e.target.value })}
-          rows={2}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-          placeholder="შეიყვანეთ კითხვა..."
-        />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-sm text-gray-600">პასუხები</label>
-          <button
-            type="button"
-            onClick={() => setCurrentQuestion({
-              ...currentQuestion,
-              answers: [...currentQuestion.answers, { answer: '', isCorrect: false }]
-            })}
-            className="text-xs text-gray-500 hover:text-gray-700"
-          >
-            + დამატება
-          </button>
-        </div>
-        <div className="space-y-2">
-          {currentQuestion.answers.map((answer, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleAnswerChange(index, 'isCorrect', !answer.isCorrect)}
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                  answer.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                {answer.isCorrect && <CheckCircle className="w-3 h-3 text-white" />}
-              </button>
-              <input
-                type="text"
-                value={answer.answer}
-                onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
-                placeholder={`პასუხი ${index + 1}`}
-                className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 ${
-                  answer.isCorrect ? 'border-green-200 bg-green-50' : 'border-gray-200'
-                }`}
-              />
-              {currentQuestion.answers.length > 2 && (
-                <button
-                  type="button"
-                  onClick={() => setCurrentQuestion({
-                    ...currentQuestion,
-                    answers: currentQuestion.answers.filter((_, i) => i !== index)
-                  })}
-                  className="p-1.5 text-gray-400 hover:text-red-500"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm text-gray-600 mb-1.5">განმარტება (არასავალდებულო)</label>
-        <textarea
-          value={currentQuestion.explanation}
-          onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanation: e.target.value })}
-          rows={2}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
-          placeholder="რატომ არის ეს პასუხი სწორი..."
-        />
-      </div>
-
-      <div className="flex gap-2 pt-2">
-        <button
-          onClick={handleSaveQuestion}
-          disabled={addQuestionMutation.isPending || updateQuestionMutation.isPending}
-          className="flex-1 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {(addQuestionMutation.isPending || updateQuestionMutation.isPending)
-            ? 'შენახვა...'
-            : isEditing ? 'შენახვა' : 'დამატება'}
-        </button>
-        <button
-          onClick={handleCancelEdit}
-          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-        >
-          გაუქმება
-        </button>
-      </div>
-    </div>
-  );
 
   // Existing Exam View
   if (existingExam) {
@@ -512,7 +539,16 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
           </div>
 
           {/* Add Question Form */}
-          {showQuestionForm && !editingQuestionId && <QuestionFormFields />}
+          {showQuestionForm && !editingQuestionId && (
+            <QuestionFormFields
+              currentQuestion={currentQuestion}
+              setCurrentQuestion={setCurrentQuestion}
+              onSave={handleSaveQuestion}
+              onCancel={handleCancelEdit}
+              isEditing={false}
+              isSaving={addQuestionMutation.isPending}
+            />
+          )}
 
           {/* Questions List */}
           {questions.length === 0 && !showQuestionForm ? (
@@ -543,7 +579,14 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
                           </span>
                           <span className="text-sm font-medium text-gray-700">რედაქტირება</span>
                         </div>
-                        <QuestionFormFields isEditing />
+                        <QuestionFormFields
+                          currentQuestion={currentQuestion}
+                          setCurrentQuestion={setCurrentQuestion}
+                          onSave={handleSaveQuestion}
+                          onCancel={handleCancelEdit}
+                          isEditing={true}
+                          isSaving={updateQuestionMutation.isPending}
+                        />
                       </div>
                     ) : (
                       // View Mode

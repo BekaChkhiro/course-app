@@ -370,6 +370,149 @@ export const resetProgress = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Reset entire course progress (for testing purposes)
+ * Deletes: Progress, QuizAttempts, QuizResponses, Certificates
+ */
+export const resetCourseProgress = async (req: AuthRequest, res: Response) => {
+  try {
+    const { courseId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    // Get course with active version and chapters
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        versions: {
+          include: {
+            chapters: {
+              include: {
+                contents: {
+                  include: {
+                    quiz: true,
+                  },
+                },
+              },
+            },
+            finalExams: true,
+          },
+        },
+      },
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found',
+      });
+    }
+
+    // Collect all chapter IDs, quiz IDs, and version IDs
+    const chapterIds: string[] = [];
+    const quizIds: string[] = [];
+    const versionIds: string[] = [];
+
+    for (const version of course.versions) {
+      versionIds.push(version.id);
+
+      // Add final exam quizzes if exists
+      if (version.finalExams && version.finalExams.length > 0) {
+        for (const finalExam of version.finalExams) {
+          quizIds.push(finalExam.id);
+        }
+      }
+
+      for (const chapter of version.chapters) {
+        chapterIds.push(chapter.id);
+
+        // Add chapter quizzes
+        for (const content of chapter.contents) {
+          if (content.quiz) {
+            quizIds.push(content.quiz.id);
+          }
+        }
+      }
+    }
+
+    // Also check for chapter-level quizzes (directly linked to chapter)
+    const chapterQuizzes = await prisma.quiz.findMany({
+      where: {
+        chapterId: { in: chapterIds },
+      },
+      select: { id: true },
+    });
+    quizIds.push(...chapterQuizzes.map(q => q.id));
+
+    // Start transaction for safe deletion
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Get all quiz attempts for this user in this course
+      const attempts = await tx.quizAttempt.findMany({
+        where: {
+          userId,
+          quizId: { in: quizIds },
+        },
+        select: { id: true },
+      });
+      const attemptIds = attempts.map(a => a.id);
+
+      // 2. Delete certificates
+      const deletedCertificates = await tx.certificate.deleteMany({
+        where: {
+          attemptId: { in: attemptIds },
+        },
+      });
+
+      // 3. Delete quiz responses
+      const deletedResponses = await tx.quizResponse.deleteMany({
+        where: {
+          attemptId: { in: attemptIds },
+        },
+      });
+
+      // 4. Delete quiz attempts
+      const deletedAttempts = await tx.quizAttempt.deleteMany({
+        where: {
+          id: { in: attemptIds },
+        },
+      });
+
+      // 5. Delete progress records
+      const deletedProgress = await tx.progress.deleteMany({
+        where: {
+          userId,
+          chapterId: { in: chapterIds },
+        },
+      });
+
+      return {
+        deletedProgress: deletedProgress.count,
+        deletedAttempts: deletedAttempts.count,
+        deletedResponses: deletedResponses.count,
+        deletedCertificates: deletedCertificates.count,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'კურსის პროგრესი წარმატებით წაიშალა',
+    });
+  } catch (error) {
+    console.error('Reset course progress error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset course progress',
+    });
+  }
+};
+
+/**
  * Get user's overall learning statistics
  */
 export const getUserStats = async (req: AuthRequest, res: Response) => {

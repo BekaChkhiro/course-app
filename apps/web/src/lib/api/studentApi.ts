@@ -152,6 +152,7 @@ export interface CourseForLearning {
     slug: string;
     description: string;
     thumbnail: string | null;
+    price: number;
     category: {
       id: string;
       name: string;
@@ -165,6 +166,7 @@ export interface CourseForLearning {
     };
   };
   versionId: string;
+  versionNumber: number;
   chapters: ChapterProgress[];
   progress: {
     completedChapters: number;
@@ -185,6 +187,14 @@ export interface CourseForLearning {
     certificateNumber: string;
     issuedAt: string;
     pdfUrl: string | null;
+  } | null;
+  upgradeInfo: {
+    availableVersionId: string;
+    availableVersionNumber: number;
+    availableVersionTitle: string;
+    changelog: string | null;
+    upgradePrice: number;
+    currentVersionNumber: number;
   } | null;
 }
 
@@ -337,6 +347,23 @@ const videoApi = axios.create({
   withCredentials: true,
 });
 
+// Progress API for progress tracking
+const progressApi = axios.create({
+  baseURL: `${API_URL}/api/progress`,
+  withCredentials: true,
+});
+
+progressApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 videoApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -402,6 +429,35 @@ export const studentApiClient = {
     data: { isEnrolled: boolean; purchaseStatus: string | null; enrolledAt: string | null };
   }> => {
     const response = await purchaseApi.get(`/check/${courseId}`);
+    return response.data;
+  },
+
+  // Initiate version upgrade
+  initiateUpgrade: async (
+    courseId: string,
+    targetVersionId: string,
+    promoCode?: string
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    data?: {
+      orderId: string;
+      redirectUrl: string;
+      amount: number;
+      originalAmount: number;
+      discount: number;
+      targetVersion: {
+        id: string;
+        version: number;
+        title: string;
+      };
+    };
+  }> => {
+    const response = await purchaseApi.post('/upgrade', {
+      courseId,
+      targetVersionId,
+      promoCode,
+    });
     return response.data;
   },
 
@@ -709,6 +765,21 @@ export const studentApiClient = {
     const response = await axios.get(`${API_URL}/api/messages/unread-count`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
     });
+    return response.data;
+  },
+
+  // Progress - Course Reset (for testing)
+  resetCourseProgress: async (courseId: string): Promise<{
+    success: boolean;
+    data: {
+      deletedProgress: number;
+      deletedAttempts: number;
+      deletedResponses: number;
+      deletedCertificates: number;
+    };
+    message: string;
+  }> => {
+    const response = await progressApi.delete(`/courses/${courseId}/reset`);
     return response.data;
   },
 };

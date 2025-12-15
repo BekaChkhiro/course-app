@@ -32,7 +32,7 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // კურსის მოძიება
+    // კურსის მოძიება აქტიურ ვერსიასთან ერთად
     const course = await prisma.course.findFirst({
       where: {
         id: courseId,
@@ -43,8 +43,15 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
         title: true,
         slug: true,
         price: true,
+        versions: {
+          where: { isActive: true },
+          select: { id: true },
+          take: 1,
+        },
       },
     })
+
+    const activeVersionId = course?.versions[0]?.id || null
 
     if (!course) {
       return res.status(404).json({
@@ -109,6 +116,7 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
       create: {
         userId,
         courseId,
+        courseVersionId: activeVersionId, // შესყიდვის მომენტის აქტიური ვერსია
         amount: originalAmount,
         finalAmount,
         status: 'PENDING',
@@ -121,6 +129,7 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
         status: 'PENDING',
         externalOrderId,
         promoCodeId: promoCodeRecord?.id,
+        // არ ვაახლებთ courseVersionId-ს თუ უკვე არსებული შესყიდვაა
       },
     })
 
@@ -410,6 +419,11 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
         title: true,
         slug: true,
         price: true,
+        versions: {
+          where: { isActive: true },
+          select: { id: true },
+          take: 1,
+        },
       },
     })
 
@@ -419,6 +433,8 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
         message: 'კურსი ვერ მოიძებნა',
       })
     }
+
+    const activeVersionId = course.versions[0]?.id || null
 
     const existingPurchase = await prisma.purchase.findUnique({
       where: {
@@ -438,6 +454,7 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
       data: {
         userId,
         courseId,
+        courseVersionId: activeVersionId, // შესყიდვის მომენტის აქტიური ვერსია
         amount: course.price,
         finalAmount: course.price,
         status: 'COMPLETED',
@@ -501,6 +518,201 @@ export const checkEnrollment = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'შეცდომა ჩარიცხვის შემოწმებისას',
+    })
+  }
+}
+
+/**
+ * ვერსიის განახლება (Upgrade to new version)
+ * უკვე ნაყიდი კურსის ახალ ვერსიაზე გადასვლა
+ */
+export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id
+    const { courseId, targetVersionId, promoCode } = req.body
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'ავტორიზაცია საჭიროა',
+      })
+    }
+
+    if (!courseId || !targetVersionId) {
+      return res.status(400).json({
+        success: false,
+        message: 'კურსის ID და ვერსიის ID აუცილებელია',
+      })
+    }
+
+    // Check existing purchase
+    const existingPurchase = await prisma.purchase.findUnique({
+      where: {
+        userId_courseId: { userId, courseId },
+      },
+      include: {
+        course: true,
+        courseVersion: true,
+      },
+    })
+
+    if (!existingPurchase || existingPurchase.status !== 'COMPLETED') {
+      return res.status(400).json({
+        success: false,
+        message: 'კურსი არ გაქვთ შეძენილი',
+      })
+    }
+
+    // Check if already on the target version
+    if (existingPurchase.courseVersionId === targetVersionId) {
+      return res.status(400).json({
+        success: false,
+        message: 'თქვენ უკვე გაქვთ ეს ვერსია',
+      })
+    }
+
+    // Get target version
+    const targetVersion = await prisma.courseVersion.findUnique({
+      where: { id: targetVersionId },
+    })
+
+    if (!targetVersion || targetVersion.courseId !== courseId) {
+      return res.status(404).json({
+        success: false,
+        message: 'ვერსია ვერ მოიძებნა',
+      })
+    }
+
+    if (!targetVersion.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'ეს ვერსია არ არის აქტიური',
+      })
+    }
+
+    // Calculate upgrade price
+    let upgradePrice = 0
+    if (targetVersion.upgradePriceType === 'FIXED') {
+      upgradePrice = Number(targetVersion.upgradePriceValue) || 0
+    } else if (targetVersion.upgradePriceType === 'PERCENTAGE') {
+      const percentage = Number(targetVersion.upgradePriceValue) || 0
+      upgradePrice = (Number(existingPurchase.course.price) * percentage) / 100
+    }
+
+    if (upgradePrice <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'ამ ვერსიას არ აქვს განახლების ფასი მითითებული',
+      })
+    }
+
+    // Apply promo code if provided
+    let discount = 0
+    let promoCodeRecord = null
+
+    if (promoCode) {
+      promoCodeRecord = await prisma.promoCode.findFirst({
+        where: {
+          code: promoCode.toUpperCase(),
+          isActive: true,
+          validFrom: { lte: new Date() },
+          validUntil: { gte: new Date() },
+        },
+      })
+
+      if (promoCodeRecord) {
+        if (!promoCodeRecord.maxUses || promoCodeRecord.usedCount < promoCodeRecord.maxUses) {
+          discount = Number(promoCodeRecord.discount)
+        }
+      }
+    }
+
+    const discountAmount = (upgradePrice * discount) / 100
+    const finalAmount = upgradePrice - discountAmount
+
+    // Create unique order ID
+    const externalOrderId = `UPGRADE-${uuidv4()}`
+
+    // URLs
+    const apiUrl = process.env.API_URL || 'http://localhost:4000'
+    const appUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000'
+
+    // Create a new purchase record for the upgrade
+    // Note: We use upsert in case there's already a pending upgrade
+    const upgradePurchase = await prisma.purchase.upsert({
+      where: {
+        userId_courseId: { userId, courseId },
+      },
+      create: {
+        userId,
+        courseId,
+        courseVersionId: targetVersionId,
+        amount: upgradePrice,
+        finalAmount,
+        status: 'PENDING',
+        externalOrderId,
+        promoCodeId: promoCodeRecord?.id,
+        isUpgrade: true,
+      },
+      update: {
+        courseVersionId: targetVersionId,
+        amount: upgradePrice,
+        finalAmount,
+        status: 'PENDING',
+        externalOrderId,
+        promoCodeId: promoCodeRecord?.id,
+        isUpgrade: true,
+      },
+    })
+
+    // Create BOG order
+    const bogOrder = await bogService.createOrder({
+      externalOrderId,
+      amount: finalAmount,
+      currency: 'GEL',
+      courseId: existingPurchase.course.id,
+      courseTitle: `${existingPurchase.course.title} - განახლება v${targetVersion.version}`,
+      callbackUrl: `${apiUrl}/api/purchase/callback`,
+      successUrl: `${appUrl}/payment/success?orderId=${externalOrderId}`,
+      failUrl: `${appUrl}/payment/failed?orderId=${externalOrderId}`,
+      ttl: 15,
+      language: 'ka',
+    })
+
+    // Save BOG Order ID
+    await prisma.purchase.update({
+      where: { id: upgradePurchase.id },
+      data: { bogOrderId: bogOrder.id },
+    })
+
+    console.log(`✅ Upgrade payment initiated for course ${existingPurchase.course.slug}, version ${targetVersion.version}, order: ${externalOrderId}`)
+
+    return res.json({
+      success: true,
+      data: {
+        orderId: externalOrderId,
+        redirectUrl: bogOrder._links.redirect.href,
+        amount: finalAmount,
+        originalAmount: upgradePrice,
+        discount: discountAmount,
+        targetVersion: {
+          id: targetVersion.id,
+          version: targetVersion.version,
+          title: targetVersion.title,
+        },
+      },
+    })
+  } catch (error: any) {
+    console.error('❌ Error initiating upgrade:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      stack: error.stack,
+    })
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'განახლების დაწყება ვერ მოხერხდა',
+      error: process.env.NODE_ENV === 'development' ? error.response?.data : undefined,
     })
   }
 }

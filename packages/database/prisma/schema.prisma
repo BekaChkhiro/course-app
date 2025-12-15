@@ -68,6 +68,16 @@ enum QuizAttemptStatus {
   TIME_EXPIRED
 }
 
+enum VersionStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum UpgradePriceType {
+  FIXED       // ფიქსირებული თანხა
+  PERCENTAGE  // კურსის ფასის პროცენტი
+}
+
 model User {
   id                    String    @id @default(cuid())
   email                 String    @unique
@@ -180,10 +190,11 @@ model CourseVersion {
   description String   @db.Text
   changelog   String?  @db.Text // Version changelog for upgrade info
 
-  // Upgrade pricing for existing students
-  upgradePrice        Decimal? @db.Decimal(10, 2)
-  discountPercentage  Decimal? @db.Decimal(5, 2) // Discount % for existing students
+  // Upgrade pricing for existing students (v2+ only, v1 doesn't need this)
+  upgradePriceType   UpgradePriceType?           // FIXED or PERCENTAGE
+  upgradePriceValue  Decimal?         @db.Decimal(10, 2) // თანხა ან პროცენტი
 
+  status      VersionStatus @default(DRAFT)
   isActive    Boolean  @default(false)
   publishedAt DateTime?
   createdAt   DateTime @default(now())
@@ -194,10 +205,12 @@ model CourseVersion {
   chapters   Chapter[]
   progress   Progress[]
   finalExams Quiz[]     // Final exams for this version
+  purchases  Purchase[] // შეძენები ამ ვერსიისთვის
 
   @@unique([courseId, version])
   @@index([courseId])
   @@index([isActive])
+  @@index([status])
   @@map("course_versions")
 }
 
@@ -548,10 +561,12 @@ model Purchase {
   id              String        @id @default(cuid())
     userId          String
     courseId        String
+    courseVersionId String?       // რომელი ვერსია იყიდა
     amount          Decimal       @db.Decimal(10, 2)
     finalAmount     Decimal       @db.Decimal(10, 2)
     status          PaymentStatus @default(PENDING)
     promoCodeId     String?
+    isUpgrade       Boolean       @default(false) // თუ განახლებაა და არა ახალი შეძენა
 
     // BOG Payment fields (ახალი ველები)
     bogOrderId      String?       @unique  // BOG-ს შეკვეთის ID
@@ -568,9 +583,10 @@ model Purchase {
     updatedAt       DateTime      @updatedAt
 
     // Relations
-    user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-    promoCode PromoCode? @relation(fields: [promoCodeId], references: [id])
+    user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+    courseVersion CourseVersion? @relation(fields: [courseVersionId], references: [id])
+    promoCode     PromoCode?     @relation(fields: [promoCodeId], references: [id])
 
     @@unique([userId, courseId])
     @@index([userId])

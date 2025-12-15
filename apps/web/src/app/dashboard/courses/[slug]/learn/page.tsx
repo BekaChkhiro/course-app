@@ -10,8 +10,11 @@ import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 import QuizPlayer from '@/components/quiz/QuizPlayer';
 import QuizResults from '@/components/quiz/QuizResults';
 import CourseCompletionModal from '@/components/student/learning/CourseCompletionModal';
+import FinalExamSection from '@/components/student/learning/FinalExamSection';
+import FinalExamIntro from '@/components/student/learning/FinalExamIntro';
 import VideoPlayer from '@/components/student/VideoPlayer';
-import { QuizAttempt } from '@/lib/api/quizApi';
+import { QuizAttempt, quizAttemptApi } from '@/lib/api/quizApi';
+import toast from 'react-hot-toast';
 
 type ActiveTab = 'video' | 'theory' | 'files' | 'quiz';
 
@@ -183,6 +186,23 @@ function FileSection({
   );
 }
 
+interface FinalExamData {
+  id: string;
+  title: string;
+  type: string;
+  passingScore: number;
+  timeLimit: number | null;
+  lockUntilChaptersComplete: boolean;
+  isUnlocked: boolean;
+}
+
+interface FinalExamAttempt {
+  id: string;
+  score: number;
+  passed: boolean;
+  completedAt: string;
+}
+
 function ChapterSidebar({
   chapters,
   activeChapterId,
@@ -194,6 +214,11 @@ function ChapterSidebar({
   isMobile,
   isOpen,
   onClose,
+  finalExam,
+  lastFinalExamAttempt,
+  onStartFinalExam,
+  onResetProgress,
+  isResetting,
 }: {
   chapters: ChapterProgress[];
   activeChapterId: string | null;
@@ -205,7 +230,13 @@ function ChapterSidebar({
   isMobile: boolean;
   isOpen: boolean;
   onClose: () => void;
+  finalExam?: FinalExamData | null;
+  lastFinalExamAttempt?: FinalExamAttempt | null;
+  onStartFinalExam?: () => void;
+  onResetProgress?: () => void;
+  isResetting?: boolean;
 }) {
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const sidebarWidth = isMobile ? 'w-80' : (isCollapsed ? 'w-16' : 'w-80');
 
   return (
@@ -272,7 +303,20 @@ function ChapterSidebar({
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-gray-600">კურსის პროგრესი</span>
-              <span className="font-medium text-gray-900">{overallProgress}%</span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-900">{overallProgress}%</span>
+                {onResetProgress && (
+                  <button
+                    onClick={() => setShowResetConfirm(true)}
+                    className="p-1 text-gray-400 hover:text-red-500 rounded transition-colors"
+                    title="პროგრესის რესეტი (ტესტირებისთვის)"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
@@ -281,6 +325,54 @@ function ChapterSidebar({
                 }`}
                 style={{ width: `${overallProgress}%` }}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Reset Confirmation Modal */}
+        {showResetConfirm && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-xl">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                პროგრესის წაშლა
+              </h3>
+              <p className="text-gray-500 text-center text-sm mb-6">
+                დარწმუნებული ხართ რომ გსურთ ამ კურსის მთლიანი პროგრესის წაშლა?
+                ეს წაშლის ყველა თავის პროგრესს, ქვიზის მცდელობებს და სერტიფიკატებს.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  გაუქმება
+                </button>
+                <button
+                  onClick={() => {
+                    setShowResetConfirm(false);
+                    onResetProgress?.();
+                  }}
+                  disabled={isResetting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  {isResetting ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      იშლება...
+                    </>
+                  ) : (
+                    'წაშლა'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -379,6 +471,22 @@ function ChapterSidebar({
             );
           })}
         </div>
+
+        {/* Final Exam Section */}
+        {finalExam && onStartFinalExam && (
+          <FinalExamSection
+            finalExam={finalExam}
+            lastAttempt={lastFinalExamAttempt}
+            onStartExam={() => {
+              onStartFinalExam();
+              if (isMobile) {
+                onClose();
+              }
+            }}
+            isCollapsed={isCollapsed}
+            isMobile={isMobile}
+          />
+        )}
       </div>
     </aside>
     </>
@@ -798,6 +906,11 @@ export default function CourseLearningPage() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [hasShownCompletionModal, setHasShownCompletionModal] = useState(false);
 
+  // Final Exam states
+  const [showFinalExamIntro, setShowFinalExamIntro] = useState(false);
+  const [finalExamMode, setFinalExamMode] = useState<'idle' | 'playing' | 'results'>('idle');
+  const [finalExamAttemptId, setFinalExamAttemptId] = useState<string | null>(null);
+
   // Fetch course data
   const { data: courseData, isLoading: isCourseLoading, error: courseError } = useQuery({
     queryKey: ['courseForLearning', slug],
@@ -812,6 +925,24 @@ export default function CourseLearningPage() {
     enabled: !!activeChapterId,
     staleTime: 60000,
   });
+
+  // Fetch final exam attempts
+  const finalExamId = courseData?.data?.finalExam?.id;
+  const { data: finalExamAttemptsData } = useQuery({
+    queryKey: ['finalExamAttempts', finalExamId],
+    queryFn: () => quizAttemptApi.getUserAttempts(finalExamId!),
+    enabled: !!finalExamId,
+  });
+
+  const finalExamAttempts = finalExamAttemptsData?.data?.attempts || [];
+  const lastFinalExamAttempt = finalExamAttempts[0] ? {
+    id: finalExamAttempts[0].id,
+    attemptNumber: finalExamAttempts[0].attemptNumber,
+    score: finalExamAttempts[0].score || 0,
+    passed: finalExamAttempts[0].passed || false,
+    completedAt: finalExamAttempts[0].completedAt,
+    timeSpent: finalExamAttempts[0].timeSpent,
+  } : null;
 
   // Mark chapter as complete mutation
   const markCompleteMutation = useMutation({
@@ -828,6 +959,30 @@ export default function CourseLearningPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseForLearning', slug] });
       queryClient.invalidateQueries({ queryKey: ['chapterForLearning', activeChapterId] });
+    },
+  });
+
+  // Reset course progress mutation (for testing)
+  const resetProgressMutation = useMutation({
+    mutationFn: async () => {
+      if (!courseData?.data?.course?.id) throw new Error('Course ID not found');
+      return studentApiClient.resetCourseProgress(courseData.data.course.id);
+    },
+    onSuccess: (result) => {
+      toast.success(`პროგრესი წაიშალა: ${result.data.deletedProgress} თავი, ${result.data.deletedAttempts} ქვიზი, ${result.data.deletedCertificates} სერტიფიკატი`);
+      // Invalidate all relevant queries
+      queryClient.invalidateQueries({ queryKey: ['courseForLearning', slug] });
+      queryClient.invalidateQueries({ queryKey: ['chapterForLearning'] });
+      queryClient.invalidateQueries({ queryKey: ['finalExamAttempts'] });
+      // Reset local states
+      setHasShownCompletionModal(false);
+      setFinalExamMode('idle');
+      setFinalExamAttemptId(null);
+      setQuizMode('start');
+      setCompletedAttemptId(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'პროგრესის წაშლა ვერ მოხერხდა');
     },
   });
 
@@ -871,11 +1026,52 @@ export default function CourseLearningPage() {
     // Reset quiz state when changing chapters
     setQuizMode('start');
     setCompletedAttemptId(null);
+    // Exit final exam mode when selecting a chapter
+    setFinalExamMode('idle');
   };
 
   const handleMarkComplete = () => {
     if (activeChapterId) {
       markCompleteMutation.mutate(activeChapterId);
+    }
+  };
+
+  // Final Exam handlers
+  const handleOpenFinalExamIntro = () => {
+    setShowFinalExamIntro(true);
+  };
+
+  const handleStartFinalExam = () => {
+    setShowFinalExamIntro(false);
+    // If already passed, show results
+    if (lastFinalExamAttempt?.passed && lastFinalExamAttempt?.id) {
+      setFinalExamAttemptId(lastFinalExamAttempt.id);
+      setFinalExamMode('results');
+    } else {
+      setFinalExamMode('playing');
+    }
+    setActiveChapterId(null); // Deselect chapter
+  };
+
+  const handleFinalExamComplete = (attempt: QuizAttempt) => {
+    setFinalExamAttemptId(attempt.id);
+    setFinalExamMode('results');
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['finalExamAttempts', finalExamId] });
+    queryClient.invalidateQueries({ queryKey: ['courseForLearning', slug] });
+  };
+
+  const handleFinalExamRetry = () => {
+    setFinalExamMode('playing');
+    setFinalExamAttemptId(null);
+  };
+
+  const handleCloseFinalExam = () => {
+    setFinalExamMode('idle');
+    setFinalExamAttemptId(null);
+    // Select first chapter
+    if (chapters.length > 0) {
+      setActiveChapterId(chapters[0].id);
     }
   };
 
@@ -934,10 +1130,57 @@ export default function CourseLearningPage() {
     );
   }
 
-  const { course, progress } = courseData.data;
+  const { course, progress, upgradeInfo, versionNumber } = courseData.data;
+
+  // Handle upgrade button click
+  const handleUpgrade = async () => {
+    if (!upgradeInfo) return;
+    try {
+      const result = await studentApiClient.initiateUpgrade(
+        course.id,
+        upgradeInfo.availableVersionId
+      );
+      if (result.success && result.data?.redirectUrl) {
+        window.location.href = result.data.redirectUrl;
+      } else {
+        toast.error(result.message || 'განახლების დაწყება ვერ მოხერხდა');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'განახლების დაწყება ვერ მოხერხდა');
+    }
+  };
 
   return (
     <div className="h-screen bg-gray-50 overflow-hidden">
+      {/* Upgrade Banner */}
+      {upgradeInfo && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-3 shadow-lg">
+          <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 rounded-full p-1.5">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-semibold text-sm">
+                  ახალი ვერსია ხელმისაწვდომია! v{upgradeInfo.currentVersionNumber} → v{upgradeInfo.availableVersionNumber}
+                </p>
+                <p className="text-xs text-white/90">
+                  {upgradeInfo.availableVersionTitle}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleUpgrade}
+              className="px-4 py-1.5 bg-white text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-50 transition-colors"
+            >
+              განახლება {upgradeInfo.upgradePrice > 0 && `- ${upgradeInfo.upgradePrice.toFixed(2)} ₾`}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Chapter Sidebar */}
       <ChapterSidebar
         chapters={chapters}
@@ -950,11 +1193,27 @@ export default function CourseLearningPage() {
         isMobile={isMobile}
         isOpen={mobileSidebarOpen}
         onClose={() => setMobileSidebarOpen(false)}
+        finalExam={courseData.data.finalExam}
+        lastFinalExamAttempt={lastFinalExamAttempt}
+        onStartFinalExam={handleOpenFinalExamIntro}
+        onResetProgress={() => resetProgressMutation.mutate()}
+        isResetting={resetProgressMutation.isPending}
       />
+
+      {/* Final Exam Intro Modal */}
+      {courseData.data.finalExam && (
+        <FinalExamIntro
+          isOpen={showFinalExamIntro}
+          onClose={() => setShowFinalExamIntro(false)}
+          onStartExam={handleStartFinalExam}
+          finalExam={courseData.data.finalExam}
+          attempts={finalExamAttempts}
+        />
+      )}
 
       {/* Mobile Header */}
       {isMobile && (
-        <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-10 px-4 py-3">
+        <div className={`fixed left-0 right-0 bg-white border-b border-gray-200 z-40 px-4 py-3 ${upgradeInfo ? 'top-12' : 'top-0'}`}>
           <div className="flex items-center justify-between">
             <button
               onClick={() => setMobileSidebarOpen(true)}
@@ -985,11 +1244,56 @@ export default function CourseLearningPage() {
       {/* Main Content */}
       <div
         className={`transition-all duration-300 h-screen flex flex-col ${
-          isMobile ? 'ml-0 pt-16' : (sidebarCollapsed ? 'ml-16' : 'ml-80')
+          isMobile
+            ? `ml-0 ${upgradeInfo ? 'pt-28' : 'pt-16'}`
+            : `${sidebarCollapsed ? 'ml-16' : 'ml-80'} ${upgradeInfo ? 'pt-12' : ''}`
         }`}
         {...(isMobile ? swipeHandlers : {})}
       >
-        {isChapterLoading || !chapterData?.data ? (
+        {/* Final Exam Mode */}
+        {finalExamMode !== 'idle' && courseData.data.finalExam ? (
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            {/* Final Exam Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold">{courseData.data.finalExam.title}</h1>
+                  <p className="text-white/80 text-sm">საფინალო გამოცდა</p>
+                </div>
+              </div>
+              {finalExamMode === 'results' && (
+                <button
+                  onClick={handleCloseFinalExam}
+                  className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm"
+                >
+                  თავებზე დაბრუნება
+                </button>
+              )}
+            </div>
+
+            {/* Final Exam Content */}
+            <div className="flex-1 overflow-y-auto p-4 pb-20">
+              <div className="max-w-4xl mx-auto">
+                {finalExamMode === 'results' && finalExamAttemptId ? (
+                  <QuizResults
+                    attemptId={finalExamAttemptId}
+                    onRetry={handleFinalExamRetry}
+                  />
+                ) : (
+                  <QuizPlayer
+                    quizId={courseData.data.finalExam.id}
+                    onComplete={handleFinalExamComplete}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        ) : isChapterLoading || !chapterData?.data ? (
           <div className="flex items-center justify-center h-screen">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
@@ -1016,50 +1320,52 @@ export default function CourseLearningPage() {
           />
         )}
 
-        {/* Navigation Footer */}
-        <div
-          className={`fixed bottom-0 right-0 bg-white border-t border-gray-200 py-3 px-4 sm:py-4 sm:px-6 flex items-center justify-between ${
-            isMobile ? 'left-0' : ''
-          }`}
-          style={!isMobile ? { left: sidebarCollapsed ? '4rem' : '20rem' } : undefined}
-        >
-          <button
-            onClick={() => navigateChapter('prev')}
-            disabled={!hasPrevChapter}
-            className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
-              hasPrevChapter
-                ? 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
-                : 'text-gray-300 cursor-not-allowed'
+        {/* Navigation Footer - Hidden during final exam */}
+        {finalExamMode === 'idle' && (
+          <div
+            className={`fixed bottom-0 right-0 bg-white border-t border-gray-200 py-3 px-4 sm:py-4 sm:px-6 flex items-center justify-between ${
+              isMobile ? 'left-0' : ''
             }`}
+            style={!isMobile ? { left: sidebarCollapsed ? '4rem' : '20rem' } : undefined}
           >
-            <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="hidden sm:inline">წინა</span>
-          </button>
+            <button
+              onClick={() => navigateChapter('prev')}
+              disabled={!hasPrevChapter}
+              className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
+                hasPrevChapter
+                  ? 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+                  : 'text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="hidden sm:inline">წინა</span>
+            </button>
 
-          <span className="text-xs sm:text-sm text-gray-500 text-center">
-            <span className="hidden sm:inline">თავი </span>{currentChapterIndex + 1}<span className="hidden sm:inline"> / </span><span className="sm:hidden">/</span>{chapters.length}<span className="hidden sm:inline">-დან</span>
-          </span>
+            <span className="text-xs sm:text-sm text-gray-500 text-center">
+              <span className="hidden sm:inline">თავი </span>{currentChapterIndex + 1}<span className="hidden sm:inline"> / </span><span className="sm:hidden">/</span>{chapters.length}<span className="hidden sm:inline">-დან</span>
+            </span>
 
-          <button
-            onClick={() => navigateChapter('next')}
-            disabled={!hasNextChapter}
-            className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
-              hasNextChapter
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <span className="hidden sm:inline">შემდეგი</span>
-            <svg className="w-5 h-5 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+            <button
+              onClick={() => navigateChapter('next')}
+              disabled={!hasNextChapter}
+              className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
+                hasNextChapter
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <span className="hidden sm:inline">შემდეგი</span>
+              <svg className="w-5 h-5 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Swipe hint for mobile */}
-        {isMobile && (
+        {isMobile && finalExamMode === 'idle' && (
           <div className="fixed bottom-16 left-0 right-0 flex justify-center pointer-events-none">
             <div className="bg-gray-900 bg-opacity-70 text-white text-xs px-3 py-1.5 rounded-full opacity-0 animate-pulse">
               გადაფურცლეთ თავებს შორის გადასასვლელად

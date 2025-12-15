@@ -71,8 +71,8 @@ export const createVersion = async (req: Request, res: Response) => {
       title,
       description,
       changelog,
-      upgradePrice,
-      discountPercentage,
+      upgradePriceType,
+      upgradePriceValue,
       copyFromVersionId
     } = req.body;
 
@@ -100,8 +100,9 @@ export const createVersion = async (req: Request, res: Response) => {
       title,
       description,
       changelog,
-      upgradePrice,
-      discountPercentage,
+      upgradePriceType,
+      upgradePriceValue,
+      status: 'DRAFT',
       isActive: false
     };
 
@@ -173,8 +174,8 @@ export const updateVersion = async (req: Request, res: Response) => {
       title,
       description,
       changelog,
-      upgradePrice,
-      discountPercentage,
+      upgradePriceType,
+      upgradePriceValue,
       isActive,
       publishedAt
     } = req.body;
@@ -185,6 +186,16 @@ export const updateVersion = async (req: Request, res: Response) => {
 
     if (!existingVersion) {
       return res.status(404).json({ error: 'Version not found' });
+    }
+
+    // Block updates on PUBLISHED versions (except isActive changes)
+    if (existingVersion.status === 'PUBLISHED') {
+      // Only allow isActive changes on published versions
+      if (title || description || changelog !== undefined || upgradePriceType !== undefined || upgradePriceValue !== undefined) {
+        return res.status(400).json({
+          error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
+        });
+      }
     }
 
     // If activating this version, deactivate all other versions of the course
@@ -204,8 +215,8 @@ export const updateVersion = async (req: Request, res: Response) => {
         ...(title && { title }),
         ...(description && { description }),
         ...(changelog !== undefined && { changelog }),
-        ...(upgradePrice !== undefined && { upgradePrice }),
-        ...(discountPercentage !== undefined && { discountPercentage }),
+        ...(upgradePriceType !== undefined && { upgradePriceType }),
+        ...(upgradePriceValue !== undefined && { upgradePriceValue }),
         ...(isActive !== undefined && { isActive }),
         ...(publishedAt !== undefined && { publishedAt })
       },
@@ -228,11 +239,12 @@ export const updateVersion = async (req: Request, res: Response) => {
 export const deleteVersion = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const { force } = req.query; // force=true to bypass some checks
 
     const version = await prisma.courseVersion.findUnique({
       where: { id },
       include: {
-        _count: { select: { progress: true } }
+        _count: { select: { progress: true, purchases: true } }
       }
     });
 
@@ -240,26 +252,44 @@ export const deleteVersion = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Version not found' });
     }
 
+    // Cannot delete active version (students are using it)
     if (version.isActive) {
       return res.status(400).json({
-        error: 'Cannot delete active version. Please activate another version first.'
+        error: 'აქტიური ვერსიის წაშლა შეუძლებელია. ჯერ სხვა ვერსია გააქტიურეთ.'
       });
     }
 
+    // Cannot delete version with student progress (data loss)
     if (version._count.progress > 0) {
       return res.status(400).json({
-        error: 'Cannot delete version with student progress. Consider archiving instead.'
+        error: `ვერსიის წაშლა შეუძლებელია - ${version._count.progress} სტუდენტს აქვს პროგრესი.`
       });
     }
 
+    // Cannot delete version that users have purchased
+    if (version._count.purchases > 0) {
+      return res.status(400).json({
+        error: `ვერსიის წაშლა შეუძლებელია - ${version._count.purchases} მომხმარებელს აქვს შეძენილი.`
+      });
+    }
+
+    // Delete the version (cascade will handle chapters, contents, etc.)
     await prisma.courseVersion.delete({
       where: { id }
     });
 
-    res.json({ message: 'Version deleted successfully' });
+    res.json({
+      message: 'ვერსია წარმატებით წაიშალა',
+      deletedVersion: {
+        id: version.id,
+        version: version.version,
+        title: version.title,
+        status: version.status
+      }
+    });
   } catch (error) {
     console.error('Delete version error:', error);
-    res.status(500).json({ error: 'Failed to delete version' });
+    res.status(500).json({ error: 'ვერსიის წაშლა ვერ მოხერხდა' });
   }
 };
 
@@ -304,6 +334,161 @@ export const setActiveVersion = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Set active version error:', error);
     res.status(500).json({ error: 'Failed to activate version' });
+  }
+};
+
+// Publish a draft version (makes it active automatically)
+export const publishVersion = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const version = await prisma.courseVersion.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { chapters: true } }
+      }
+    });
+
+    if (!version) {
+      return res.status(404).json({ error: 'Version not found' });
+    }
+
+    if (version.status === 'PUBLISHED') {
+      return res.status(400).json({
+        error: 'ვერსია უკვე გამოქვეყნებულია.'
+      });
+    }
+
+    // Check if version has at least one chapter
+    if (version._count.chapters === 0) {
+      return res.status(400).json({
+        error: 'ვერსიას უნდა ჰქონდეს მინიმუმ ერთი თავი გამოქვეყნებამდე.'
+      });
+    }
+
+    // Deactivate all other versions of this course
+    await prisma.courseVersion.updateMany({
+      where: {
+        courseId: version.courseId,
+        id: { not: id }
+      },
+      data: { isActive: false }
+    });
+
+    // Publish and activate this version
+    const publishedVersion = await prisma.courseVersion.update({
+      where: { id },
+      data: {
+        status: 'PUBLISHED',
+        isActive: true,
+        publishedAt: new Date()
+      },
+      include: {
+        _count: { select: { chapters: true, progress: true } }
+      }
+    });
+
+    res.json({
+      message: 'ვერსია გამოქვეყნდა და აქტიურია',
+      version: publishedVersion
+    });
+  } catch (error) {
+    console.error('Publish version error:', error);
+    res.status(500).json({ error: 'Failed to publish version' });
+  }
+};
+
+// Create a draft copy of a published version
+export const createDraftCopy = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const sourceVersion = await prisma.courseVersion.findUnique({
+      where: { id },
+      include: {
+        chapters: {
+          orderBy: { order: 'asc' },
+          include: {
+            contents: { orderBy: { order: 'asc' } },
+            attachments: { orderBy: { order: 'asc' } }
+          }
+        }
+      }
+    });
+
+    if (!sourceVersion) {
+      return res.status(404).json({ error: 'Version not found' });
+    }
+
+    // Get the next version number
+    const lastVersion = await prisma.courseVersion.findFirst({
+      where: { courseId: sourceVersion.courseId },
+      orderBy: { version: 'desc' }
+    });
+
+    const newVersionNumber = lastVersion ? lastVersion.version + 1 : 1;
+
+    // Create new draft version with all chapters copied
+    const newVersion = await prisma.courseVersion.create({
+      data: {
+        courseId: sourceVersion.courseId,
+        version: newVersionNumber,
+        title: `${sourceVersion.title} (Draft)`,
+        description: sourceVersion.description,
+        changelog: '',
+        upgradePriceType: sourceVersion.upgradePriceType,
+        upgradePriceValue: sourceVersion.upgradePriceValue,
+        status: 'DRAFT',
+        isActive: false,
+        chapters: {
+          create: sourceVersion.chapters.map((chapter) => ({
+            title: chapter.title,
+            description: chapter.description,
+            order: chapter.order,
+            isFree: chapter.isFree,
+            videoUrl: chapter.videoUrl,
+            theory: chapter.theory,
+            assignmentFile: chapter.assignmentFile,
+            answerFile: chapter.answerFile,
+            contents: {
+              create: chapter.contents.map((content) => ({
+                type: content.type,
+                title: content.title,
+                content: content.content,
+                duration: content.duration,
+                fileSize: content.fileSize,
+                mimeType: content.mimeType,
+                order: content.order,
+                isFree: content.isFree
+              }))
+            },
+            attachments: {
+              create: chapter.attachments.map((att) => ({
+                title: att.title,
+                description: att.description,
+                fileName: att.fileName,
+                filePath: att.filePath,
+                fileSize: att.fileSize,
+                mimeType: att.mimeType,
+                type: att.type,
+                order: att.order
+              }))
+            }
+          }))
+        }
+      },
+      include: {
+        _count: { select: { chapters: true, progress: true } }
+      }
+    });
+
+    res.status(201).json({
+      message: 'Draft ასლი შეიქმნა',
+      version: newVersion
+    });
+  } catch (error) {
+    console.error('Create draft copy error:', error);
+    res.status(500).json({ error: 'Failed to create draft copy' });
   }
 };
 

@@ -5,6 +5,7 @@ import {
   checkPaymentStatus,
   enrollInCourse,
   checkEnrollment,
+  initiateUpgrade,
 } from '../controllers/purchaseController'
 import { requireAuth } from '../middleware/auth'
 
@@ -53,5 +54,13 @@ router.post('/enroll', enrollInCourse)
  * GET /api/purchase/check/:courseId
  */
 router.get('/check/:courseId', checkEnrollment)
+
+/**
+ * ვერსიის განახლება (Upgrade)
+ * POST /api/purchase/upgrade
+ * Body: { courseId: string, targetVersionId: string, promoCode?: string }
+ * Response: { redirectUrl: string, orderId: string, amount: number }
+ */
+router.post('/upgrade', initiateUpgrade)
 
 export default router

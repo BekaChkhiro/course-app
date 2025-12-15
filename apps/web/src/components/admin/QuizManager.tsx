@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Check, X, ChevronDown, ChevronUp, Edit2, Eye, EyeOff, Clock, Target, Shuffle, CheckCircle, Settings } from 'lucide-react';
+import { Plus, Trash2, Check, X, ChevronDown, ChevronUp, Edit2, Eye, EyeOff, Clock, Target, Shuffle, CheckCircle, Settings, ImagePlus, Loader2 } from 'lucide-react';
 import { quizApi, QuestionType, Quiz } from '@/lib/api/quizApi';
+import { uploadApi } from '@/lib/api/adminApi';
 import toast from 'react-hot-toast';
 
 interface QuizManagerProps {
@@ -54,6 +55,7 @@ export default function QuizManager({
           id: q.id,
           type: q.type,
           question: q.question,
+          questionImage: q.questionImage,
           points: q.points,
           answers: q.answers.map(a => ({
             id: a.id,
@@ -93,6 +95,7 @@ export default function QuizManager({
         await quizApi.addQuestion(createdQuiz.id, {
           type: q.type,
           question: q.question,
+          questionImage: q.questionImage,
           points: q.points,
           answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
             answer: a.text,
@@ -145,6 +148,7 @@ export default function QuizManager({
           await quizApi.updateQuestion(q.id, {
             type: q.type,
             question: q.question,
+            questionImage: q.questionImage,
             points: q.points,
             answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
               answer: a.text,
@@ -156,6 +160,7 @@ export default function QuizManager({
           await quizApi.addQuestion(existingQuiz.id, {
             type: q.type,
             question: q.question,
+            questionImage: q.questionImage,
             points: q.points,
             answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
               answer: a.text,
@@ -307,6 +312,13 @@ export default function QuizManager({
                   </span>
                   <div className="flex-1">
                     <p className="text-gray-800">{q.question}</p>
+                    {q.questionImage && (
+                      <img
+                        src={q.questionImage}
+                        alt="კითხვის სურათი"
+                        className="mt-2 max-w-xs max-h-32 rounded-lg border border-gray-200"
+                      />
+                    )}
                     <div className="mt-1.5 space-y-1">
                       {q.answers.map((a, ai) => (
                         <div
@@ -536,6 +548,7 @@ interface QuestionInput {
   id?: string;
   type: QuestionType;
   question: string;
+  questionImage?: string;
   points: number;
   answers: AnswerInput[];
 }
@@ -558,6 +571,47 @@ function QuestionCard({
   onUpdateAnswer: (answerIndex: number, updates: Partial<AnswerInput>) => void;
   onRemoveAnswer: (answerIndex: number) => void;
 }) {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('მხოლოდ სურათის ატვირთვა შეიძლება');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('სურათი არ უნდა აღემატებოდეს 5MB-ს');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await uploadApi.quizImage(file);
+      const imageUrl = response.data.file.url;
+      onUpdate({ questionImage: imageUrl });
+      toast.success('სურათი აიტვირთა');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('სურათის ატვირთვა ვერ მოხერხდა');
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    onUpdate({ questionImage: undefined });
+  };
+
   return (
     <div className="bg-white rounded-lg border p-3 space-y-3">
       {/* Question Header */}
@@ -582,8 +636,54 @@ function QuestionCard({
         </button>
       </div>
 
+      {/* Question Image */}
+      <div className="ml-8">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {question.questionImage ? (
+          <div className="relative inline-block">
+            <img
+              src={question.questionImage}
+              alt="კითხვის სურათი"
+              className="max-w-xs max-h-40 rounded-lg border border-gray-200"
+            />
+            <button
+              onClick={handleRemoveImage}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm"
+              title="სურათის წაშლა"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-purple-600 hover:bg-purple-50 border border-dashed border-gray-300 hover:border-purple-300 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                იტვირთება...
+              </>
+            ) : (
+              <>
+                <ImagePlus className="w-3.5 h-3.5" />
+                სურათის დამატება
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
       {/* Question Type */}
-      <div className="flex items-center gap-3 text-xs">
+      <div className="flex items-center gap-3 text-xs ml-8">
         <select
           value={question.type}
           onChange={(e) => onUpdate({ type: e.target.value as QuestionType })}
@@ -606,7 +706,7 @@ function QuestionCard({
       </div>
 
       {/* Answers */}
-      <div className="space-y-2">
+      <div className="space-y-2 ml-8">
         {question.answers.map((answer, aIndex) => (
           <div key={answer.id || aIndex} className="flex items-center gap-2">
             <button
@@ -639,7 +739,7 @@ function QuestionCard({
         ))}
         <button
           onClick={onAddAnswer}
-          className="text-xs text-blue-600 hover:text-blue-700 ml-7"
+          className="text-xs text-blue-600 hover:text-blue-700"
         >
           + პასუხის დამატება
         </button>

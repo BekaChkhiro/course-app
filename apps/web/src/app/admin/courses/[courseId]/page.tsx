@@ -1,25 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileText, GitBranch } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft, FileText, GitBranch, BookOpen, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { courseApi } from '@/lib/api/adminApi';
-import toast from 'react-hot-toast';
+import { courseApi, versionApi } from '@/lib/api/adminApi';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 import CourseVersionsTab from '@/components/admin/course-detail/CourseVersionsTab';
 import CourseInfoTab from '@/components/admin/course-detail/CourseInfoTab';
+import CourseChaptersTab from '@/components/admin/course-detail/CourseChaptersTab';
+import FinalExamTab from '@/components/admin/version-detail/FinalExamTab';
+import VersionSelector from '@/components/admin/course-detail/VersionSelector';
 
-type Tab = 'info' | 'versions';
+type Tab = 'info' | 'chapters' | 'versions' | 'finalExam';
 
 export default function CourseDetailPage() {
   const params = useParams();
   const courseId = params.courseId as string;
   const [activeTab, setActiveTab] = useState<Tab>('info');
-
-  const queryClient = useQueryClient();
+  const [selectedVersionId, setSelectedVersionId] = useState<string>('');
 
   const { data: courseData, isLoading } = useQuery({
     queryKey: ['course', courseId],
@@ -27,14 +28,33 @@ export default function CourseDetailPage() {
     enabled: !!courseId
   });
 
+  const { data: versionsData } = useQuery({
+    queryKey: ['versions', courseId],
+    queryFn: () => versionApi.getByCourse(courseId).then(res => res.data),
+    enabled: !!courseId
+  });
+
+  const versions = versionsData?.versions || [];
+
+  // Auto-select active version or first version
+  useEffect(() => {
+    if (versions.length > 0 && !selectedVersionId) {
+      const activeVersion = versions.find((v: any) => v.isActive);
+      setSelectedVersionId(activeVersion?.id || versions[0].id);
+    }
+  }, [versions, selectedVersionId]);
+
   if (isLoading) return <PageLoader />;
   if (!courseData) return <div>კურსი ვერ მოიძებნა</div>;
 
   const course = courseData.course;
+  const selectedVersion = versions.find((v: any) => v.id === selectedVersionId);
 
   const tabs = [
     { id: 'info' as Tab, label: 'ზოგადი ინფორმაცია', icon: FileText },
-    { id: 'versions' as Tab, label: 'ვერსიები', icon: GitBranch, count: course.versions?.length }
+    { id: 'chapters' as Tab, label: 'თავები', icon: BookOpen },
+    { id: 'finalExam' as Tab, label: 'საფინალო გამოცდა', icon: Trophy },
+    { id: 'versions' as Tab, label: 'ვერსიები', icon: GitBranch, count: versions.length }
   ];
 
   return (
@@ -89,8 +109,43 @@ export default function CourseDetailPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg border p-6">
+        <div className={activeTab === 'info' ? 'bg-gray-50 rounded-xl p-6' : 'bg-white rounded-lg border p-6'}>
           {activeTab === 'info' && <CourseInfoTab course={course} />}
+
+          {activeTab === 'chapters' && (
+            <div className="space-y-4">
+              <VersionSelector
+                courseId={courseId}
+                versions={versions}
+                selectedVersionId={selectedVersionId}
+                onVersionChange={setSelectedVersionId}
+              />
+              {selectedVersionId && (
+                <CourseChaptersTab
+                  courseId={courseId}
+                  selectedVersionId={selectedVersionId}
+                  versionStatus={selectedVersion?.status}
+                />
+              )}
+            </div>
+          )}
+
+          {activeTab === 'finalExam' && (
+            <div className="space-y-4">
+              <VersionSelector
+                courseId={courseId}
+                versions={versions}
+                selectedVersionId={selectedVersionId}
+                onVersionChange={setSelectedVersionId}
+              />
+              {selectedVersionId && (
+                <FinalExamTab
+                  courseId={courseId}
+                  versionId={selectedVersionId}
+                />
+              )}
+            </div>
+          )}
 
           {activeTab === 'versions' && (
             <CourseVersionsTab courseId={courseId} />

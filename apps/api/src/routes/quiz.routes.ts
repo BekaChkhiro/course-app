@@ -39,6 +39,9 @@ router.get('/attempts/:attemptId/results', quizController.getAttemptResults);
 // Get user's attempts for a quiz
 router.get('/:quizId/attempts', quizController.getUserAttempts);
 
+// Regenerate certificate for passed attempt
+router.post('/attempts/:attemptId/regenerate-certificate', quizController.regenerateCertificate);
+
 // Get quiz (students can view if they have access)
 router.get('/:quizId', quizController.getQuiz);
 

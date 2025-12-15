@@ -289,4 +289,10 @@ export const quizAttemptApi = {
     const response = await apiClient.get(`/quizzes/${quizId}/attempts`);
     return response.data;
   },
+
+  // Regenerate certificate for passed attempt
+  async regenerateCertificate(attemptId: string) {
+    const response = await apiClient.post(`/quizzes/attempts/${attemptId}/regenerate-certificate`);
+    return response.data;
+  },
 };

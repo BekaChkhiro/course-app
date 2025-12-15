@@ -79,6 +79,11 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
     return adminApi.post('/upload/media', formData);
+  },
+  quizImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return adminApi.post('/upload/quiz-image', formData);
   }
 };
 
@@ -166,6 +171,8 @@ export const versionApi = {
   update: (id: string, data: any) => adminApi.put(`/versions/${id}`, data),
   delete: (id: string) => adminApi.delete(`/versions/${id}`),
   activate: (id: string) => adminApi.post(`/versions/${id}/activate`),
+  publish: (id: string) => adminApi.post(`/versions/${id}/publish`),
+  createDraftCopy: (id: string) => adminApi.post(`/versions/${id}/draft-copy`),
   compare: (version1Id: string, version2Id: string) =>
     adminApi.get('/versions/compare', { params: { version1Id, version2Id } })
 };

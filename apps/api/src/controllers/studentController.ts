@@ -336,10 +336,16 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Get course with active version and chapters
+    // Get course basic info first
     const course = await prisma.course.findUnique({
       where: { slug: courseSlug },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        thumbnail: true,
+        price: true,
         category: true,
         author: {
           select: {
@@ -347,36 +353,6 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
             name: true,
             surname: true,
             avatar: true,
-          },
-        },
-        versions: {
-          where: { isActive: true },
-          include: {
-            chapters: {
-              orderBy: { order: 'asc' },
-              include: {
-                videos: true,
-                quiz: {
-                  select: {
-                    id: true,
-                    title: true,
-                    type: true,
-                    passingScore: true,
-                    timeLimit: true,
-                  },
-                },
-              },
-            },
-            finalExams: {
-              select: {
-                id: true,
-                title: true,
-                type: true,
-                passingScore: true,
-                timeLimit: true,
-                lockUntilChaptersComplete: true,
-              },
-            },
           },
         },
       },
@@ -406,20 +382,102 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    const activeVersion = course.versions[0];
-    if (!activeVersion) {
-      return res.status(404).json({
-        success: false,
-        message: 'No active version found for this course',
+    // Get the version the user purchased (or active version for legacy purchases)
+    let userVersion;
+    if (purchase.courseVersionId) {
+      // User has a specific version they purchased
+      userVersion = await prisma.courseVersion.findUnique({
+        where: { id: purchase.courseVersionId },
+        include: {
+          chapters: {
+            orderBy: { order: 'asc' },
+            include: {
+              videos: true,
+              quiz: {
+                select: {
+                  id: true,
+                  title: true,
+                  type: true,
+                  passingScore: true,
+                  timeLimit: true,
+                },
+              },
+            },
+          },
+          finalExams: {
+            select: {
+              id: true,
+              title: true,
+              type: true,
+              passingScore: true,
+              timeLimit: true,
+              lockUntilChaptersComplete: true,
+            },
+          },
+        },
+      });
+    } else {
+      // Legacy purchase - use active version
+      userVersion = await prisma.courseVersion.findFirst({
+        where: { courseId: course.id, isActive: true },
+        include: {
+          chapters: {
+            orderBy: { order: 'asc' },
+            include: {
+              videos: true,
+              quiz: {
+                select: {
+                  id: true,
+                  title: true,
+                  type: true,
+                  passingScore: true,
+                  timeLimit: true,
+                },
+              },
+            },
+          },
+          finalExams: {
+            select: {
+              id: true,
+              title: true,
+              type: true,
+              passingScore: true,
+              timeLimit: true,
+              lockUntilChaptersComplete: true,
+            },
+          },
+        },
       });
     }
+
+    if (!userVersion) {
+      return res.status(404).json({
+        success: false,
+        message: 'No version found for this course',
+      });
+    }
+
+    // Check if there's a newer version available for upgrade
+    const latestActiveVersion = await prisma.courseVersion.findFirst({
+      where: { courseId: course.id, isActive: true },
+      select: {
+        id: true,
+        version: true,
+        title: true,
+        changelog: true,
+        upgradePriceType: true,
+        upgradePriceValue: true,
+      },
+    });
+
+    const hasNewerVersion = latestActiveVersion && latestActiveVersion.id !== userVersion.id;
 
     // Get user progress for all chapters
     const progress = await prisma.progress.findMany({
       where: {
         userId,
         chapterId: {
-          in: activeVersion.chapters.map((c) => c.id),
+          in: userVersion.chapters.map((c) => c.id),
         },
       },
     });
@@ -427,7 +485,7 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
     const progressMap = new Map(progress.map((p) => [p.chapterId, p]));
 
     // Build chapters with progress
-    const chaptersWithProgress = activeVersion.chapters.map((chapter) => {
+    const chaptersWithProgress = userVersion.chapters.map((chapter) => {
       const chapterProgress = progressMap.get(chapter.id);
       return {
         id: chapter.id,
@@ -454,7 +512,7 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
     const overallProgress = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
 
     // Check if final exam is available
-    const finalExam = activeVersion.finalExams[0];
+    const finalExam = userVersion.finalExams[0];
     const isFinalExamUnlocked = finalExam?.lockUntilChaptersComplete
       ? completedChapters === totalChapters
       : true;
@@ -476,6 +534,27 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // Calculate upgrade price if there's a newer version
+    let upgradeInfo = null;
+    if (hasNewerVersion && latestActiveVersion) {
+      let upgradePrice = 0;
+      if (latestActiveVersion.upgradePriceType === 'FIXED') {
+        upgradePrice = Number(latestActiveVersion.upgradePriceValue) || 0;
+      } else if (latestActiveVersion.upgradePriceType === 'PERCENTAGE') {
+        const percentage = Number(latestActiveVersion.upgradePriceValue) || 0;
+        upgradePrice = (Number(course.price) * percentage) / 100;
+      }
+
+      upgradeInfo = {
+        availableVersionId: latestActiveVersion.id,
+        availableVersionNumber: latestActiveVersion.version,
+        availableVersionTitle: latestActiveVersion.title,
+        changelog: latestActiveVersion.changelog,
+        upgradePrice,
+        currentVersionNumber: userVersion.version,
+      };
+    }
+
     res.json({
       success: true,
       data: {
@@ -487,8 +566,10 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
           thumbnail: course.thumbnail,
           category: course.category,
           author: course.author,
+          price: Number(course.price),
         },
-        versionId: activeVersion.id,
+        versionId: userVersion.id,
+        versionNumber: userVersion.version,
         chapters: chaptersWithProgress,
         progress: {
           completedChapters,
@@ -502,6 +583,7 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
             }
           : null,
         certificate,
+        upgradeInfo, // ახალი ვერსიის ინფორმაცია თუ ხელმისაწვდომია
       },
     });
   } catch (error) {

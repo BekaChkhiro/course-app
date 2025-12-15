@@ -364,6 +364,15 @@ class R2Service {
   }
 
   /**
+   * Generate a key path for quiz images
+   */
+  generateQuizImageKey(filename: string): string {
+    const timestamp = Date.now();
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `quiz-images/${timestamp}_${sanitizedFilename}`;
+  }
+
+  /**
    * Extract R2 key from public URL
    */
   getKeyFromUrl(url: string): string | null {

@@ -24,6 +24,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
+  const [regeneratingCert, setRegeneratingCert] = useState(false);
 
   useEffect(() => {
     loadResults();
@@ -38,6 +39,23 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
       console.error('Failed to load results:', error);
       toast.error('შედეგების ჩატვირთვა ვერ მოხერხდა');
       setLoading(false);
+    }
+  };
+
+  const handleRegenerateCertificate = async () => {
+    try {
+      setRegeneratingCert(true);
+      const response = await quizAttemptApi.regenerateCertificate(attemptId);
+      if (response.data) {
+        // Reload results to get updated certificate
+        await loadResults();
+        toast.success('სერტიფიკატი წარმატებით შეიქმნა!');
+      }
+    } catch (error: any) {
+      console.error('Failed to regenerate certificate:', error);
+      toast.error(error.response?.data?.message || 'სერტიფიკატის გენერაცია ვერ მოხერხდა');
+    } finally {
+      setRegeneratingCert(false);
     }
   };
 
@@ -148,7 +166,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
       )}
 
       {/* Certificate */}
-      {attempt.certificate && (
+      {attempt.certificate ? (
         <div className="px-6 py-4 bg-indigo-50 border-b border-indigo-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -164,6 +182,27 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                 ჩამოტვირთვა
               </button>
             )}
+          </div>
+        </div>
+      ) : passed && (
+        <div className="px-6 py-4 bg-amber-50 border-b border-amber-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-amber-600" />
+              <span className="text-sm font-medium text-amber-900">სერტიფიკატი ჯერ არ შექმნილა</span>
+            </div>
+            <button
+              onClick={handleRegenerateCertificate}
+              disabled={regeneratingCert}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 disabled:opacity-50"
+            >
+              {regeneratingCert ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Award className="w-4 h-4" />
+              )}
+              {regeneratingCert ? 'იქმნება...' : 'სერტიფიკატის გენერაცია'}
+            </button>
           </div>
         </div>
       )}

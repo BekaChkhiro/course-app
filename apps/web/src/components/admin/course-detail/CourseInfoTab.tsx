@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save } from 'lucide-react';
+import { Save, BookOpen, DollarSign, Image, Search } from 'lucide-react';
 import { courseApi, categoryApi, uploadApi } from '@/lib/api/adminApi';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -12,6 +12,34 @@ import { slugify } from '@/lib/utils';
 
 interface CourseInfoTabProps {
   course: any;
+}
+
+interface SectionProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}
+
+function Section({ icon, title, description, children }: SectionProps) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+            {icon}
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{title}</h3>
+            <p className="text-sm text-gray-500">{description}</p>
+          </div>
+        </div>
+      </div>
+      <div className="p-6">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export default function CourseInfoTab({ course }: CourseInfoTabProps) {
@@ -54,112 +82,153 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
 
   const categories = categoriesData?.categories || [];
 
+  const statusOptions = [
+    { value: 'DRAFT', label: 'Draft', color: 'bg-gray-100 text-gray-700' },
+    { value: 'PUBLISHED', label: 'Published', color: 'bg-green-100 text-green-700' },
+    { value: 'ARCHIVED', label: 'Archived', color: 'bg-red-100 text-red-700' }
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Basic Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            სათაური *
-          </label>
-          <input
-            type="text"
-            value={formData.title}
-            onChange={(e) => {
-              const title = e.target.value;
-              setFormData({ ...formData, title, slug: slugify(title) });
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          />
+      {/* Basic Info Section */}
+      <Section
+        icon={<BookOpen className="w-5 h-5" />}
+        title="ძირითადი ინფორმაცია"
+        description="კურსის სათაური, slug და აღწერა"
+      >
+        <div className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                სათაური <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => {
+                  const title = e.target.value;
+                  setFormData({ ...formData, title, slug: slugify(title) });
+                }}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="მაგ: JavaScript საფუძვლები"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Slug <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">/courses/</span>
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  className="w-full pl-20 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              აღწერა
+            </label>
+            <RichTextEditor
+              content={formData.description}
+              onChange={(html) => setFormData({ ...formData, description: html })}
+            />
+          </div>
         </div>
+      </Section>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Slug *
-          </label>
-          <input
-            type="text"
-            value={formData.slug}
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          />
+      {/* Pricing & Category Section */}
+      <Section
+        icon={<DollarSign className="w-5 h-5" />}
+        title="ფასი და კატეგორია"
+        description="კურსის ფასი, კატეგორია და სტატუსი"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              ფასი <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                required
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₾</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              კატეგორია <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.categoryId}
+              onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              required
+            >
+              <option value="">აირჩიეთ...</option>
+              {categories
+                .filter((cat: any) => !cat.parent)
+                .map((parentCat: any) => {
+                  const children = categories.filter((c: any) => c.parent?.id === parentCat.id);
+                  return (
+                    <optgroup key={parentCat.id} label={parentCat.name}>
+                      <option value={parentCat.id}>{parentCat.name} (მთავარი)</option>
+                      {children.map((child: any) => (
+                        <option key={child.id} value={child.id}>
+                          └─ {child.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              სტატუსი <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              {statusOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, status: option.value })}
+                  className={`
+                    flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+                    ${formData.status === option.value
+                      ? `${option.color} ring-2 ring-offset-1 ring-blue-500`
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
+      </Section>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            ფასი (₾) *
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            კატეგორია *
-          </label>
-          <select
-            value={formData.categoryId}
-            onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          >
-            <option value="">აირჩიეთ...</option>
-            {/* Parent categories with children */}
-            {categories
-              .filter((cat: any) => !cat.parent)
-              .map((parentCat: any) => {
-                const children = categories.filter((c: any) => c.parent?.id === parentCat.id);
-                return (
-                  <optgroup key={parentCat.id} label={parentCat.name}>
-                    <option value={parentCat.id}>{parentCat.name} (მთავარი)</option>
-                    {children.map((child: any) => (
-                      <option key={child.id} value={child.id}>
-                        └─ {child.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                );
-              })}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            სტატუსი *
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="ARCHIVED">Archived</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          აღწერა
-        </label>
-        <RichTextEditor
-          content={formData.description}
-          onChange={(html) => setFormData({ ...formData, description: html })}
-        />
-      </div>
-
-      {/* Thumbnail */}
-      <div>
+      {/* Media Section */}
+      <Section
+        icon={<Image className="w-5 h-5" />}
+        title="მედია"
+        description="კურსის thumbnail სურათი"
+      >
         <FileUpload
           label="Thumbnail"
           accept="image/*"
@@ -168,46 +237,61 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
           onChange={(url) => setFormData({ ...formData, thumbnail: url })}
           preview={true}
         />
-      </div>
+      </Section>
 
-      {/* SEO Metadata */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO მეტადატა</h3>
-        <div className="space-y-4">
+      {/* SEO Section */}
+      <Section
+        icon={<Search className="w-5 h-5" />}
+        title="SEO მეტადატა"
+        description="საძიებო სისტემების ოპტიმიზაცია"
+      >
+        <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Meta Title
             </label>
             <input
               type="text"
               value={formData.metaTitle}
               onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              placeholder="კურსის სათაური საძიებო სისტემებისთვის"
               maxLength={60}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              {formData.metaTitle.length}/60 სიმბოლო
-            </p>
+            <div className="mt-1.5 flex items-center justify-between">
+              <p className="text-xs text-gray-500">
+                რეკომენდებულია 50-60 სიმბოლო
+              </p>
+              <span className={`text-xs font-medium ${formData.metaTitle.length > 60 ? 'text-red-500' : formData.metaTitle.length > 50 ? 'text-green-500' : 'text-gray-500'}`}>
+                {formData.metaTitle.length}/60
+              </span>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Meta Description
             </label>
             <textarea
               value={formData.metaDescription}
               onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              placeholder="მოკლე აღწერა საძიებო რეზულტატებში გამოსაჩენად"
               maxLength={160}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              {formData.metaDescription.length}/160 სიმბოლო
-            </p>
+            <div className="mt-1.5 flex items-center justify-between">
+              <p className="text-xs text-gray-500">
+                რეკომენდებულია 120-160 სიმბოლო
+              </p>
+              <span className={`text-xs font-medium ${formData.metaDescription.length > 160 ? 'text-red-500' : formData.metaDescription.length > 120 ? 'text-green-500' : 'text-gray-500'}`}>
+                {formData.metaDescription.length}/160
+              </span>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Meta Keywords
             </label>
             <input
@@ -215,22 +299,30 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
               value={formData.metaKeywords}
               onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
               placeholder="javascript, web development, react"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
+            <p className="mt-1.5 text-xs text-gray-500">
+              გამოყავით მძიმით
+            </p>
           </div>
         </div>
-      </div>
+      </Section>
 
-      {/* Submit Button */}
-      <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={updateMutation.isPending}
-          className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Save className="w-4 h-4" />
-          {updateMutation.isPending ? 'შენახვა...' : 'ცვლილებების შენახვა'}
-        </button>
+      {/* Sticky Submit Button */}
+      <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent pt-6 pb-2 -mx-6 px-6 -mb-6">
+        <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-sm text-gray-500">
+            ცვლილებები შეინახება ყველა ველისთვის ერთდროულად
+          </p>
+          <button
+            type="submit"
+            disabled={updateMutation.isPending}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium shadow-sm"
+          >
+            <Save className="w-4 h-4" />
+            {updateMutation.isPending ? 'შენახვა...' : 'ცვლილებების შენახვა'}
+          </button>
+        </div>
       </div>
     </form>
   );

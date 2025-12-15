@@ -5,6 +5,7 @@ import {
   getCourseProgress,
   markAsCompleted,
   resetProgress,
+  resetCourseProgress,
   getUserStats,
 } from '../controllers/progressController';
 import { requireAuth } from '../middleware/auth';
@@ -22,6 +23,7 @@ router.post('/chapters/:chapterId/reset', resetProgress);
 
 // Course progress routes
 router.get('/courses/:courseId', getCourseProgress);
+router.delete('/courses/:courseId/reset', resetCourseProgress);
 
 // User statistics
 router.get('/stats', getUserStats);

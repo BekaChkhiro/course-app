@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, CheckCircle, ArrowRight, BookOpen, Users, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, BookOpen, Users, Calendar, DollarSign, Globe, FileEdit, Copy, Rocket } from 'lucide-react';
 import Link from 'next/link';
 import { versionApi } from '@/lib/api/adminApi';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -15,14 +15,17 @@ interface CourseVersionsTabProps {
   courseId: string;
 }
 
+type UpgradePriceType = 'FIXED' | 'PERCENTAGE';
+
 type Version = {
   id: string;
   version: number;
   title: string;
   description: string;
   changelog: string | null;
-  upgradePrice: number | null;
-  discountPercentage: number | null;
+  upgradePriceType: UpgradePriceType | null;
+  upgradePriceValue: number | null;
+  status: 'DRAFT' | 'PUBLISHED';
   isActive: boolean;
   publishedAt: string | null;
   _count: { chapters: number; progress: number };
@@ -51,23 +54,58 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
     }
   });
 
-  const activateMutation = useMutation({
-    mutationFn: (id: string) => versionApi.activate(id),
+  const publishMutation = useMutation({
+    mutationFn: (id: string) => versionApi.publish(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['versions', courseId] });
-      toast.success('ვერსია აქტიურია');
+      toast.success('ვერსია გამოქვეყნდა და აქტიურია');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'შეცდომა');
+    }
+  });
+
+  const createDraftCopyMutation = useMutation({
+    mutationFn: (id: string) => versionApi.createDraftCopy(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['versions', courseId] });
+      toast.success('Draft ასლი შეიქმნა');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'შეცდომა');
     }
   });
 
   const versions = versionsData?.versions || [];
 
   const handleDelete = (version: Version) => {
-    if (version._count.progress > 0) {
-      toast.error('ვერ წაიშლება - სტუდენტებს აქვთ პროგრესი');
+    if (version.isActive) {
+      toast.error('აქტიური ვერსიის წაშლა შეუძლებელია. ჯერ სხვა ვერსია გააქტიურეთ.');
       return;
     }
-    if (confirm(`წავშალოთ "${version.title}" (v${version.version})?`)) {
+    if (version._count.progress > 0) {
+      toast.error(`ვერ წაიშლება - ${version._count.progress} სტუდენტს აქვს პროგრესი`);
+      return;
+    }
+    const statusText = version.status === 'PUBLISHED' ? ' (Published)' : ' (Draft)';
+    if (confirm(`წავშალოთ "${version.title}" (v${version.version})${statusText}?\n\nეს მოქმედება შეუქცევადია!`)) {
       deleteMutation.mutate(version.id);
+    }
+  };
+
+  const handlePublish = (version: Version) => {
+    if (version._count.chapters === 0) {
+      toast.error('ვერსიას უნდა ჰქონდეს მინიმუმ ერთი თავი გამოქვეყნებამდე');
+      return;
+    }
+    if (confirm(`გამოვაქვეყნოთ "${version.title}" (v${version.version})? \n\nეს ვერსია გახდება აქტიური და სტუდენტები დაინახავენ.`)) {
+      publishMutation.mutate(version.id);
+    }
+  };
+
+  const handleCreateDraftCopy = (version: Version) => {
+    if (confirm(`შევქმნათ Draft ასლი "${version.title}" (v${version.version}) ვერსიიდან?`)) {
+      createDraftCopyMutation.mutate(version.id);
     }
   };
 
@@ -85,6 +123,18 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
         </button>
       </div>
 
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-sm text-gray-600">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+          Draft - რედაქტირებადი
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+          Published - ჩაკეტილი
+        </span>
+      </div>
+
       {/* Versions List */}
       {isLoading ? (
         <div className="text-center py-8 text-gray-500">იტვირთება...</div>
@@ -100,11 +150,14 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
         </div>
       ) : (
         <div className="space-y-4">
-          {versions.map((version) => (
+          {versions.map((version: Version) => (
             <div key={version.id} className="relative group">
               <Link
                 href={`/admin/courses/${courseId}/versions/${version.id}`}
-                className="block p-6 border rounded-lg hover:shadow-md hover:border-blue-300 transition-all bg-white"
+                className={`
+                  block p-6 border rounded-lg hover:shadow-md transition-all bg-white
+                  ${version.status === 'DRAFT' ? 'border-l-4 border-l-yellow-400' : 'border-l-4 border-l-green-500'}
+                `}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -115,8 +168,26 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       <h3 className="text-lg font-semibold text-gray-900">
                         {version.title}
                       </h3>
+
+                      {/* Status Badge */}
+                      <span
+                        className={`
+                          inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full
+                          ${version.status === 'PUBLISHED'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                          }
+                        `}
+                      >
+                        {version.status === 'PUBLISHED' ? (
+                          <><Globe className="w-3 h-3" /> Published</>
+                        ) : (
+                          <><FileEdit className="w-3 h-3" /> Draft</>
+                        )}
+                      </span>
+
                       {version.isActive && (
-                        <Badge variant="success">აქტიური</Badge>
+                        <Badge variant="info">აქტიური</Badge>
                       )}
                     </div>
                     <p className="text-gray-600 mb-4">{version.description}</p>
@@ -136,10 +207,12 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                           {formatDate(version.publishedAt)}
                         </span>
                       )}
-                      {version.upgradePrice && (
+                      {version.upgradePriceType && version.upgradePriceValue && (
                         <span className="flex items-center gap-1">
                           <DollarSign className="w-4 h-4" />
-                          განახლება: {formatCurrency(version.upgradePrice)}
+                          განახლება: {version.upgradePriceType === 'FIXED'
+                            ? formatCurrency(version.upgradePriceValue)
+                            : `${version.upgradePriceValue}%`}
                         </span>
                       )}
                     </div>
@@ -152,18 +225,55 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
               </Link>
 
               {/* Action buttons - positioned absolutely to prevent link interference */}
-              <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleDelete(version);
-                  }}
-                  className="p-2 bg-white hover:bg-red-100 rounded border border-gray-200 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="წაშლა"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <div className="absolute top-6 right-14 flex items-center gap-2 z-10">
+                {/* Publish button for DRAFT versions */}
+                {version.status === 'DRAFT' && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handlePublish(version);
+                    }}
+                    disabled={publishMutation.isPending}
+                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    title="გამოქვეყნება"
+                  >
+                    <Rocket className="w-3.5 h-3.5" />
+                    Publish
+                  </button>
+                )}
+
+                {/* Create Draft Copy button for PUBLISHED versions */}
+                {version.status === 'PUBLISHED' && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCreateDraftCopy(version);
+                    }}
+                    disabled={createDraftCopyMutation.isPending}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    title="Draft ასლის შექმნა"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Draft ასლი
+                  </button>
+                )}
+
+                {/* Delete button - show for non-active versions */}
+                {!version.isActive && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDelete(version);
+                    }}
+                    className="p-2 bg-white hover:bg-red-100 rounded border border-gray-200 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="წაშლა"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -200,8 +310,8 @@ function VersionModal({
     title: '',
     description: '',
     changelog: '',
-    upgradePrice: '',
-    discountPercentage: ''
+    upgradePriceType: '' as '' | UpgradePriceType,
+    upgradePriceValue: ''
   });
 
   const [copyFromVersion, setCopyFromVersion] = useState(false);
@@ -224,8 +334,8 @@ function VersionModal({
         title: version.title,
         description: version.description,
         changelog: version.changelog || '',
-        upgradePrice: version.upgradePrice?.toString() || '',
-        discountPercentage: version.discountPercentage?.toString() || ''
+        upgradePriceType: version.upgradePriceType || '',
+        upgradePriceValue: version.upgradePriceValue?.toString() || ''
       });
       setCopyFromVersion(false);
       setSelectedVersionId('');
@@ -234,8 +344,8 @@ function VersionModal({
         title: '',
         description: '',
         changelog: '',
-        upgradePrice: '',
-        discountPercentage: ''
+        upgradePriceType: '',
+        upgradePriceValue: ''
       });
       setCopyFromVersion(false);
       setSelectedVersionId('');
@@ -283,10 +393,17 @@ function VersionModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={version ? 'ვერსიის რედაქტირება' : 'ახალი ვერსია'}
+      title={version ? 'ვერსიის რედაქტირება' : 'ახალი ვერსია (Draft)'}
       size="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Info banner for new versions */}
+        {!version && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+            ახალი ვერსია იქმნება Draft სტატუსით. გამოქვეყნებამდე შეგიძლიათ თავისუფლად დაარედაქტიროთ.
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             სათაური *
@@ -350,13 +467,13 @@ function VersionModal({
                   <option value="">აირჩიეთ ვერსია...</option>
                   {availableVersions.map((v: any) => (
                     <option key={v.id} value={v.id}>
-                      v{v.version} - {v.title} ({v._count.chapters} თავი)
+                      v{v.version} - {v.title} ({v._count.chapters} თავი) {v.status === 'PUBLISHED' ? '[Published]' : '[Draft]'}
                     </option>
                   ))}
                 </select>
                 {selectedVersionId && (
                   <p className="text-xs text-green-600 mt-2">
-                    ✓ {availableVersions.find((v: any) => v.id === selectedVersionId)?._count.chapters || 0} თავი დაკოპირდება
+                    {availableVersions.find((v: any) => v.id === selectedVersionId)?._count.chapters || 0} თავი დაკოპირდება
                   </p>
                 )}
               </div>
@@ -364,33 +481,60 @@ function VersionModal({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upgrade ფასი (₾)
+        {/* Upgrade Price Section - only show for v2+ */}
+        {(version ? version.version > 1 : availableVersions.length > 0) && (
+          <div className="border border-orange-200 bg-orange-50 rounded-lg p-4">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              განახლების ფასი (v2+ ვერსიებისთვის)
             </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.upgradePrice}
-              onChange={(e) => setFormData({ ...formData, upgradePrice: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+            <p className="text-xs text-gray-600 mb-3">
+              მიუთითეთ რამდენი უნდა გადაიხადონ წინა ვერსიის მფლობელებმა ამ ვერსიაზე გადასასვლელად
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ფასის ტიპი
+                </label>
+                <select
+                  value={formData.upgradePriceType}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    upgradePriceType: e.target.value as '' | UpgradePriceType
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">არ მითითებულა</option>
+                  <option value="FIXED">ფიქსირებული თანხა (GEL)</option>
+                  <option value="PERCENTAGE">კურსის ფასის პროცენტი (%)</option>
+                </select>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ფასდაკლება (%)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.discountPercentage}
-              onChange={(e) => setFormData({ ...formData, discountPercentage: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {formData.upgradePriceType === 'PERCENTAGE' ? 'პროცენტი (%)' : 'თანხა (GEL)'}
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={formData.upgradePriceType === 'PERCENTAGE' ? '100' : undefined}
+                  value={formData.upgradePriceValue}
+                  onChange={(e) => setFormData({ ...formData, upgradePriceValue: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={!formData.upgradePriceType}
+                  placeholder={formData.upgradePriceType === 'PERCENTAGE' ? 'მაგ: 30' : 'მაგ: 50.00'}
+                />
+              </div>
+            </div>
+            {formData.upgradePriceType && formData.upgradePriceValue && (
+              <p className="text-xs text-green-600 mt-2">
+                {formData.upgradePriceType === 'FIXED'
+                  ? `განახლების ფასი: ${formData.upgradePriceValue} GEL`
+                  : `განახლების ფასი: კურსის ფასის ${formData.upgradePriceValue}%`}
+              </p>
+            )}
           </div>
-        </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
