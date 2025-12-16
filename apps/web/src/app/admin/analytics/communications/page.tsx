@@ -21,12 +21,12 @@ function StatCard({
   color?: 'indigo' | 'green' | 'yellow' | 'red' | 'blue' | 'purple';
 }) {
   const colorClasses = {
-    indigo: 'bg-indigo-100 text-indigo-600',
+    indigo: 'bg-primary-100 text-primary-900',
     green: 'bg-green-100 text-green-600',
     yellow: 'bg-yellow-100 text-yellow-600',
     red: 'bg-red-100 text-red-600',
-    blue: 'bg-blue-100 text-blue-600',
-    purple: 'bg-purple-100 text-purple-600',
+    blue: 'bg-accent-100 text-accent-500',
+    purple: 'bg-accent-100 text-accent-500',
   };
 
   return (
@@ -73,7 +73,7 @@ function BarChart({
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className={`h-2 rounded-full ${item.color || 'bg-indigo-600'}`}
+                className={`h-2 rounded-full ${item.color || 'bg-primary-900'}`}
                 style={{ width: `${(item.value / maxValue) * 100}%` }}
               />
             </div>
@@ -147,7 +147,7 @@ export default function CommunicationsAnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-            <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+            <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
             <span>/</span>
             <span>Analytics</span>
             <span>/</span>
@@ -160,7 +160,7 @@ export default function CommunicationsAnalyticsPage() {
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
@@ -233,7 +233,7 @@ export default function CommunicationsAnalyticsPage() {
           {/* Messaging Stats */}
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               Messaging Overview
@@ -307,7 +307,7 @@ export default function CommunicationsAnalyticsPage() {
               data={[
                 { label: 'Urgent', value: messagingAnalytics.messagesByPriority?.URGENT || 0, color: 'bg-red-500' },
                 { label: 'High', value: messagingAnalytics.messagesByPriority?.HIGH || 0, color: 'bg-orange-500' },
-                { label: 'Medium', value: messagingAnalytics.messagesByPriority?.MEDIUM || 0, color: 'bg-blue-500' },
+                { label: 'Medium', value: messagingAnalytics.messagesByPriority?.MEDIUM || 0, color: 'bg-accent-500' },
                 { label: 'Low', value: messagingAnalytics.messagesByPriority?.LOW || 0, color: 'bg-gray-500' },
               ]}
             />
@@ -333,8 +333,8 @@ export default function CommunicationsAnalyticsPage() {
                       <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                              <span className="text-sm font-medium text-indigo-600">
+                            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                              <span className="text-sm font-medium text-primary-900">
                                 {member.name?.charAt(0) || '?'}
                               </span>
                             </div>
@@ -398,8 +398,8 @@ export default function CommunicationsAnalyticsPage() {
               href="/admin/messages"
               className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow flex items-center gap-4"
             >
-              <div className="p-3 bg-indigo-100 rounded-lg">
-                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-primary-100 rounded-lg">
+                <svg className="w-6 h-6 text-primary-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>

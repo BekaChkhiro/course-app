@@ -73,17 +73,17 @@ interface Message {
 }
 
 const statusColors: Record<MessageStatus, { bg: string; text: string; icon: any }> = {
-  NEW: { bg: 'bg-blue-100', text: 'text-blue-800', icon: MessageSquare },
+  NEW: { bg: 'bg-accent-100', text: 'text-accent-600', icon: MessageSquare },
   READ: { bg: 'bg-gray-100', text: 'text-gray-800', icon: MessageSquare },
   IN_PROGRESS: { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
-  ANSWERED: { bg: 'bg-indigo-100', text: 'text-indigo-800', icon: Send },
+  ANSWERED: { bg: 'bg-primary-100', text: 'text-primary-800', icon: Send },
   RESOLVED: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
   ARCHIVED: { bg: 'bg-gray-100', text: 'text-gray-600', icon: Archive },
 };
 
 const priorityColors: Record<MessagePriority, { bg: string; text: string }> = {
   LOW: { bg: 'bg-gray-100', text: 'text-gray-600' },
-  MEDIUM: { bg: 'bg-blue-100', text: 'text-blue-700' },
+  MEDIUM: { bg: 'bg-accent-100', text: 'text-accent-600' },
   HIGH: { bg: 'bg-orange-100', text: 'text-orange-700' },
   URGENT: { bg: 'bg-red-100', text: 'text-red-700' },
 };
@@ -239,9 +239,9 @@ export default function AdminMessagesPage() {
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">ახალი</span>
-              <AlertCircle className="w-4 h-4 text-blue-500" />
+              <AlertCircle className="w-4 h-4 text-accent-500" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-blue-600">{analytics.newMessages || 0}</p>
+            <p className="mt-1 text-2xl font-bold text-accent-500">{analytics.newMessages || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
@@ -312,7 +312,7 @@ export default function AdminMessagesPage() {
                     key={message.id}
                     onClick={() => setSelectedMessage(message.id)}
                     className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedMessage === message.id ? 'bg-indigo-50' : ''
+                      selectedMessage === message.id ? 'bg-primary-50' : ''
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -325,8 +325,8 @@ export default function AdminMessagesPage() {
                             className="w-10 h-10 rounded-full"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-indigo-600">
+                          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary-900">
                               {message.user.name.charAt(0)}
                               {message.user.surname.charAt(0)}
                             </span>
@@ -481,8 +481,8 @@ export default function AdminMessagesPage() {
                           className="w-8 h-8 rounded-full"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <span className="text-xs font-medium text-indigo-600">
+                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                          <span className="text-xs font-medium text-primary-900">
                             {currentMessage.user.name.charAt(0)}
                             {currentMessage.user.surname.charAt(0)}
                           </span>
@@ -507,7 +507,7 @@ export default function AdminMessagesPage() {
                             href={currentMessage.attachmentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-2 inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700"
+                            className="mt-2 inline-flex items-center gap-1 text-sm text-primary-900 hover:text-primary-800"
                           >
                             <Paperclip className="w-4 h-4" />
                             მიმაგრებული ფაილი
@@ -533,13 +533,13 @@ export default function AdminMessagesPage() {
                         ) : (
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              reply.user.role === 'ADMIN' ? 'bg-indigo-100' : 'bg-gray-100'
+                              reply.user.role === 'ADMIN' ? 'bg-primary-100' : 'bg-gray-100'
                             }`}
                           >
                             <span
                               className={`text-xs font-medium ${
                                 reply.user.role === 'ADMIN'
-                                  ? 'text-indigo-600'
+                                  ? 'text-primary-900'
                                   : 'text-gray-600'
                               }`}
                             >
@@ -555,7 +555,7 @@ export default function AdminMessagesPage() {
                             {reply.user.name} {reply.user.surname}
                           </span>
                           {reply.user.role === 'ADMIN' && (
-                            <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded">
+                            <span className="px-1.5 py-0.5 bg-primary-100 text-primary-800 text-xs rounded">
                               ადმინი
                             </span>
                           )}
@@ -573,7 +573,7 @@ export default function AdminMessagesPage() {
                             reply.isInternal
                               ? 'bg-yellow-50 border border-yellow-200'
                               : reply.user.role === 'ADMIN'
-                              ? 'bg-indigo-50'
+                              ? 'bg-primary-50'
                               : 'bg-gray-100'
                           }`}
                         >
@@ -599,7 +599,7 @@ export default function AdminMessagesPage() {
                       </label>
                       <button
                         onClick={() => setShowCannedResponses(!showCannedResponses)}
-                        className="ml-auto text-sm text-indigo-600 hover:text-indigo-700"
+                        className="ml-auto text-sm text-primary-900 hover:text-primary-800"
                       >
                         შაბლონის ჩასმა
                       </button>
@@ -611,7 +611,7 @@ export default function AdminMessagesPage() {
                           <button
                             key={response.id}
                             onClick={() => insertCannedResponse(response.content)}
-                            className="w-full text-left px-2 py-1 text-sm hover:bg-indigo-50 rounded"
+                            className="w-full text-left px-2 py-1 text-sm hover:bg-primary-50 rounded"
                           >
                             {response.title}
                           </button>
@@ -627,7 +627,7 @@ export default function AdminMessagesPage() {
                           ? 'დაწერეთ შიდა ჩანაწერი...'
                           : 'დაწერეთ პასუხი...'
                       }
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
                         isInternalNote ? 'border-yellow-300 bg-yellow-50' : 'border-gray-300'
                       }`}
                       rows={3}
@@ -636,7 +636,7 @@ export default function AdminMessagesPage() {
                       <button
                         onClick={handleSendReply}
                         disabled={!replyContent.trim() || replyMutation.isPending}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
                       >
                         <Send className="w-4 h-4" />
                         {isInternalNote ? 'ჩანაწერის დამატება' : 'პასუხის გაგზავნა'}

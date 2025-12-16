@@ -210,7 +210,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     className={cn(
                       'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-indigo-50 text-indigo-600'
+                        ? 'bg-primary-50 text-primary-900'
                         : 'text-gray-700 hover:bg-gray-100'
                     )}
                   >
@@ -240,7 +240,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             className={cn(
                               'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
                               childIsActive
-                                ? 'bg-indigo-50 text-indigo-600 font-medium'
+                                ? 'bg-primary-50 text-primary-900 font-medium'
                                 : 'text-gray-600 hover:bg-gray-100'
                             )}
                           >
@@ -263,7 +263,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-indigo-50 text-indigo-600'
+                    ? 'bg-primary-50 text-primary-900'
                     : 'text-gray-700 hover:bg-gray-100'
                 )}
               >
@@ -285,8 +285,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   alt={user.name}
                 />
               ) : (
-                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <span className="text-indigo-600 font-medium text-sm">
+                <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                  <span className="text-primary-900 font-medium text-sm">
                     {user?.name?.charAt(0)}{user?.surname?.charAt(0)}
                   </span>
                 </div>

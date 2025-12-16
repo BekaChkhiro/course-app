@@ -30,7 +30,7 @@ export default function TheorySection({
     { name: 'green', class: 'bg-green-200' },
     { name: 'blue', class: 'bg-blue-200' },
     { name: 'pink', class: 'bg-pink-200' },
-    { name: 'purple', class: 'bg-purple-200' },
+    { name: 'purple', class: 'bg-accent-200' },
   ];
 
   // Save note mutation
@@ -142,7 +142,7 @@ export default function TheorySection({
               onClick={() => setShowNotesPanel(!showNotesPanel)}
               className={`inline-flex items-center px-3 py-1.5 rounded-lg transition-colors text-sm ${
                 showNotesPanel
-                  ? 'bg-indigo-100 text-indigo-700'
+                  ? 'bg-primary-100 text-primary-800'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -182,7 +182,7 @@ export default function TheorySection({
               <textarea
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 rows={4}
                 placeholder="Write your note here..."
                 autoFocus
@@ -218,7 +218,7 @@ export default function TheorySection({
               <button
                 onClick={handleSaveNote}
                 disabled={!noteContent.trim() || saveNoteMutation.isPending}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {saveNoteMutation.isPending ? 'Saving...' : 'Save Note'}
               </button>
@@ -229,7 +229,7 @@ export default function TheorySection({
         {/* Theory Content */}
         <div
           ref={contentRef}
-          className="prose prose-indigo max-w-none prose-headings:font-semibold prose-p:text-gray-600 prose-a:text-indigo-600 prose-img:rounded-lg prose-pre:bg-gray-900"
+          className="prose prose-indigo max-w-none prose-headings:font-semibold prose-p:text-gray-600 prose-a:text-primary-900 prose-img:rounded-lg prose-pre:bg-gray-900"
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </div>
@@ -281,7 +281,7 @@ export default function TheorySection({
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEditNote(note)}
-                          className="text-xs text-indigo-600 hover:text-indigo-700"
+                          className="text-xs text-primary-900 hover:text-primary-800"
                         >
                           Edit
                         </button>

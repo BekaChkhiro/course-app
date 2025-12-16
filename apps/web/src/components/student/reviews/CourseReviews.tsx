@@ -159,7 +159,7 @@ function ReviewCard({
       {review.comment?.length > 200 && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-indigo-600 text-sm mt-1 hover:underline"
+          className="text-primary-900 text-sm mt-1 hover:underline"
         >
           {expanded ? 'Show less' : 'Read more'}
         </button>
@@ -340,7 +340,7 @@ export default function CourseReviews({ courseId, courseName }: CourseReviewsPro
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-48 bg-gray-200 rounded-full h-2">
                       <div
-                        className="h-2 bg-indigo-600 rounded-full"
+                        className="h-2 bg-primary-900 rounded-full"
                         style={{ width: `${Math.min(canReview.completionPercentage, 100)}%` }}
                       />
                     </div>
@@ -367,7 +367,7 @@ export default function CourseReviews({ courseId, courseName }: CourseReviewsPro
               </p>
               <button
                 onClick={() => setShowReviewForm(true)}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-6 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
               >
                 Write a Review
               </button>
@@ -386,7 +386,7 @@ export default function CourseReviews({ courseId, courseName }: CourseReviewsPro
             <select
               value={filterRating || ''}
               onChange={(e) => setFilterRating(e.target.value ? Number(e.target.value) : undefined)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="">All Ratings</option>
               <option value="5">5 Stars</option>
@@ -398,7 +398,7 @@ export default function CourseReviews({ courseId, courseName }: CourseReviewsPro
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="newest">Most Recent</option>
               <option value="oldest">Oldest First</option>

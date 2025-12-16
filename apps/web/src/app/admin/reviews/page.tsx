@@ -253,7 +253,7 @@ export default function AdminReviewsPage() {
             <p className="mt-2 text-2xl font-bold text-gray-900">{analytics.approved || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex items-center gap-2 text-indigo-500">
+            <div className="flex items-center gap-2 text-primary-500">
               <TrendingUp className="w-5 h-5" />
               <span className="text-sm text-gray-500">საშუალო რეიტინგი</span>
             </div>
@@ -275,7 +275,7 @@ export default function AdminReviewsPage() {
                   setStatusFilter(e.target.value as ReviewStatus | '');
                   setPage(1);
                 }}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">ყველა სტატუსი</option>
                 <option value="PENDING">მოლოდინში</option>
@@ -292,7 +292,7 @@ export default function AdminReviewsPage() {
                 setCourseFilter(e.target.value);
                 setPage(1);
               }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500"
             >
               <option value="">ყველა კურსი</option>
               {courses.map((course: any) => (
@@ -306,7 +306,7 @@ export default function AdminReviewsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500"
             >
               <option value="newest">ახალი პირველი</option>
               <option value="oldest">ძველი პირველი</option>
@@ -357,7 +357,7 @@ export default function AdminReviewsPage() {
                 type="checkbox"
                 checked={selectedReviews.length === reviews.length && reviews.length > 0}
                 onChange={handleSelectAll}
-                className="w-4 h-4 text-indigo-600 rounded"
+                className="w-4 h-4 text-primary-900 rounded"
               />
               <span className="text-sm font-medium text-gray-700">
                 {reviews.length} შეფასება
@@ -375,7 +375,7 @@ export default function AdminReviewsPage() {
                     type="checkbox"
                     checked={selectedReviews.includes(review.id)}
                     onChange={() => handleSelectReview(review.id)}
-                    className="mt-1 w-4 h-4 text-indigo-600 rounded"
+                    className="mt-1 w-4 h-4 text-primary-900 rounded"
                   />
 
                   {/* Avatar */}
@@ -387,8 +387,8 @@ export default function AdminReviewsPage() {
                         className="w-10 h-10 rounded-full"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                        <span className="text-sm font-medium text-indigo-600">
+                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                        <span className="text-sm font-medium text-primary-900">
                           {review.isAnonymous
                             ? '?'
                             : `${review.user.name.charAt(0)}${review.user.surname.charAt(0)}`}
@@ -467,7 +467,7 @@ export default function AdminReviewsPage() {
 
                     {/* Admin Response */}
                     {review.response && (
-                      <div className="mt-4 bg-gray-50 rounded-lg p-4 border-l-4 border-indigo-500">
+                      <div className="mt-4 bg-gray-50 rounded-lg p-4 border-l-4 border-primary-500">
                         <p className="text-sm font-medium text-gray-700">
                           პასუხი {review.response.admin.name}-სგან:
                         </p>
@@ -511,7 +511,7 @@ export default function AdminReviewsPage() {
                       {!review.response && review.status === 'APPROVED' && (
                         <button
                           onClick={() => setResponseModal({ open: true, review })}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm hover:bg-indigo-200"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-100 text-primary-800 rounded-lg text-sm hover:bg-primary-100"
                         >
                           <MessageSquare className="w-4 h-4" />
                           პასუხის დამატება
@@ -571,7 +571,7 @@ export default function AdminReviewsPage() {
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="შეიყვანეთ უარყოფის მიზეზი..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 rows={3}
               />
               <div className="mt-4 flex justify-end gap-2">
@@ -615,7 +615,7 @@ export default function AdminReviewsPage() {
                 value={responseContent}
                 onChange={(e) => setResponseContent(e.target.value)}
                 placeholder="დაწერეთ თქვენი პასუხი..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 rows={4}
               />
               <div className="mt-4 flex justify-end gap-2">
@@ -635,7 +635,7 @@ export default function AdminReviewsPage() {
                     }
                   }}
                   disabled={!responseContent || addResponseMutation.isPending}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
                 >
                   გაგზავნა
                 </button>

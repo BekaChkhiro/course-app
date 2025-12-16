@@ -8,7 +8,7 @@ import { publicApi } from '@/lib/api/publicApi';
 // Hero Section
 const HeroSection = () => {
   return (
-    <section className="relative bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 overflow-hidden">
+    <section className="relative bg-primary-900 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
@@ -20,15 +20,15 @@ const HeroSection = () => {
         <div className="text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight">
             <span className="block">შეისწავლე ახალი უნარები</span>
-            <span className="block text-indigo-300 mt-2">განავითარე კარიერა</span>
+            <span className="block text-primary-300 mt-2">განავითარე კარიერა</span>
           </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-indigo-100">
+          <p className="mt-6 max-w-2xl mx-auto text-xl text-primary-100">
             პროფესიონალური ონლაინ კურსები საუკეთესო ინსტრუქტორებისგან. დაიწყე სწავლა დღესვე და გახდი ექსპერტი შენს სფეროში.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/courses"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-indigo-900 bg-white rounded-xl hover:bg-indigo-50 transition-all shadow-lg hover:shadow-xl"
+              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-primary-900 bg-white rounded-xl hover:bg-primary-50 transition-all shadow-lg hover:shadow-xl"
             >
               კურსების ნახვა
               <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -37,7 +37,7 @@ const HeroSection = () => {
             </Link>
             <Link
               href="/auth/register"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-500 transition-all border-2 border-indigo-400"
+              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white bg-accent-500 rounded-xl hover:bg-accent-600 transition-all border-2 border-primary-400"
             >
               უფასო რეგისტრაცია
             </Link>
@@ -54,7 +54,7 @@ const HeroSection = () => {
           ].map((stat, index) => (
             <div key={index} className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-white">{stat.value}</div>
-              <div className="mt-1 text-indigo-200">{stat.label}</div>
+              <div className="mt-1 text-primary-100">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -138,7 +138,7 @@ const FeaturesSection = () => {
               key={index}
               className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-900">
                 {feature.icon}
               </div>
               <h3 className="mt-4 text-xl font-semibold text-gray-900">{feature.title}</h3>
@@ -168,7 +168,7 @@ const PopularCoursesSection = () => {
           </div>
           <Link
             href="/courses"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium"
+            className="inline-flex items-center text-primary-900 hover:text-primary-800 font-medium"
           >
             ყველას ნახვა
             <svg className="ml-1 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,7 +213,7 @@ const CourseCard = ({ course }: { course: any }) => {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <div className="w-full h-full bg-primary-900 flex items-center justify-center">
               <svg className="w-16 h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
@@ -226,7 +226,7 @@ const CourseCard = ({ course }: { course: any }) => {
           )}
         </div>
         <div className="p-5">
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2">
             {course.title}
           </h3>
           <p className="mt-2 text-sm text-gray-600 line-clamp-2">{course.shortDescription}</p>
@@ -240,7 +240,7 @@ const CourseCard = ({ course }: { course: any }) => {
               </span>
               <span className="text-sm text-gray-500">({course.reviewCount || 0})</span>
             </div>
-            <div className="text-lg font-bold text-indigo-600">
+            <div className="text-lg font-bold text-primary-900">
               {course.price === 0 ? 'უფასო' : `${course.price} ₾`}
             </div>
           </div>
@@ -279,7 +279,7 @@ const CategoriesSection = () => {
                 href={`/courses?category=${category.slug}`}
                 className="group bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
               >
-                <div className="w-14 h-14 mx-auto bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="w-14 h-14 mx-auto bg-primary-100 rounded-xl flex items-center justify-center text-primary-900 group-hover:bg-accent-500 group-hover:text-white transition-colors">
                   <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
@@ -300,17 +300,17 @@ const CTASection = () => {
   return (
     <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-8 sm:p-12 text-center">
+        <div className="bg-primary-900 rounded-3xl p-8 sm:p-12 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white">
             მზად ხარ სწავლის დასაწყებად?
           </h2>
-          <p className="mt-4 text-lg text-indigo-100 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-primary-100 max-w-2xl mx-auto">
             შეუერთდი ათასობით სტუდენტს, რომლებმაც უკვე შეცვალეს თავიანთი კარიერა ჩვენი კურსების დახმარებით.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/auth/register"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-indigo-600 bg-white rounded-xl hover:bg-indigo-50 transition-all"
+              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-primary-900 bg-white rounded-xl hover:bg-primary-50 transition-all"
             >
               დაიწყე უფასოდ
             </Link>

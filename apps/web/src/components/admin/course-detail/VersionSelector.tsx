@@ -46,7 +46,7 @@ export default function VersionSelector({
         <select
           value={selectedVersionId}
           onChange={(e) => onVersionChange(e.target.value)}
-          className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+          className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-accent-500 focus:border-accent-500 cursor-pointer"
         >
           {versions.map((version) => (
             <option key={version.id} value={version.id}>
@@ -87,7 +87,7 @@ export default function VersionSelector({
 
           {/* Active badge */}
           {selectedVersion.isActive && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-accent-100 text-accent-600">
               <Star className="w-3 h-3" />
               აქტიური
             </span>

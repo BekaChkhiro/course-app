@@ -118,9 +118,9 @@ export default function RevenueAnalyticsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Revenue</span>
             </div>
@@ -164,13 +164,13 @@ export default function RevenueAnalyticsPage() {
             </select>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -301,7 +301,7 @@ export default function RevenueAnalyticsPage() {
                       {revenue.promoCodePerformance.map((promo: any) => (
                         <tr key={promo.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4">
-                            <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded font-mono text-sm">
+                            <span className="px-2 py-1 bg-primary-100 text-primary-800 rounded font-mono text-sm">
                               {promo.code}
                             </span>
                           </td>
@@ -358,7 +358,7 @@ export default function RevenueAnalyticsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500">Average LTV</span>
-                    <span className="text-xl font-bold text-indigo-600">
+                    <span className="text-xl font-bold text-primary-900">
                       {formatCurrency(parseFloat(clv?.avgLifetimeValue) || 0)}
                     </span>
                   </div>

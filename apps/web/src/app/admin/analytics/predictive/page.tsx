@@ -100,9 +100,9 @@ export default function PredictiveAnalyticsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Predictive</span>
             </div>
@@ -116,7 +116,7 @@ export default function PredictiveAnalyticsPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold text-gray-900">Predictive Analytics</h1>
-                  <span className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                  <span className="flex items-center gap-1 px-3 py-1 bg-accent-100 text-accent-600 rounded-full text-sm font-medium">
                     <Sparkles className="w-4 h-4" />
                     AI-Powered
                   </span>
@@ -137,7 +137,7 @@ export default function PredictiveAnalyticsPage() {
             </select>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
             >
               <RefreshCw className={`w-5 h-5 ${isLoadingAll ? 'animate-spin' : ''}`} />
             </button>
@@ -204,11 +204,11 @@ export default function PredictiveAnalyticsPage() {
               </div>
               <div className="flex items-center gap-6 mt-4 justify-center">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-indigo-500" />
+                  <div className="w-3 h-3 rounded-full bg-primary-500" />
                   <span className="text-sm text-gray-600">Actual Revenue</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-indigo-300 border-2 border-dashed border-indigo-500" />
+                  <div className="w-3 h-3 rounded-full bg-primary-300 border-2 border-dashed border-primary-500" />
                   <span className="text-sm text-gray-600">Predicted Revenue</span>
                 </div>
               </div>
@@ -300,12 +300,12 @@ export default function PredictiveAnalyticsPage() {
                   height={300}
                   horizontal
                 />
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <div className="mt-4 p-4 bg-accent-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">Recommendation</span>
+                    <Zap className="w-4 h-4 text-accent-500" />
+                    <span className="text-sm font-medium text-accent-600">Recommendation</span>
                   </div>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-accent-500">
                     Consider creating more courses in <strong>Web Development</strong> and{' '}
                     <strong>Data Science</strong> categories to meet growing demand.
                   </p>
@@ -369,41 +369,41 @@ export default function PredictiveAnalyticsPage() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <div className="p-4 bg-accent-50 rounded-xl border border-accent-200">
                   <div className="flex items-center gap-2 mb-3">
-                    <Brain className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-semibold text-blue-700">Content Insight</span>
+                    <Brain className="w-5 h-5 text-accent-500" />
+                    <span className="text-sm font-semibold text-accent-600">Content Insight</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">
                     Quiz completion correlates strongly with course completion (r=0.82).
                   </p>
-                  <p className="text-xs text-blue-600 font-medium">
+                  <p className="text-xs text-accent-500 font-medium">
                     Consider: Add more interactive quizzes
                   </p>
                 </div>
 
-                <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="p-4 bg-accent-50 rounded-xl border border-accent-200">
                   <div className="flex items-center gap-2 mb-3">
-                    <Clock className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm font-semibold text-purple-700">Timing Insight</span>
+                    <Clock className="w-5 h-5 text-accent-500" />
+                    <span className="text-sm font-semibold text-accent-600">Timing Insight</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">
                     Peak learning hours are 7-9 PM local time, with 40% higher engagement.
                   </p>
-                  <p className="text-xs text-purple-600 font-medium">
+                  <p className="text-xs text-accent-500 font-medium">
                     Consider: Schedule live sessions during peak hours
                   </p>
                 </div>
 
-                <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
                   <div className="flex items-center gap-2 mb-3">
-                    <DollarSign className="w-5 h-5 text-indigo-600" />
-                    <span className="text-sm font-semibold text-indigo-700">Revenue Insight</span>
+                    <DollarSign className="w-5 h-5 text-primary-900" />
+                    <span className="text-sm font-semibold text-primary-800">Revenue Insight</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">
                     Bundle purchases have 2.3x higher LTV than single course purchases.
                   </p>
-                  <p className="text-xs text-indigo-600 font-medium">
+                  <p className="text-xs text-primary-900 font-medium">
                     Consider: Create more course bundles
                   </p>
                 </div>
@@ -424,10 +424,10 @@ export default function PredictiveAnalyticsPage() {
             </ChartContainer>
 
             {/* Model Information */}
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100">
+            <div className="bg-primary-50 rounded-xl p-6 border border-accent-100">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-accent-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">About Predictive Models</h3>
@@ -437,15 +437,15 @@ export default function PredictiveAnalyticsPage() {
                   </p>
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-purple-500" />
+                      <BarChart3 className="w-4 h-4 text-accent-500" />
                       <span className="text-gray-600">Last updated: {new Date().toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-purple-500" />
+                      <Target className="w-4 h-4 text-accent-500" />
                       <span className="text-gray-600">Training data: 12 months</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-purple-500" />
+                      <Zap className="w-4 h-4 text-accent-500" />
                       <span className="text-gray-600">Model version: 2.1</span>
                     </div>
                   </div>

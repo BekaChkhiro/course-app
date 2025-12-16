@@ -213,16 +213,16 @@ export default function ChapterEditPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-white text-blue-600 shadow-sm'
+                        ? 'bg-white text-accent-500 shadow-sm'
                         : 'text-gray-600 hover:bg-white hover:text-gray-900'
                     }`}
                   >
-                    <span className={isActive ? 'text-blue-600' : 'text-gray-400'}>
+                    <span className={isActive ? 'text-accent-500' : 'text-gray-400'}>
                       {tab.icon}
                     </span>
                     <span className="flex-1 text-left">{tab.label}</span>
                     {isComplete && (
-                      <Check className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-green-500'}`} />
+                      <Check className={`w-4 h-4 ${isActive ? 'text-accent-500' : 'text-green-500'}`} />
                     )}
                   </button>
                 );
@@ -234,7 +234,7 @@ export default function ChapterEditPage() {
               <button
                 onClick={handleSubmit}
                 disabled={updateMutation.isPending}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 text-sm font-medium"
               >
                 <Save className="w-4 h-4" />
                 {updateMutation.isPending ? 'შენახვა...' : 'შენახვა'}
@@ -260,7 +260,7 @@ export default function ChapterEditPage() {
                             type="text"
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             placeholder="მაგ: შესავალი პროგრამირებაში"
                             required
                           />
@@ -274,7 +274,7 @@ export default function ChapterEditPage() {
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows={4}
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             placeholder="მოკლე აღწერა თავის შესახებ..."
                           />
                         </div>
@@ -285,7 +285,7 @@ export default function ChapterEditPage() {
                             id="isFree"
                             checked={formData.isFree}
                             onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-accent-500 rounded focus:ring-accent-500"
                           />
                           <div>
                             <label htmlFor="isFree" className="text-sm font-medium text-gray-900">

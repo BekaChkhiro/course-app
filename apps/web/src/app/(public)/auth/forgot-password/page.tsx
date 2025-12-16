@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
             <div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
               თუ ანგარიში არსებობს <strong>{email}</strong> მისამართზე, მალე მიიღებ პაროლის აღდგენის ბმულს.
             </p>
             <Link href="/auth/login">
-              <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25">
+              <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 transition-all duration-200 shadow-lg shadow-accent-500/25">
                 შესვლის გვერდზე დაბრუნება
                 <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   placeholder="example@email.com"
                 />
               </div>
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-indigo-500/25"
+              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-accent-500/25"
             >
               {isLoading ? (
                 <>
@@ -141,7 +141,7 @@ export default function ForgotPasswordPage() {
             <div className="text-center">
               <Link
                 href="/auth/login"
-                className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                className="inline-flex items-center text-sm font-medium text-primary-900 hover:text-primary-500 transition-colors"
               >
                 <svg className="mr-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -156,7 +156,7 @@ export default function ForgotPasswordPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
             გახსოვს პაროლი?{' '}
-            <Link href="/auth/login" className="text-indigo-600 hover:text-indigo-500 font-medium">
+            <Link href="/auth/login" className="text-primary-900 hover:text-primary-500 font-medium">
               შესვლა
             </Link>
           </p>

@@ -50,7 +50,7 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-500">
+              <div className="w-full h-full flex items-center justify-center bg-primary-900">
                 <svg className="w-6 h-6 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
@@ -91,7 +91,7 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
             // Would download invoice
             alert('ინვოისის ჩამოტვირთვა მალე იქნება ხელმისაწვდომი');
           }}
-          className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+          className="text-primary-900 hover:text-primary-800 text-sm font-medium"
         >
           ინვოისის ჩამოტვირთვა
         </button>
@@ -129,8 +129,8 @@ export default function TransactionsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-indigo-100 rounded-xl">
-                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-primary-100 rounded-xl">
+                <svg className="w-6 h-6 text-primary-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
               </div>
@@ -159,7 +159,7 @@ export default function TransactionsPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           {isLoading ? (
             <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-900 mx-auto"></div>
               <p className="text-gray-500 mt-4">ტრანზაქციების ჩატვირთვა...</p>
             </div>
           ) : error ? (

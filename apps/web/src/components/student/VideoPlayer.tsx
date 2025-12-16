@@ -353,12 +353,12 @@ export default function VideoPlayer({
           />
           {/* Progress */}
           <div
-            className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full"
+            className="absolute top-0 left-0 h-full bg-primary-500 rounded-full"
             style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
           />
           {/* Hover indicator */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-indigo-500 rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity"
+            className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary-500 rounded-full shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity"
             style={{ left: `calc(${duration > 0 ? (currentTime / duration) * 100 : 0}% - 8px)` }}
           />
         </div>
@@ -369,7 +369,7 @@ export default function VideoPlayer({
             {/* Play/Pause */}
             <button
               onClick={togglePlay}
-              className="text-white hover:text-indigo-400 transition-colors"
+              className="text-white hover:text-primary-400 transition-colors"
             >
               {isPlaying ? (
                 <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
@@ -385,7 +385,7 @@ export default function VideoPlayer({
             {/* Skip Backward */}
             <button
               onClick={() => skip(-10)}
-              className="text-white hover:text-indigo-400 transition-colors"
+              className="text-white hover:text-primary-400 transition-colors"
               title="10 წამით უკან"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,7 +396,7 @@ export default function VideoPlayer({
             {/* Skip Forward */}
             <button
               onClick={() => skip(10)}
-              className="text-white hover:text-indigo-400 transition-colors"
+              className="text-white hover:text-primary-400 transition-colors"
               title="10 წამით წინ"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,7 +408,7 @@ export default function VideoPlayer({
             <div className="flex items-center gap-2 group/volume">
               <button
                 onClick={toggleMute}
-                className="text-white hover:text-indigo-400 transition-colors"
+                className="text-white hover:text-primary-400 transition-colors"
               >
                 {isMuted || volume === 0 ? (
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -438,7 +438,7 @@ export default function VideoPlayer({
                   }}
                 >
                   <div
-                    className="absolute top-0 left-0 h-full bg-indigo-500 rounded-full"
+                    className="absolute top-0 left-0 h-full bg-primary-500 rounded-full"
                     style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
                   />
                   <div
@@ -460,7 +460,7 @@ export default function VideoPlayer({
             <div className="relative">
               <button
                 onClick={() => setShowPlaybackMenu(!showPlaybackMenu)}
-                className="text-white hover:text-indigo-400 transition-colors text-sm font-medium"
+                className="text-white hover:text-primary-400 transition-colors text-sm font-medium"
               >
                 {playbackRate}x
               </button>
@@ -471,7 +471,7 @@ export default function VideoPlayer({
                       key={rate}
                       onClick={() => handlePlaybackRate(rate)}
                       className={`block w-full px-4 py-1 text-sm text-left hover:bg-gray-700 ${
-                        playbackRate === rate ? 'text-indigo-400' : 'text-white'
+                        playbackRate === rate ? 'text-primary-400' : 'text-white'
                       }`}
                     >
                       {rate}x
@@ -484,7 +484,7 @@ export default function VideoPlayer({
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
-              className="text-white hover:text-indigo-400 transition-colors"
+              className="text-white hover:text-primary-400 transition-colors"
             >
               {isFullscreen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

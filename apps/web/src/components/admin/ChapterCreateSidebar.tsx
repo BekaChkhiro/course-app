@@ -269,16 +269,16 @@ export default function ChapterCreateSidebar({
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-white text-blue-600 shadow-sm'
+                        ? 'bg-white text-accent-500 shadow-sm'
                         : 'text-gray-600 hover:bg-white hover:text-gray-900'
                     }`}
                   >
-                    <span className={isActive ? 'text-blue-600' : 'text-gray-400'}>
+                    <span className={isActive ? 'text-accent-500' : 'text-gray-400'}>
                       {tab.icon}
                     </span>
                     <span className="flex-1 text-left">{tab.label}</span>
                     {isComplete && (
-                      <Check className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-green-500'}`} />
+                      <Check className={`w-4 h-4 ${isActive ? 'text-accent-500' : 'text-green-500'}`} />
                     )}
                   </button>
                 );
@@ -290,7 +290,7 @@ export default function ChapterCreateSidebar({
               <button
                 onClick={handleSubmit}
                 disabled={createMutation.isPending}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 text-sm font-medium"
               >
                 <Save className="w-4 h-4" />
                 {createMutation.isPending ? 'შექმნა...' : 'შექმნა'}
@@ -311,7 +311,7 @@ export default function ChapterCreateSidebar({
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                     placeholder="მაგ: შესავალი პროგრამირებაში"
                   />
                 </div>
@@ -324,7 +324,7 @@ export default function ChapterCreateSidebar({
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={4}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                     placeholder="მოკლე აღწერა თავის შესახებ..."
                   />
                 </div>
@@ -335,7 +335,7 @@ export default function ChapterCreateSidebar({
                     id="isFree"
                     checked={formData.isFree}
                     onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-accent-500 rounded focus:ring-accent-500"
                   />
                   <div>
                     <label htmlFor="isFree" className="text-sm font-medium text-gray-900">
@@ -354,7 +354,7 @@ export default function ChapterCreateSidebar({
               <div className="space-y-2">
                 {pendingVideoFile ? (
                   <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border">
-                    <Video className="w-5 h-5 text-blue-500" />
+                    <Video className="w-5 h-5 text-accent-500" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {pendingVideoFile.name}
@@ -365,8 +365,8 @@ export default function ChapterCreateSidebar({
                     </div>
                     {isUploadingVideo ? (
                       <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                        <span className="text-sm text-blue-600">{videoUploadProgress}%</span>
+                        <Loader2 className="w-4 h-4 animate-spin text-accent-500" />
+                        <span className="text-sm text-accent-500">{videoUploadProgress}%</span>
                       </div>
                     ) : (
                       <button
@@ -433,7 +433,7 @@ export default function ChapterCreateSidebar({
                     id="createQuiz"
                     checked={createQuiz}
                     onChange={(e) => setCreateQuiz(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-accent-500 rounded focus:ring-accent-500"
                   />
                   <div>
                     <label htmlFor="createQuiz" className="text-sm font-medium text-gray-900">
@@ -455,7 +455,7 @@ export default function ChapterCreateSidebar({
                         type="text"
                         value={quizTitle}
                         onChange={(e) => setQuizTitle(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                         placeholder="მაგ: თავის ტესტი"
                       />
                     </div>
@@ -520,7 +520,7 @@ export default function ChapterCreateSidebar({
                                       updateAnswer(qIndex, aIndex, 'isCorrect', e.target.checked);
                                     }
                                   }}
-                                  className="w-4 h-4 text-blue-600"
+                                  className="w-4 h-4 text-accent-500"
                                 />
                                 <input
                                   type="text"
@@ -541,7 +541,7 @@ export default function ChapterCreateSidebar({
                             ))}
                             <button
                               onClick={() => addAnswer(qIndex)}
-                              className="text-sm text-blue-600 hover:text-blue-700"
+                              className="text-sm text-accent-500 hover:text-accent-600"
                             >
                               + პასუხის დამატება
                             </button>
@@ -551,7 +551,7 @@ export default function ChapterCreateSidebar({
 
                       <button
                         onClick={addQuestion}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-600"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg text-gray-500 hover:border-accent-500 hover:text-accent-500"
                       >
                         <Plus className="w-4 h-4" />
                         კითხვის დამატება

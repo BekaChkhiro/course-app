@@ -82,9 +82,9 @@ export default function CoursesAnalyticsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Courses</span>
             </div>
@@ -104,7 +104,7 @@ export default function CoursesAnalyticsPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -162,7 +162,7 @@ export default function CoursesAnalyticsPage() {
                       key={course.id}
                       onClick={() => setSelectedCourse(course.id)}
                       className={`w-full p-4 text-left border-b border-gray-100 hover:bg-gray-50 transition-colors flex items-center gap-4 ${
-                        selectedCourse === course.id ? 'bg-indigo-50' : ''
+                        selectedCourse === course.id ? 'bg-primary-50' : ''
                       }`}
                     >
                       {course.thumbnail ? (

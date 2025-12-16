@@ -133,7 +133,7 @@ export default function AttachmentsPreview({ chapterId }: AttachmentsPreviewProp
                 {attachment.mimeType === 'application/pdf' && (
                   <button
                     onClick={() => setSelectedAttachment(attachment)}
-                    className="px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    className="px-3 py-1.5 text-sm text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
                   >
                     ნახვა
                   </button>
@@ -141,7 +141,7 @@ export default function AttachmentsPreview({ chapterId }: AttachmentsPreviewProp
                 {attachment.mimeType.startsWith('image/') && (
                   <button
                     onClick={() => setSelectedAttachment(attachment)}
-                    className="px-3 py-1.5 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    className="px-3 py-1.5 text-sm text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
                   >
                     ნახვა
                   </button>
@@ -251,7 +251,7 @@ export default function AttachmentsPreview({ chapterId }: AttachmentsPreviewProp
                   <a
                     href={selectedAttachment.url}
                     download={selectedAttachment.fileName}
-                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download File

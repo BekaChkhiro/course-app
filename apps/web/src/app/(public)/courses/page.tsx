@@ -13,11 +13,11 @@ type SortOption = 'popular' | 'newest' | 'price_low' | 'price_high' | 'rating';
 function CoursesLoading() {
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-16">
+      <div className="bg-primary-900 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
-            <div className="h-10 bg-indigo-400/50 rounded w-64 mx-auto mb-4" />
-            <div className="h-4 bg-indigo-400/50 rounded w-96 mx-auto" />
+            <div className="h-10 bg-primary-400/50 rounded w-64 mx-auto mb-4" />
+            <div className="h-4 bg-primary-400/50 rounded w-96 mx-auto" />
           </div>
         </div>
       </div>
@@ -98,12 +98,12 @@ function CoursesContent() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 py-16">
+      <div className="bg-primary-900 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-white text-center">
             კურსების კატალოგი
           </h1>
-          <p className="mt-4 text-lg text-indigo-100 text-center max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-primary-100 text-center max-w-2xl mx-auto">
             იპოვე შენთვის საუკეთესო კურსი და დაიწყე სწავლა დღესვე
           </p>
 
@@ -115,11 +115,11 @@ function CoursesContent() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="მოძებნე კურსი..."
-                className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-500 text-white px-6 py-2 rounded-lg hover:bg-accent-600 transition-colors"
               >
                 ძებნა
               </button>
@@ -138,7 +138,7 @@ function CoursesContent() {
                 {(search || selectedCategory || sort !== 'popular') && (
                   <button
                     onClick={clearFilters}
-                    className="text-sm text-indigo-600 hover:text-indigo-700"
+                    className="text-sm text-primary-900 hover:text-primary-800"
                   >
                     გასუფთავება
                   </button>
@@ -156,7 +156,7 @@ function CoursesContent() {
                     }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                       !selectedCategory
-                        ? 'bg-indigo-100 text-indigo-700'
+                        ? 'bg-primary-100 text-primary-800'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
@@ -210,7 +210,7 @@ function CoursesContent() {
                               }}
                               className={`flex-1 text-left px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                                 isParentSelected
-                                  ? 'bg-indigo-100 text-indigo-700'
+                                  ? 'bg-primary-100 text-primary-800'
                                   : 'text-gray-700 hover:bg-gray-100'
                               } ${children.length === 0 ? 'ml-5' : ''}`}
                             >
@@ -231,7 +231,7 @@ function CoursesContent() {
                                   }}
                                   className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
                                     selectedCategory === child.slug
-                                      ? 'bg-indigo-100 text-indigo-700'
+                                      ? 'bg-primary-100 text-primary-800'
                                       : 'text-gray-600 hover:bg-gray-100'
                                   }`}
                                 >
@@ -283,7 +283,7 @@ function CoursesContent() {
                     setSort(e.target.value as SortOption);
                     setPage(1);
                   }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -334,7 +334,7 @@ function CoursesContent() {
                               onClick={() => setPage(pageNum)}
                               className={`w-10 h-10 rounded-lg ${
                                 page === pageNum
-                                  ? 'bg-indigo-600 text-white'
+                                  ? 'bg-accent-500 text-white'
                                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                               }`}
                             >
@@ -377,7 +377,7 @@ function CoursesContent() {
                 <p className="mt-2 text-gray-600">სცადე სხვა საძიებო სიტყვები ან ფილტრები</p>
                 <button
                   onClick={clearFilters}
-                  className="mt-4 text-indigo-600 hover:text-indigo-700 font-medium"
+                  className="mt-4 text-primary-900 hover:text-primary-800 font-medium"
                 >
                   ფილტრების გასუფთავება
                 </button>
@@ -404,7 +404,7 @@ const CourseCard = ({ course }: { course: any }) => {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <div className="w-full h-full bg-primary-900 flex items-center justify-center">
               <svg className="w-16 h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
@@ -417,7 +417,7 @@ const CourseCard = ({ course }: { course: any }) => {
           )}
         </div>
         <div className="p-5 flex-1 flex flex-col">
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2">
+          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2">
             {course.title}
           </h3>
           <p className="mt-2 text-sm text-gray-600 line-clamp-2 flex-1">
@@ -433,7 +433,7 @@ const CourseCard = ({ course }: { course: any }) => {
               </span>
               <span className="text-sm text-gray-500">({course.reviewCount || 0})</span>
             </div>
-            <div className="text-lg font-bold text-indigo-600">
+            <div className="text-lg font-bold text-primary-900">
               {course.price === 0 ? 'უფასო' : `${course.price} ₾`}
             </div>
           </div>

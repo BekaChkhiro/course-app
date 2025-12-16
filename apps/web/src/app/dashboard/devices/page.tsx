@@ -140,7 +140,7 @@ export default function DevicesPage() {
 
           {isLoading ? (
             <div className="px-4 py-12 text-center">
-              <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+              <div className="animate-spin h-8 w-8 border-4 border-primary-900 border-t-transparent rounded-full mx-auto"></div>
               <p className="text-gray-500 mt-4">იტვირთება...</p>
             </div>
           ) : devices.length === 0 ? (
@@ -157,7 +157,7 @@ export default function DevicesPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0">
-                        <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                        <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-900">
                           {getDeviceIcon(device.deviceType)}
                         </div>
                       </div>
@@ -192,7 +192,7 @@ export default function DevicesPage() {
                             </h4>
                             <button
                               onClick={() => handleStartEdit(device)}
-                              className="text-indigo-600 hover:text-indigo-500"
+                              className="text-primary-900 hover:text-primary-500"
                             >
                               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />

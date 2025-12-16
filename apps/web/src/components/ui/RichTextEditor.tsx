@@ -249,7 +249,7 @@ export default function RichTextEditor({
       title={title}
       className={cn(
         'p-1.5 rounded hover:bg-gray-200 transition-colors',
-        isActive && 'bg-indigo-100 text-indigo-700',
+        isActive && 'bg-primary-100 text-primary-800',
         disabled && 'opacity-40 cursor-not-allowed hover:bg-transparent'
       )}
     >
@@ -290,7 +290,7 @@ export default function RichTextEditor({
                     }}
                     className={cn(
                       'w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2',
-                      editor.isActive('paragraph') && 'bg-indigo-50 text-indigo-700'
+                      editor.isActive('paragraph') && 'bg-primary-50 text-primary-800'
                     )}
                   >
                     <Pilcrow className="w-4 h-4" />
@@ -304,7 +304,7 @@ export default function RichTextEditor({
                     }}
                     className={cn(
                       'w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2',
-                      editor.isActive('heading', { level: 1 }) && 'bg-indigo-50 text-indigo-700'
+                      editor.isActive('heading', { level: 1 }) && 'bg-primary-50 text-primary-800'
                     )}
                   >
                     <Heading1 className="w-4 h-4" />
@@ -318,7 +318,7 @@ export default function RichTextEditor({
                     }}
                     className={cn(
                       'w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2',
-                      editor.isActive('heading', { level: 2 }) && 'bg-indigo-50 text-indigo-700'
+                      editor.isActive('heading', { level: 2 }) && 'bg-primary-50 text-primary-800'
                     )}
                   >
                     <Heading2 className="w-4 h-4" />
@@ -332,7 +332,7 @@ export default function RichTextEditor({
                     }}
                     className={cn(
                       'w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2',
-                      editor.isActive('heading', { level: 3 }) && 'bg-indigo-50 text-indigo-700'
+                      editor.isActive('heading', { level: 3 }) && 'bg-primary-50 text-primary-800'
                     )}
                   >
                     <Heading3 className="w-4 h-4" />
@@ -346,7 +346,7 @@ export default function RichTextEditor({
                     }}
                     className={cn(
                       'w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2',
-                      editor.isActive('heading', { level: 4 }) && 'bg-indigo-50 text-indigo-700'
+                      editor.isActive('heading', { level: 4 }) && 'bg-primary-50 text-primary-800'
                     )}
                   >
                     <Heading4 className="w-4 h-4" />
@@ -691,7 +691,7 @@ export default function RichTextEditor({
                   <button
                     type="button"
                     onClick={setLink}
-                    className="px-2 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700"
+                    className="px-2 py-1 bg-accent-500 text-white rounded text-sm hover:bg-accent-600"
                   >
                     დამატება
                   </button>

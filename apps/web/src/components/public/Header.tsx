@@ -40,7 +40,7 @@ export const Header = () => {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-base font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                className="text-base font-medium text-gray-600 hover:text-primary-900 transition-colors"
               >
                 {item.name}
               </Link>
@@ -52,7 +52,7 @@ export const Header = () => {
             {isAuthenticated ? (
               <Link
                 href={user?.role === 'ADMIN' ? '/admin' : '/dashboard'}
-                className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
               >
                 პანელი
               </Link>
@@ -60,13 +60,13 @@ export const Header = () => {
               <>
                 <Link
                   href="/auth/login"
-                  className="text-base font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                  className="text-base font-medium text-gray-600 hover:text-primary-900 transition-colors"
                 >
                   შესვლა
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                  className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
                 >
                   რეგისტრაცია
                 </Link>
@@ -103,7 +103,7 @@ export const Header = () => {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-base font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                  className="text-base font-medium text-gray-600 hover:text-primary-900 transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.name}
@@ -113,7 +113,7 @@ export const Header = () => {
                 {isAuthenticated ? (
                   <Link
                     href={user?.role === 'ADMIN' ? '/admin' : '/dashboard'}
-                    className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                    className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     პანელი
@@ -122,14 +122,14 @@ export const Header = () => {
                   <>
                     <Link
                       href="/auth/login"
-                      className="block text-center text-base font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                      className="block text-center text-base font-medium text-gray-600 hover:text-primary-900 transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       შესვლა
                     </Link>
                     <Link
                       href="/auth/register"
-                      className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                      className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       რეგისტრაცია

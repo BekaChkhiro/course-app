@@ -35,7 +35,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-500">
+              <div className="w-full h-full flex items-center justify-center bg-primary-900">
                 <svg className="w-8 h-8 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
@@ -44,7 +44,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-medium text-primary-900 bg-primary-50 px-2 py-0.5 rounded-full">
                 {course.category.name}
               </span>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColors[course.status]}`}>
@@ -64,14 +64,14 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${
-                  course.progressPercentage === 100 ? 'bg-green-500' : 'bg-indigo-600'
+                  course.progressPercentage === 100 ? 'bg-green-500' : 'bg-accent-500'
                 }`}
                 style={{ width: `${course.progressPercentage}%` }}
               />
             </div>
           </div>
           <div className="flex-shrink-0">
-            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+            <button className="p-2 text-accent-500 hover:bg-accent-50 rounded-lg transition-colors">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -93,7 +93,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-500">
+            <div className="w-full h-full flex items-center justify-center bg-primary-900">
               <svg className="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
@@ -107,7 +107,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="bg-white rounded-full p-3 shadow-lg">
-                <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-primary-900" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
@@ -116,7 +116,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
         </div>
         <div className="p-4 flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-medium text-primary-900 bg-primary-50 px-2 py-0.5 rounded-full">
               {course.category.name}
             </span>
           </div>
@@ -132,7 +132,7 @@ function CourseCard({ course, viewMode }: { course: MyCourse; viewMode: ViewMode
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${
-                  course.progressPercentage === 100 ? 'bg-green-500' : 'bg-indigo-600'
+                  course.progressPercentage === 100 ? 'bg-green-500' : 'bg-accent-500'
                 }`}
                 style={{ width: `${course.progressPercentage}%` }}
               />
@@ -206,7 +206,7 @@ export default function MyCoursesPage() {
                   placeholder="კურსების ძებნა..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 />
                 <svg
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -225,7 +225,7 @@ export default function MyCoursesPage() {
               <select
                 value={filter}
                 onChange={(e) => setFilter(e.target.value as FilterStatus)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
               >
                 {filterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -238,7 +238,7 @@ export default function MyCoursesPage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortOption)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -253,7 +253,7 @@ export default function MyCoursesPage() {
                   onClick={() => setViewMode('grid')}
                   className={`p-2 ${
                     viewMode === 'grid'
-                      ? 'bg-indigo-50 text-indigo-600'
+                      ? 'bg-primary-50 text-primary-900'
                       : 'bg-white text-gray-500 hover:bg-gray-50'
                   }`}
                 >
@@ -265,7 +265,7 @@ export default function MyCoursesPage() {
                   onClick={() => setViewMode('list')}
                   className={`p-2 ${
                     viewMode === 'list'
-                      ? 'bg-indigo-50 text-indigo-600'
+                      ? 'bg-primary-50 text-primary-900'
                       : 'bg-white text-gray-500 hover:bg-gray-50'
                   }`}
                 >
@@ -340,7 +340,7 @@ export default function MyCoursesPage() {
             {!search && filter === 'all' && (
               <Link
                 href="/courses"
-                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
               >
                 კურსების ნახვა
               </Link>

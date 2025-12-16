@@ -158,7 +158,7 @@ export default function CourseChaptersTab({
           <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600"
           >
             <Plus className="w-4 h-4" />
             ახალი თავი
@@ -173,7 +173,7 @@ export default function CourseChaptersTab({
             <p className="text-gray-500 mb-4">თავები არ არის</p>
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-accent-500 hover:text-accent-600 font-medium"
             >
               დაამატე პირველი თავი
             </button>
@@ -284,7 +284,7 @@ function SortableChapterItem({
             </span>
           )}
           {chapter.hasQuiz && (
-            <span className="flex items-center gap-1 text-purple-600">
+            <span className="flex items-center gap-1 text-accent-500">
               <HelpCircle className="w-3 h-3" /> ქვიზი
             </span>
           )}

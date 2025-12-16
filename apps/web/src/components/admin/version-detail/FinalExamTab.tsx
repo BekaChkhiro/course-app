@@ -202,7 +202,7 @@ function QuestionFormFields({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-purple-600 hover:bg-purple-50 border border-dashed border-gray-300 hover:border-purple-300 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-accent-600 hover:bg-accent-50 border border-dashed border-gray-300 hover:border-accent-300 rounded-lg transition-colors disabled:opacity-50"
           >
             {isUploading ? (
               <>

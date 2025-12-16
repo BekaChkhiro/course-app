@@ -88,7 +88,7 @@ export default function CourseDetailPage() {
                   className={`
                     relative py-4 px-1 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      ? 'text-accent-500 border-b-2 border-accent-500'
                       : 'text-gray-500 hover:text-gray-700'
                     }
                   `}

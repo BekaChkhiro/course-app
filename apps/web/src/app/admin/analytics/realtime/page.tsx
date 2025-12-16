@@ -60,10 +60,10 @@ const activityLabels: Record<string, string> = {
 };
 
 const activityColors: Record<string, string> = {
-  LOGIN: 'bg-blue-100 text-blue-600',
-  COURSE_VIEW: 'bg-indigo-100 text-indigo-600',
+  LOGIN: 'bg-accent-100 text-accent-500',
+  COURSE_VIEW: 'bg-primary-100 text-primary-900',
   CHAPTER_COMPLETE: 'bg-green-100 text-green-600',
-  QUIZ_ATTEMPT: 'bg-purple-100 text-purple-600',
+  QUIZ_ATTEMPT: 'bg-accent-100 text-accent-500',
   PURCHASE: 'bg-emerald-100 text-emerald-600',
   VIDEO_PLAY: 'bg-pink-100 text-pink-600',
   COMMENT_POST: 'bg-yellow-100 text-yellow-600'
@@ -107,9 +107,9 @@ export default function RealtimeAnalyticsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Real-time</span>
             </div>
@@ -158,7 +158,7 @@ export default function RealtimeAnalyticsPage() {
             </button>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
             >
               <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -282,7 +282,7 @@ export default function RealtimeAnalyticsPage() {
                       </div>
                       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-indigo-500 rounded-full transition-all"
+                          className="h-full bg-primary-500 rounded-full transition-all"
                           style={{
                             width: `${Math.min((count / Math.max((realtime?.recentActivity || []).length, 1)) * 100, 100)}%`
                           }}
@@ -399,8 +399,8 @@ export default function RealtimeAnalyticsPage() {
                     <tr key={viewer.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                            <span className="text-xs font-medium text-indigo-600">
+                          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                            <span className="text-xs font-medium text-primary-900">
                               {viewer.name?.[0] || 'U'}
                             </span>
                           </div>
@@ -415,7 +415,7 @@ export default function RealtimeAnalyticsPage() {
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                           viewer.activity === 'watching' ? 'bg-pink-100 text-pink-700' :
-                          viewer.activity === 'reading' ? 'bg-blue-100 text-blue-700' :
+                          viewer.activity === 'reading' ? 'bg-accent-100 text-accent-600' :
                           'bg-gray-100 text-gray-700'
                         }`}>
                           {viewer.activity === 'watching' && <Play className="w-3 h-3" />}

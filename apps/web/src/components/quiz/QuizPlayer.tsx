@@ -313,8 +313,8 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-xl mx-auto">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-emerald-600" />
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8 text-green-600" />
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">ქვიზი ჩაბარებულია!</h2>
           <p className="text-gray-500 text-sm">{quiz.title}</p>
@@ -322,7 +322,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
         <button
           onClick={() => router.push(`/quiz/${quizId}/results/${passedAttemptId}`)}
-          className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+          className="w-full py-3.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
         >
           შედეგების ნახვა
         </button>
@@ -395,7 +395,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
           className={`w-full py-3.5 rounded-xl font-medium transition-colors ${
             maxAttemptsReached
               ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-900 text-white hover:bg-gray-800'
+              : 'bg-accent-500 text-white hover:bg-accent-600'
           }`}
         >
           დაწყება
@@ -437,7 +437,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
         {/* Progress bar */}
         <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gray-900 rounded-full transition-all duration-300"
+            className="h-full bg-accent-500 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>
@@ -574,7 +574,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
             <button
               onClick={submitQuiz}
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white text-sm font-medium rounded-lg hover:bg-accent-600 disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

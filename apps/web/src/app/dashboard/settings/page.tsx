@@ -21,8 +21,8 @@ function ToggleSwitch({
       type="button"
       onClick={() => onChange(!enabled)}
       disabled={disabled}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-        enabled ? 'bg-indigo-600' : 'bg-gray-200'
+      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+        enabled ? 'bg-accent-500' : 'bg-gray-200'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <span
@@ -128,8 +128,8 @@ export default function SettingsPage() {
                       className="h-20 w-20 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-20 w-20 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <span className="text-2xl font-medium text-indigo-600">
+                    <div className="h-20 w-20 rounded-full bg-primary-100 flex items-center justify-center">
+                      <span className="text-2xl font-medium text-primary-900">
                         {user?.name?.charAt(0)}{user?.surname?.charAt(0)}
                       </span>
                     </div>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
 
                 <button
                   onClick={() => setEditingProfile(true)}
-                  className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="mt-4 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
                 >
                   პროფილის რედაქტირება
                 </button>
@@ -195,7 +195,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setProfileForm({ ...profileForm, name: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                   <div>
@@ -208,7 +208,7 @@ export default function SettingsPage() {
                       onChange={(e) =>
                         setProfileForm({ ...profileForm, surname: e.target.value })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setProfileForm({ ...profileForm, phone: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div>
@@ -235,13 +235,13 @@ export default function SettingsPage() {
                       setProfileForm({ ...profileForm, bio: e.target.value })
                     }
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
                   >
                     ცვლილებების შენახვა
                   </button>
@@ -288,7 +288,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div>
@@ -301,7 +301,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, newPassword: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div>
@@ -314,13 +314,13 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
                   >
                     პაროლის განახლება
                   </button>
@@ -413,7 +413,7 @@ export default function SettingsPage() {
                     onClick={() => handlePreferenceChange('theme', theme.key)}
                     className={`px-4 py-2 rounded-lg border transition-colors ${
                       preferences?.theme === theme.key
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-600'
+                        ? 'border-primary-900 bg-primary-50 text-primary-900'
                         : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                     }`}
                   >

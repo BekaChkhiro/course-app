@@ -22,7 +22,7 @@ function ProgressRing({ progress, size = 60, strokeWidth = 6 }: { progress: numb
   return (
     <svg width={size} height={size} className="transform -rotate-90">
       <circle
-        className="text-gray-200"
+        className="text-white text-opacity-20"
         strokeWidth={strokeWidth}
         stroke="currentColor"
         fill="transparent"
@@ -31,7 +31,7 @@ function ProgressRing({ progress, size = 60, strokeWidth = 6 }: { progress: numb
         cy={size / 2}
       />
       <circle
-        className="text-indigo-600 transition-all duration-500"
+        className="text-accent-500 transition-all duration-500"
         strokeWidth={strokeWidth}
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -72,7 +72,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 to-purple-500">
+            <div className="w-full h-full flex items-center justify-center bg-primary-900">
               <svg className="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
@@ -81,7 +81,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="bg-white rounded-full p-3 shadow-lg">
-                <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-primary-900" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
@@ -89,7 +89,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
           </div>
         </div>
         <div className="p-4">
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
+          <span className="text-xs font-medium text-primary-900 bg-primary-50 px-2 py-1 rounded-full">
             {course.category}
           </span>
           <h3 className="font-semibold text-gray-900 mt-2 line-clamp-1">{course.title}</h3>
@@ -100,7 +100,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
+                className="bg-accent-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${course.progressPercentage}%` }}
               />
             </div>
@@ -122,7 +122,7 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
   const adjustedToday = today === 0 ? 6 : today - 1;
 
   return (
-    <div className="bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl shadow-sm p-6 text-white">
+    <div className="bg-accent-500 rounded-xl shadow-sm p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-white text-opacity-80 text-sm">სწავლის სერია</p>
@@ -139,7 +139,7 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
               className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 index <= adjustedToday
                   ? streak.currentStreak > 0
-                    ? 'bg-white text-orange-500'
+                    ? 'bg-white text-accent-500'
                     : 'bg-white bg-opacity-30 text-white'
                   : 'bg-white bg-opacity-20 text-white text-opacity-50'
               }`}
@@ -173,7 +173,7 @@ function XPCard({ gamification }: { gamification: DashboardData['gamification'] 
   const xpProgress = (gamification.totalXP / (gamification.totalXP + gamification.xpToNextLevel)) * 100;
 
   return (
-    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-sm p-6 text-white">
+    <div className="bg-primary-900 rounded-xl shadow-sm p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-white text-opacity-80 text-sm">დონე</p>
@@ -265,13 +265,13 @@ export default function DashboardPage() {
     <StudentLayout>
       <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white">
+        <div className="bg-primary-900 rounded-2xl shadow-lg p-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 გამარჯობა, {user?.name}!
               </h1>
-              <p className="mt-2 text-indigo-100">
+              <p className="mt-2 text-primary-100">
                 {dashboardData?.continueLearning.length
                   ? "გააგრძელე იქიდან, სადაც შეჩერდი და განაგრძე პროგრესი!"
                   : "დაიწყე კურსების აღმოჩენა და შედი სასწავლო მოგზაურობაში."}
@@ -279,7 +279,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/dashboard/courses"
-              className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
+              className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-primary-900 font-medium rounded-lg hover:bg-primary-50 transition-colors"
             >
               კურსების ნახვა
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,11 +295,11 @@ export default function DashboardPage() {
             title="სულ კურსები"
             value={dashboardData?.stats.totalCourses || 0}
             icon={
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-primary-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             }
-            color="bg-indigo-100"
+            color="bg-primary-100"
           />
           <StatCard
             title="დასრულებული"
@@ -341,7 +341,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900">სწავლის გაგრძელება</h2>
               <Link
                 href="/dashboard/courses"
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-sm text-primary-900 hover:text-primary-800 font-medium"
               >
                 ყველას ნახვა
               </Link>
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                 <p className="text-gray-500 mb-4">დაიწყე სწავლა დღესვე!</p>
                 <Link
                   href="/dashboard/courses"
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
                 >
                   კურსების ნახვა
                 </Link>

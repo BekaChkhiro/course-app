@@ -303,25 +303,25 @@ export default function QuizManager({
     return (
       <div className="border rounded-lg overflow-hidden">
         {/* Quiz Header */}
-        <div className="p-4 bg-purple-50 border-b border-purple-100">
+        <div className="p-4 bg-accent-50 border-b border-accent-100">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-purple-900">{existingQuiz.title}</h4>
-              <p className="text-sm text-purple-600 mt-0.5">
+              <h4 className="font-medium text-accent-500">{existingQuiz.title}</h4>
+              <p className="text-sm text-accent-500 mt-0.5">
                 {existingQuiz.questions?.length || 0} კითხვა • {existingQuiz.timeLimit || 0} წუთი • {existingQuiz.passingScore}%
               </p>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowQuestions(!showQuestions)}
-                className="p-2 text-purple-600 hover:bg-purple-100 rounded"
+                className="p-2 text-accent-500 hover:bg-accent-100 rounded"
                 title={showQuestions ? 'დამალვა' : 'ნახვა'}
               >
                 {showQuestions ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
               <button
                 onClick={() => setMode('edit')}
-                className="p-2 text-purple-600 hover:bg-purple-100 rounded"
+                className="p-2 text-accent-500 hover:bg-accent-100 rounded"
                 title="რედაქტირება"
               >
                 <Edit2 className="w-4 h-4" />
@@ -348,7 +348,7 @@ export default function QuizManager({
             {existingQuiz.questions.map((q, i) => (
               <div key={q.id} className="text-sm">
                 <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="w-5 h-5 rounded-full bg-accent-100 text-accent-500 text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                     {i + 1}
                   </span>
                   <div className="flex-1">
@@ -400,7 +400,7 @@ export default function QuizManager({
             onClick={() => setShowSettings(!showSettings)}
             className={`text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
               showSettings
-                ? 'bg-purple-100 text-purple-700'
+                ? 'bg-accent-100 text-accent-600'
                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
             }`}
           >
@@ -414,9 +414,9 @@ export default function QuizManager({
         {showSettings && (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             {/* Settings Header */}
-            <div className="px-4 py-3 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-100">
+            <div className="px-4 py-3 bg-primary-50 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4 text-purple-600" />
+                <Settings className="w-4 h-4 text-accent-500" />
                 <span className="text-sm font-medium text-gray-700">ქვიზის პარამეტრები</span>
               </div>
             </div>
@@ -434,7 +434,7 @@ export default function QuizManager({
                       type="number"
                       value={settings.timeLimit}
                       onChange={(e) => setSettings({ ...settings, timeLimit: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 pr-12 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      className="w-full px-3 py-2 pr-12 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-all"
                       min="0"
                       placeholder="0"
                     />
@@ -453,7 +453,7 @@ export default function QuizManager({
                       type="number"
                       value={settings.passingScore}
                       onChange={(e) => setSettings({ ...settings, passingScore: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 pr-8 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                      className="w-full px-3 py-2 pr-8 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-all"
                       min="0"
                       max="100"
                       placeholder="70"
@@ -485,14 +485,14 @@ export default function QuizManager({
                       onChange={(e) => setSettings({ ...settings, showCorrectAnswers: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-500"></div>
                   </div>
                 </label>
 
                 <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors group">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                      <Shuffle className="w-4 h-4 text-blue-600" />
+                    <div className="w-8 h-8 rounded-lg bg-accent-100 flex items-center justify-center group-hover:bg-accent-200 transition-colors">
+                      <Shuffle className="w-4 h-4 text-accent-500" />
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-700">შემთხვევითი თანმიმდევრობა</span>
@@ -506,7 +506,7 @@ export default function QuizManager({
                       onChange={(e) => setSettings({ ...settings, randomizeQuestions: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-500"></div>
                   </div>
                 </label>
               </div>
@@ -545,7 +545,7 @@ export default function QuizManager({
         {/* Add Question Button */}
         <button
           onClick={addQuestion}
-          className="w-full py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 flex items-center justify-center gap-1"
+          className="w-full py-2 text-sm text-accent-500 hover:bg-accent-50 rounded-lg border border-accent-200 flex items-center justify-center gap-1"
         >
           <Plus className="w-3 h-3" />
           კითხვის დამატება
@@ -566,7 +566,7 @@ export default function QuizManager({
           <button
             onClick={() => mode === 'edit' ? updateQuizMutation.mutate() : createQuizMutation.mutate()}
             disabled={!canSave || createQuizMutation.isPending || updateQuizMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
           >
             {createQuizMutation.isPending || updateQuizMutation.isPending ? 'შენახვა...' : 'შენახვა'}
           </button>
@@ -582,7 +582,7 @@ export default function QuizManager({
         setMode('create');
         addQuestion();
       }}
-      className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-purple-400 hover:text-purple-600 transition-colors flex items-center justify-center gap-2"
+      className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-accent-400 hover:text-accent-500 transition-colors flex items-center justify-center gap-2"
     >
       <Plus className="w-4 h-4" />
       ქვიზის დამატება
@@ -699,7 +699,7 @@ function QuestionCard({
         >
           <GripVertical className="w-4 h-4" />
         </button>
-        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs flex items-center justify-center font-medium flex-shrink-0">
+        <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-500 text-xs flex items-center justify-center font-medium flex-shrink-0">
           {index + 1}
         </span>
         <div className="flex-1">
@@ -708,7 +708,7 @@ function QuestionCard({
             onChange={(e) => onUpdate({ question: e.target.value })}
             placeholder="შეიყვანეთ კითხვა..."
             rows={2}
-            className="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500"
           />
         </div>
         <button
@@ -748,7 +748,7 @@ function QuestionCard({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-purple-600 hover:bg-purple-50 border border-dashed border-gray-300 hover:border-purple-300 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-500 hover:text-accent-500 hover:bg-accent-50 border border-dashed border-gray-300 hover:border-accent-300 rounded-lg transition-colors disabled:opacity-50"
           >
             {isUploading ? (
               <>
@@ -808,7 +808,7 @@ function QuestionCard({
               value={answer.text}
               onChange={(e) => onUpdateAnswer(aIndex, { text: e.target.value })}
               placeholder={`პასუხი ${aIndex + 1}`}
-              className="flex-1 px-2 py-1.5 border rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-2 py-1.5 border rounded text-sm focus:ring-1 focus:ring-accent-500 focus:border-accent-500"
             />
             {question.answers.length > 2 && (
               <button
@@ -822,7 +822,7 @@ function QuestionCard({
         ))}
         <button
           onClick={onAddAnswer}
-          className="text-xs text-blue-600 hover:text-blue-700"
+          className="text-xs text-accent-500 hover:text-accent-600"
         >
           + პასუხის დამატება
         </button>

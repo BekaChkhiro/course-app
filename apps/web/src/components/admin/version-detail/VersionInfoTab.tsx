@@ -105,7 +105,7 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
             required
           />
         </div>
@@ -118,7 +118,7 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
           />
         </div>
 
@@ -132,7 +132,7 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
               step="0.01"
               value={formData.upgradePrice}
               onChange={(e) => setFormData({ ...formData, upgradePrice: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
               placeholder="0.00"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -149,7 +149,7 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
               step="0.01"
               value={formData.discountPercentage}
               onChange={(e) => setFormData({ ...formData, discountPercentage: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
               placeholder="0"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -201,7 +201,7 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-6 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             {updateMutation.isPending ? 'შენახვა...' : 'ცვლილებების შენახვა'}

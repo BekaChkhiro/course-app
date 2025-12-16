@@ -107,7 +107,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   if (!isHydrated || !isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-900"></div>
       </div>
     );
   }
@@ -160,11 +160,11 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                   href={item.href}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-600'
+                      ? 'bg-primary-50 text-primary-900'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <span className={isActive ? 'text-indigo-600' : 'text-gray-400'}>
+                  <span className={isActive ? 'text-primary-900' : 'text-gray-400'}>
                     {item.icon}
                   </span>
                   <span className="ml-3">{item.name}</span>
@@ -184,8 +184,8 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                     alt={user.name}
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <span className="text-indigo-600 font-medium text-sm">
+                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-primary-900 font-medium text-sm">
                       {user.name.charAt(0)}{user.surname?.charAt(0)}
                     </span>
                   </div>

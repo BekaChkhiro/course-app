@@ -154,7 +154,7 @@ export default function ChaptersPage() {
           <button
             onClick={() => setIsCreateModalOpen(true)}
             disabled={!selectedVersion}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             ახალი თავი
@@ -171,7 +171,7 @@ export default function ChaptersPage() {
                 setSelectedCourse(e.target.value);
                 setSelectedVersion('');
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
             >
               <option value="">აირჩიეთ კურსი...</option>
               {courses.map((course: any) => (
@@ -188,7 +188,7 @@ export default function ChaptersPage() {
               value={selectedVersion}
               onChange={(e) => setSelectedVersion(e.target.value)}
               disabled={!selectedCourse}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 disabled:opacity-50"
             >
               <option value="">აირჩიეთ ვერსია...</option>
               {versions.map((version: any) => (
@@ -391,7 +391,7 @@ function ChapterModal({
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
             required
           />
         </div>
@@ -402,7 +402,7 @@ function ChapterModal({
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
           />
         </div>
 
@@ -419,7 +419,7 @@ function ChapterModal({
               value={formData.videoUrl}
               onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
               placeholder="https://youtube.com/watch?v=... ან https://vimeo.com/..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
             />
             <p className="text-xs text-gray-500 mt-1">
               ℹ️ ჩასვით YouTube ან Vimeo ვიდეოს ბმული
@@ -459,16 +459,16 @@ function ChapterModal({
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 ქვიზი</h3>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-800">
+          <div className="bg-accent-50 border border-accent-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-accent-600">
               💡 <strong>ქვიზის დამატება:</strong> გადადით{' '}
               <a href="/admin/quizzes" className="underline font-medium">
                 ქვიზების მართვა
               </a>{' '}
               გვერდზე, შექმენით ქვიზი და მიუთითეთ ეს თავი.
             </p>
-            <p className="text-xs text-blue-600 mt-2">
-              ან გამოიყენეთ API: <code className="bg-blue-100 px-1 rounded">chapterContentId: "{chapter?.id}"</code>
+            <p className="text-xs text-accent-500 mt-2">
+              ან გამოიყენეთ API: <code className="bg-accent-100 px-1 rounded">chapterContentId: "{chapter?.id}"</code>
             </p>
           </div>
 
@@ -492,7 +492,7 @@ function ChapterModal({
             id="isFree"
             checked={formData.isFree}
             onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            className="w-4 h-4 text-accent-500 rounded focus:ring-2 focus:ring-accent-500"
           />
           <label htmlFor="isFree" className="text-sm font-medium text-gray-700">
             ეს თავი უფასოა (პრევიუ)
@@ -510,7 +510,7 @@ function ChapterModal({
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'ინახება...'

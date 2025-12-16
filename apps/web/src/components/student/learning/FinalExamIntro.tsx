@@ -86,7 +86,7 @@ export default function FinalExamIntro({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-indigo-600 to-purple-700 p-6 text-white">
+        <div className="relative bg-primary-900 p-6 text-white">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -280,7 +280,7 @@ export default function FinalExamIntro({
                   type="checkbox"
                   checked={agreedToRules}
                   onChange={(e) => setAgreedToRules(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                  className="mt-1 w-4 h-4 text-primary-900 rounded border-gray-300 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-600">
                   ვეთანხმები გამოცდის წესებს და ვადასტურებ, რომ მზად ვარ გამოცდის დასაწყებად
@@ -312,7 +312,7 @@ export default function FinalExamIntro({
               <button
                 onClick={onStartExam}
                 disabled={!agreedToRules || isStarting}
-                className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 bg-accent-500 text-white rounded-xl hover:bg-accent-600 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isStarting ? (
                   <>

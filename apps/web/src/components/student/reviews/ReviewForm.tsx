@@ -113,7 +113,7 @@ export default function ReviewForm({
               onClick={() => setRating(star)}
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
-              className="p-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
+              className="p-1 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
             >
               <svg
                 className={`w-8 h-8 transition-colors ${
@@ -147,7 +147,7 @@ export default function ReviewForm({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Summarize your experience"
           maxLength={100}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -167,7 +167,7 @@ export default function ReviewForm({
           }}
           placeholder="Share your experience with this course. What did you learn? How was the teaching quality?"
           rows={4}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
             errors.comment ? 'border-red-300' : 'border-gray-300'
           }`}
         />
@@ -199,7 +199,7 @@ export default function ReviewForm({
           onChange={(e) => setPros(e.target.value)}
           placeholder="What did you like about this course?"
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -215,7 +215,7 @@ export default function ReviewForm({
           onChange={(e) => setCons(e.target.value)}
           placeholder="What could be improved?"
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
 
@@ -287,7 +287,7 @@ export default function ReviewForm({
           id="anonymous"
           checked={isAnonymous}
           onChange={(e) => setIsAnonymous(e.target.checked)}
-          className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+          className="w-4 h-4 text-primary-900 border-gray-300 rounded focus:ring-primary-500"
         />
         <label htmlFor="anonymous" className="ml-2 text-sm text-gray-700">
           Post review anonymously
@@ -316,7 +316,7 @@ export default function ReviewForm({
         <button
           type="submit"
           disabled={isPending}
-          className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+          className="flex-1 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 flex items-center justify-center"
         >
           {isPending ? (
             <>

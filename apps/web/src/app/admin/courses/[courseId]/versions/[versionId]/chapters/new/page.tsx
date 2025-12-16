@@ -202,14 +202,14 @@ export default function ChapterNewPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
+                      ? 'border-accent-500 text-accent-500'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
                   {tab.icon}
                   {tab.label}
                   {tab.id === 'quiz' && questions.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-100 text-purple-600 rounded-full">
+                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-accent-100 text-accent-500 rounded-full">
                       {questions.length}
                     </span>
                   )}
@@ -231,7 +231,7 @@ export default function ChapterNewPage() {
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                       placeholder="თავის სახელი..."
                       required
                     />
@@ -245,7 +245,7 @@ export default function ChapterNewPage() {
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       rows={3}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                       placeholder="მოკლე აღწერა..."
                     />
                   </div>
@@ -256,7 +256,7 @@ export default function ChapterNewPage() {
                       id="isFree"
                       checked={formData.isFree}
                       onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-accent-500 rounded focus:ring-accent-500"
                     />
                     <label htmlFor="isFree" className="text-sm text-gray-700">
                       უფასო თავი (preview)
@@ -277,7 +277,7 @@ export default function ChapterNewPage() {
                       value={formData.videoUrl}
                       onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                       placeholder="https://youtube.com/watch?v=..."
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                     />
                   </div>
 
@@ -383,7 +383,7 @@ export default function ChapterNewPage() {
                       <div key={qIndex} className="bg-gray-50 rounded-lg border p-3 space-y-3">
                         {/* Question Header */}
                         <div className="flex items-start gap-2">
-                          <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs flex items-center justify-center font-medium flex-shrink-0">
+                          <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-500 text-xs flex items-center justify-center font-medium flex-shrink-0">
                             {qIndex + 1}
                           </span>
                           <div className="flex-1">
@@ -392,7 +392,7 @@ export default function ChapterNewPage() {
                               onChange={(e) => updateQuestion(qIndex, { question: e.target.value })}
                               placeholder="შეიყვანეთ კითხვა..."
                               rows={2}
-                              className="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border rounded-lg text-sm resize-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500"
                             />
                           </div>
                           <button
@@ -447,7 +447,7 @@ export default function ChapterNewPage() {
                                 value={answer.text}
                                 onChange={(e) => updateAnswer(qIndex, aIndex, { text: e.target.value })}
                                 placeholder={`პასუხი ${aIndex + 1}`}
-                                className="flex-1 px-2 py-1.5 border rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                className="flex-1 px-2 py-1.5 border rounded text-sm focus:ring-1 focus:ring-accent-500 focus:border-accent-500"
                               />
                               {question.answers.length > 2 && (
                                 <button
@@ -463,7 +463,7 @@ export default function ChapterNewPage() {
                           <button
                             type="button"
                             onClick={() => addAnswer(qIndex)}
-                            className="text-xs text-blue-600 hover:text-blue-700"
+                            className="text-xs text-accent-500 hover:text-accent-600"
                           >
                             + პასუხის დამატება
                           </button>
@@ -476,7 +476,7 @@ export default function ChapterNewPage() {
                   <button
                     type="button"
                     onClick={addQuestion}
-                    className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-purple-400 hover:text-purple-600 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-accent-400 hover:text-accent-500 transition-colors flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     კითხვის დამატება
@@ -502,7 +502,7 @@ export default function ChapterNewPage() {
               <button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 {createMutation.isPending ? 'შენახვა...' : 'შექმნა'}

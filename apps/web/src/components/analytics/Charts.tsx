@@ -461,7 +461,7 @@ export function ActivityHeatmap({ data, height = 200 }: HeatmapProps) {
               {row.map((value, hourIndex) => (
                 <div
                   key={hourIndex}
-                  className="flex-1 h-6 m-0.5 rounded cursor-pointer transition-colors hover:ring-2 hover:ring-indigo-400"
+                  className="flex-1 h-6 m-0.5 rounded cursor-pointer transition-colors hover:ring-2 hover:ring-primary-400"
                   style={{ backgroundColor: getColor(value) }}
                   title={`${days[dayIndex]} ${hourIndex}:00 - ${value} activities`}
                 />

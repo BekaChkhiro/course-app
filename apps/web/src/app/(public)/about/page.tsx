@@ -78,7 +78,7 @@ export default function AboutPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 py-20">
+      <section className="relative bg-primary-900 py-20">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -86,7 +86,7 @@ export default function AboutPage() {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white">ჩვენ შესახებ</h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-indigo-100">
+          <p className="mt-6 max-w-2xl mx-auto text-xl text-primary-100">
             ჩვენი მისია არის განათლების ხელმისაწვდომობა ყველასთვის
           </p>
         </div>
@@ -112,9 +112,9 @@ export default function AboutPage() {
                 რაც სწავლის პროცესს ხდის მაქსიმალურად ეფექტურს და საინტერესოს.
               </p>
             </div>
-            <div className="relative h-96 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-3xl overflow-hidden">
+            <div className="relative h-96 bg-gray-50 rounded-3xl overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-48 h-48 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-48 h-48 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
@@ -124,13 +124,13 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-indigo-600">
+      <section className="py-16 bg-primary-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="text-4xl sm:text-5xl font-bold text-white">{stat.value}</div>
-                <div className="mt-2 text-indigo-100">{stat.label}</div>
+                <div className="mt-2 text-primary-100">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -148,7 +148,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
               <div key={index} className="bg-white rounded-2xl p-6 shadow-sm text-center">
-                <div className="w-16 h-16 mx-auto bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                <div className="w-16 h-16 mx-auto bg-primary-100 rounded-xl flex items-center justify-center text-primary-900">
                   {value.icon}
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-gray-900">{value.title}</h3>
@@ -170,13 +170,13 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {team.map((member, index) => (
               <div key={index} className="text-center">
-                <div className="w-32 h-32 mx-auto bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center">
+                <div className="w-32 h-32 mx-auto bg-primary-900 rounded-full flex items-center justify-center">
                   <span className="text-4xl font-bold text-white">
                     {member.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-gray-900">{member.name}</h3>
-                <p className="text-indigo-600 font-medium">{member.role}</p>
+                <p className="text-primary-900 font-medium">{member.role}</p>
                 <p className="mt-2 text-sm text-gray-600">{member.bio}</p>
               </div>
             ))}

@@ -54,7 +54,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
   const statusColors: Record<string, string> = {
     OPEN: 'bg-blue-100 text-blue-700',
     IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
-    AWAITING_RESPONSE: 'bg-purple-100 text-purple-700',
+    AWAITING_RESPONSE: 'bg-accent-100 text-accent-600',
     RESOLVED: 'bg-green-100 text-green-700',
     CLOSED: 'bg-gray-100 text-gray-700',
   };
@@ -70,7 +70,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-900"></div>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
           </svg>
           <p className="text-gray-500">Failed to load message</p>
           {onBack && (
-            <button onClick={onBack} className="mt-4 text-indigo-600 hover:underline">
+            <button onClick={onBack} className="mt-4 text-primary-900 hover:underline">
               Go back
             </button>
           )}
@@ -133,8 +133,8 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Original Message */}
         <div className="flex gap-3">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-            <span className="text-sm font-medium text-indigo-600">
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+            <span className="text-sm font-medium text-primary-900">
               {message.user?.name?.charAt(0) || 'U'}
             </span>
           </div>
@@ -147,7 +147,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
                 {new Date(message.createdAt).toLocaleString()}
               </span>
             </div>
-            <div className="bg-indigo-50 rounded-lg p-4 text-gray-800">
+            <div className="bg-primary-50 rounded-lg p-4 text-gray-800">
               <p className="whitespace-pre-wrap">{message.content}</p>
             </div>
           </div>
@@ -159,9 +159,9 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
           return (
             <div key={reply.id} className={`flex gap-3 ${isAdmin ? '' : 'flex-row-reverse'}`}>
               <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                isAdmin ? 'bg-green-100' : 'bg-indigo-100'
+                isAdmin ? 'bg-green-100' : 'bg-primary-100'
               }`}>
-                <span className={`text-sm font-medium ${isAdmin ? 'text-green-600' : 'text-indigo-600'}`}>
+                <span className={`text-sm font-medium ${isAdmin ? 'text-green-600' : 'text-primary-900'}`}>
                   {reply.user?.name?.charAt(0) || '?'}
                 </span>
               </div>
@@ -180,7 +180,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
                   </span>
                 </div>
                 <div className={`rounded-lg p-4 text-gray-800 inline-block max-w-[80%] ${
-                  isAdmin ? 'bg-green-50 text-left' : 'bg-indigo-50 text-left'
+                  isAdmin ? 'bg-green-50 text-left' : 'bg-primary-50 text-left'
                 }`}>
                   <p className="whitespace-pre-wrap">{reply.content}</p>
                 </div>
@@ -201,12 +201,12 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="Type your reply..."
                 rows={3}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
               />
               <button
                 type="submit"
                 disabled={!replyContent.trim() || replyMutation.isPending}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
               >
                 {replyMutation.isPending ? (
                   <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">

@@ -102,7 +102,7 @@ export default function RegisterPage() {
 
   if (registrationSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
             <div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
@@ -127,7 +127,7 @@ export default function RegisterPage() {
               გთხოვთ შეამოწმოთ ელ-ფოსტა ანგარიშის დასადასტურებლად. ბმული გაგზავნილია <strong>{formData.email}</strong> მისამართზე.
             </p>
             <Link href="/auth/login">
-              <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25">
+              <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 transition-all duration-200 shadow-lg shadow-accent-500/25">
                 შესვლის გვერდზე გადასვლა
                 <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                 უკვე გაქვს ანგარიში?{' '}
                 <Link
                   href="/auth/login"
-                  className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
+                  className="font-semibold text-primary-900 hover:text-primary-500 transition-colors"
                 >
                   შესვლა
                 </Link>
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.name ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors`}
+                      className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.name ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}
                       placeholder="გიორგი"
                     />
                   </div>
@@ -227,7 +227,7 @@ export default function RegisterPage() {
                       required
                       value={formData.surname}
                       onChange={handleChange}
-                      className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.surname ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors`}
+                      className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.surname ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}
                       placeholder="ბერიძე"
                     />
                   </div>
@@ -254,7 +254,7 @@ export default function RegisterPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.email ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors`}
+                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.email ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}
                     placeholder="example@email.com"
                   />
                 </div>
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                     autoComplete="tel"
                     value={formData.phone}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.phone ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors`}
+                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.phone ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}
                     placeholder="+995 5XX XXX XXX"
                   />
                 </div>
@@ -305,7 +305,7 @@ export default function RegisterPage() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.password ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors`}
+                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.password ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}
                     placeholder="შეიყვანე ძლიერი პაროლი"
                   />
                 </div>
@@ -332,7 +332,7 @@ export default function RegisterPage() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.confirmPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors`}
+                    className={`block w-full pl-10 pr-4 py-2.5 border ${formErrors.confirmPassword ? 'border-red-300' : 'border-gray-200'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors`}
                     placeholder="ხელახლა შეიყვანე პაროლი"
                   />
                 </div>
@@ -347,15 +347,15 @@ export default function RegisterPage() {
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded mt-0.5 cursor-pointer"
+                  className="h-4 w-4 text-primary-900 focus:ring-primary-500 border-gray-300 rounded mt-0.5 cursor-pointer"
                 />
                 <label htmlFor="terms" className="ml-2 block text-sm text-gray-600 cursor-pointer">
                   ვეთანხმები{' '}
-                  <Link href="/terms" className="text-indigo-600 hover:text-indigo-500">
+                  <Link href="/terms" className="text-primary-900 hover:text-primary-500">
                     წესებსა და პირობებს
                   </Link>{' '}
                   და{' '}
-                  <Link href="/privacy" className="text-indigo-600 hover:text-indigo-500">
+                  <Link href="/privacy" className="text-primary-900 hover:text-primary-500">
                     კონფიდენციალურობის პოლიტიკას
                   </Link>
                 </label>
@@ -365,7 +365,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-indigo-500/25"
+                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-accent-500/25"
               >
                 {isLoading ? (
                   <>
@@ -390,11 +390,11 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side - Decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-purple-600 via-indigo-600 to-indigo-800 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary-900 relative overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-400/20 rounded-full blur-2xl" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-primary-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent-400/20 rounded-full blur-2xl" />
 
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
           <div className="max-w-md text-center">
@@ -412,7 +412,7 @@ export default function RegisterPage() {
             <h1 className="text-4xl font-bold mb-4">
               დაიწყე სწავლა დღესვე
             </h1>
-            <p className="text-lg text-indigo-100 mb-8">
+            <p className="text-lg text-primary-100 mb-8">
               შექმენი ანგარიში და მიიღე წვდომა ასობით პროფესიონალურ კურსზე
             </p>
 
@@ -420,30 +420,30 @@ export default function RegisterPage() {
             <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                 <div className="text-3xl font-bold">100+</div>
-                <div className="text-sm text-indigo-200">კურსი</div>
+                <div className="text-sm text-primary-100">კურსი</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                 <div className="text-3xl font-bold">50+</div>
-                <div className="text-sm text-indigo-200">ინსტრუქტორი</div>
+                <div className="text-sm text-primary-100">ინსტრუქტორი</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                 <div className="text-3xl font-bold">5K+</div>
-                <div className="text-sm text-indigo-200">სტუდენტი</div>
+                <div className="text-sm text-primary-100">სტუდენტი</div>
               </div>
             </div>
 
             {/* Testimonial */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-left">
-              <p className="text-indigo-100 italic mb-4">
+              <p className="text-primary-100 italic mb-4">
                 "ამ პლატფორმის საშუალებით ვისწავლე პროგრამირება ნულიდან. კურსები ძალიან კარგად არის სტრუქტურირებული."
               </p>
               <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-indigo-400/50 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-primary-400/50 flex items-center justify-center font-bold">
                   ლ
                 </div>
                 <div className="ml-3">
                   <div className="font-medium">ლუკა მამულაშვილი</div>
-                  <div className="text-sm text-indigo-200">Frontend Developer</div>
+                  <div className="text-sm text-primary-100">Frontend Developer</div>
                 </div>
               </div>
             </div>

@@ -69,11 +69,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-primary-900 relative overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-400/20 rounded-full blur-2xl" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-accent-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary-400/20 rounded-full blur-2xl" />
 
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
           <div className="max-w-md text-center">
@@ -91,7 +91,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold mb-4">
               კეთილი იყოს შენი მობრძანება
             </h1>
-            <p className="text-lg text-indigo-100 mb-8">
+            <p className="text-lg text-primary-100 mb-8">
               შემოგვიერთდი და აღმოაჩინე საუკეთესო კურსები შენი განვითარებისთვის
             </p>
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-indigo-100">100+ პროფესიონალური კურსი</span>
+                <span className="text-primary-100">100+ პროფესიონალური კურსი</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
@@ -111,7 +111,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-indigo-100">გამოცდილი ინსტრუქტორები</span>
+                <span className="text-primary-100">გამოცდილი ინსტრუქტორები</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
@@ -119,7 +119,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-indigo-100">სერტიფიკატი დასრულების შემდეგ</span>
+                <span className="text-primary-100">სერტიფიკატი დასრულების შემდეგ</span>
               </div>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
                 ჯერ არ გაქვს ანგარიში?{' '}
                 <Link
                   href="/auth/register"
-                  className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
+                  className="font-semibold text-primary-900 hover:text-primary-500 transition-colors"
                 >
                   რეგისტრაცია
                 </Link>
@@ -187,7 +187,7 @@ export default function LoginPage() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className={`block w-full pl-10 pr-4 py-3 border ${formErrors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500 focus:border-indigo-500'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
+                      className={`block w-full pl-10 pr-4 py-3 border ${formErrors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-200 focus:ring-primary-500 focus:border-primary-500'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
                       placeholder="example@email.com"
                     />
                   </div>
@@ -214,7 +214,7 @@ export default function LoginPage() {
                       required
                       value={formData.password}
                       onChange={handleChange}
-                      className={`block w-full pl-10 pr-4 py-3 border ${formErrors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-200 focus:ring-indigo-500 focus:border-indigo-500'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
+                      className={`block w-full pl-10 pr-4 py-3 border ${formErrors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-200 focus:ring-primary-500 focus:border-primary-500'} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
                       placeholder="შეიყვანე პაროლი"
                     />
                   </div>
@@ -230,7 +230,7 @@ export default function LoginPage() {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+                    className="h-4 w-4 text-primary-900 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
                   />
                   <span className="ml-2 text-sm text-gray-600">
                     დამახსოვრება
@@ -239,7 +239,7 @@ export default function LoginPage() {
 
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                  className="text-sm font-medium text-primary-900 hover:text-primary-500 transition-colors"
                 >
                   დაგავიწყდა პაროლი?
                 </Link>
@@ -248,7 +248,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-indigo-500/25"
+                className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-accent-500/25"
               >
                 {isLoading ? (
                   <>
@@ -274,11 +274,11 @@ export default function LoginPage() {
           {/* Footer */}
           <p className="mt-8 text-center text-sm text-gray-500">
             შესვლით ეთანხმები ჩვენს{' '}
-            <Link href="/terms" className="text-indigo-600 hover:text-indigo-500">
+            <Link href="/terms" className="text-primary-900 hover:text-primary-500">
               წესებს
             </Link>{' '}
             და{' '}
-            <Link href="/privacy" className="text-indigo-600 hover:text-indigo-500">
+            <Link href="/privacy" className="text-primary-900 hover:text-primary-500">
               კონფიდენციალურობის პოლიტიკას
             </Link>
           </p>

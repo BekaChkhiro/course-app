@@ -89,9 +89,9 @@ export default function StudentAnalyticsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Students</span>
             </div>
@@ -121,13 +121,13 @@ export default function StudentAnalyticsPage() {
             </select>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
             >
               <Download className="w-4 h-4" />
               Export CSV
@@ -215,7 +215,7 @@ export default function StudentAnalyticsPage() {
                     const Icon = deviceIcons[device.deviceType?.toLowerCase()] || Monitor;
                     return (
                       <div key={device.deviceType} className="text-center p-4 bg-gray-50 rounded-lg">
-                        <Icon className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
+                        <Icon className="w-8 h-8 text-primary-900 mx-auto mb-2" />
                         <p className="text-2xl font-bold text-gray-900">{device.users}</p>
                         <p className="text-sm text-gray-500 capitalize">{device.deviceType}</p>
                       </div>

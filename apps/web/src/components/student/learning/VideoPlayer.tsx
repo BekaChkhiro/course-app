@@ -441,7 +441,7 @@ export default function VideoPlayer({
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center space-x-4">
               {/* Play/Pause */}
-              <button onClick={togglePlay} className="hover:text-indigo-400 transition-colors">
+              <button onClick={togglePlay} className="hover:text-primary-400 transition-colors">
                 {isPlaying ? (
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
@@ -455,7 +455,7 @@ export default function VideoPlayer({
 
               {/* Volume */}
               <div className="flex items-center space-x-2 group/volume">
-                <button onClick={toggleMute} className="hover:text-indigo-400 transition-colors">
+                <button onClick={toggleMute} className="hover:text-primary-400 transition-colors">
                   {isMuted || volume === 0 ? (
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06l-1.72 1.72-1.72-1.72z" />
@@ -499,7 +499,7 @@ export default function VideoPlayer({
               {/* Fullscreen */}
               <button
                 onClick={toggleFullscreen}
-                className="hover:text-indigo-400 transition-colors"
+                className="hover:text-primary-400 transition-colors"
                 title="Fullscreen (F)"
               >
                 {isFullscreen ? (
@@ -530,7 +530,7 @@ export default function VideoPlayer({
                   onClick={() => handleJumpToBookmark(bookmark.timestamp || 0)}
                   className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center"
                 >
-                  <span className="text-sm font-medium text-indigo-600 w-16">
+                  <span className="text-sm font-medium text-primary-900 w-16">
                     {formatTime(bookmark.timestamp || 0)}
                   </span>
                   <span className="text-sm text-gray-900">{bookmark.title}</span>
@@ -559,7 +559,7 @@ export default function VideoPlayer({
                   type="text"
                   value={bookmarkTitle}
                   onChange={(e) => setBookmarkTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter bookmark title"
                   autoFocus
                 />
@@ -571,7 +571,7 @@ export default function VideoPlayer({
                 <textarea
                   value={bookmarkDescription}
                   onChange={(e) => setBookmarkDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   rows={3}
                   placeholder="Add a note about this moment"
                 />
@@ -587,7 +587,7 @@ export default function VideoPlayer({
               <button
                 onClick={handleSaveBookmark}
                 disabled={!bookmarkTitle.trim()}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Save Bookmark
               </button>

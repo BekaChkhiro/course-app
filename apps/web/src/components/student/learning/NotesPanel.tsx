@@ -101,7 +101,7 @@ export default function NotesPanel({
     { name: 'green', class: 'bg-green-200', border: 'border-green-300' },
     { name: 'blue', class: 'bg-blue-200', border: 'border-blue-300' },
     { name: 'pink', class: 'bg-pink-200', border: 'border-pink-300' },
-    { name: 'purple', class: 'bg-purple-200', border: 'border-purple-300' },
+    { name: 'purple', class: 'bg-accent-200', border: 'border-accent-300' },
   ];
 
   const getColorClass = (colorName: string | null) => {
@@ -169,7 +169,7 @@ export default function NotesPanel({
             <div className="px-4 py-3">
               <button
                 onClick={() => setShowNewNoteForm(true)}
-                className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors flex items-center justify-center"
+                className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary-400 hover:text-primary-900 transition-colors flex items-center justify-center"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -185,7 +185,7 @@ export default function NotesPanel({
               <textarea
                 value={newNoteContent}
                 onChange={(e) => setNewNoteContent(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                 rows={4}
                 placeholder="Write your note..."
                 autoFocus
@@ -203,7 +203,7 @@ export default function NotesPanel({
                 <button
                   onClick={handleSaveNote}
                   disabled={!newNoteContent.trim() || saveNoteMutation.isPending}
-                  className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1.5 text-sm bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Save
                 </button>
@@ -244,7 +244,7 @@ export default function NotesPanel({
                     <div key={note.id} className="p-4 hover:bg-gray-50 transition-colors">
                       {/* Chapter indicator for course view */}
                       {viewMode === 'course' && note.chapter && (
-                        <div className="text-xs text-indigo-600 font-medium mb-2">
+                        <div className="text-xs text-primary-900 font-medium mb-2">
                           Chapter {note.chapter.order}: {note.chapter.title}
                         </div>
                       )}
@@ -265,7 +265,7 @@ export default function NotesPanel({
                             onChange={(e) =>
                               setEditingNote({ ...editingNote, content: e.target.value })
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                             rows={4}
                             autoFocus
                           />
@@ -279,7 +279,7 @@ export default function NotesPanel({
                             <button
                               onClick={handleSaveNote}
                               disabled={saveNoteMutation.isPending}
-                              className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                              className="px-3 py-1.5 text-sm bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 transition-colors"
                             >
                               Save
                             </button>
@@ -298,7 +298,7 @@ export default function NotesPanel({
                           <div className="flex space-x-3">
                             <button
                               onClick={() => setEditingNote(note)}
-                              className="text-xs text-indigo-600 hover:text-indigo-700 transition-colors"
+                              className="text-xs text-primary-900 hover:text-primary-800 transition-colors"
                             >
                               Edit
                             </button>
@@ -323,7 +323,7 @@ export default function NotesPanel({
             <div className="flex items-center justify-between text-sm text-gray-500">
               <span>{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
               {notes.length > 0 && (
-                <button className="text-indigo-600 hover:text-indigo-700 transition-colors">
+                <button className="text-primary-900 hover:text-primary-800 transition-colors">
                   Export as PDF
                 </button>
               )}

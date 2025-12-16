@@ -40,7 +40,7 @@ const getFileIcon = (mimeType: string) => {
   if (mimeType === 'application/pdf') {
     return <FileText className="w-5 h-5 text-red-500" />;
   }
-  return <File className="w-5 h-5 text-blue-500" />;
+  return <File className="w-5 h-5 text-accent-500" />;
 };
 
 export default function ChapterAttachments({
@@ -157,7 +157,7 @@ export default function ChapterAttachments({
       {/* Upload Area */}
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors"
+        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-accent-400 hover:bg-accent-50/50 transition-colors"
       >
         <input
           ref={fileInputRef}
@@ -179,7 +179,7 @@ export default function ChapterAttachments({
       {/* Attachments List */}
       {isLoading ? (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent-500 mx-auto" />
         </div>
       ) : attachments.length > 0 ? (
         <div className="space-y-2">
@@ -199,20 +199,20 @@ export default function ChapterAttachments({
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-accent-500"
                       placeholder="სათაური"
                     />
                     <input
                       type="text"
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-accent-500"
                       placeholder="აღწერა (არასავალდებულო)"
                     />
                     <div className="flex gap-2">
                       <button
                         onClick={handleSaveEdit}
-                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        className="px-2 py-1 text-xs bg-accent-500 text-white rounded hover:bg-accent-600"
                       >
                         შენახვა
                       </button>
@@ -227,7 +227,7 @@ export default function ChapterAttachments({
                 ) : (
                   <>
                     <p
-                      className="text-sm font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600"
+                      className="text-sm font-medium text-gray-900 truncate cursor-pointer hover:text-accent-500"
                       onClick={() => handleEdit(attachment)}
                     >
                       {attachment.title}
@@ -246,7 +246,7 @@ export default function ChapterAttachments({
                       href={attachment.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                      className="p-1.5 text-gray-400 hover:text-accent-500 hover:bg-accent-50 rounded"
                       title="ნახვა"
                     >
                       <Eye className="w-4 h-4" />

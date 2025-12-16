@@ -26,7 +26,7 @@ function Section({ icon, title, description, children }: SectionProps) {
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+          <div className="p-2 bg-accent-100 rounded-lg text-accent-500">
             {icon}
           </div>
           <div>
@@ -109,7 +109,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
                   const title = e.target.value;
                   setFormData({ ...formData, title, slug: slugify(title) });
                 }}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
                 placeholder="მაგ: JavaScript საფუძვლები"
                 required
               />
@@ -125,7 +125,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className="w-full pl-20 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full pl-20 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
                   required
                 />
               </div>
@@ -161,7 +161,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
                 step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
                 required
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₾</span>
@@ -175,7 +175,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
             <select
               value={formData.categoryId}
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors bg-white"
               required
             >
               <option value="">აირჩიეთ...</option>
@@ -210,7 +210,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
                   className={`
                     flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
                     ${formData.status === option.value
-                      ? `${option.color} ring-2 ring-offset-1 ring-blue-500`
+                      ? `${option.color} ring-2 ring-offset-1 ring-accent-500`
                       : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                     }
                   `}
@@ -254,7 +254,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
               type="text"
               value={formData.metaTitle}
               onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
               placeholder="კურსის სათაური საძიებო სისტემებისთვის"
               maxLength={60}
             />
@@ -276,7 +276,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
               value={formData.metaDescription}
               onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors resize-none"
               placeholder="მოკლე აღწერა საძიებო რეზულტატებში გამოსაჩენად"
               maxLength={160}
             />
@@ -299,7 +299,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
               value={formData.metaKeywords}
               onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
               placeholder="javascript, web development, react"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
             />
             <p className="mt-1.5 text-xs text-gray-500">
               გამოყავით მძიმით
@@ -317,7 +317,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 transition-colors font-medium shadow-sm"
           >
             <Save className="w-4 h-4" />
             {updateMutation.isPending ? 'შენახვა...' : 'ცვლილებების შენახვა'}

@@ -76,7 +76,7 @@ function QuickActionCard({
             </div>
             <p className="text-gray-600 mt-2">{description}</p>
           </div>
-          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-900 transition-colors" />
         </div>
       </div>
     </Link>
@@ -88,7 +88,7 @@ function RecentCourseCard({ course }: { course: any }) {
     <Link href={`/admin/courses/${course.id}`}>
       <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-colors group">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg bg-primary-900 flex items-center justify-center">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -106,7 +106,7 @@ function RecentCourseCard({ course }: { course: any }) {
           }`}>
             {course.status === 'PUBLISHED' ? 'გამოქვეყნებული' : course.status === 'DRAFT' ? 'დრაფტი' : 'დაარქივებული'}
           </span>
-          <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 transition-colors" />
+          <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-primary-900 transition-colors" />
         </div>
       </div>
     </Link>
@@ -139,8 +139,8 @@ export default function AdminDashboard() {
       description: 'შექმენი, რედაქტირება და მართე კურსები',
       icon: BookOpen,
       href: '/admin/courses',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-accent-500',
+      bgColor: 'bg-accent-100',
       stats: `${courses.length} კურსი`
     },
     {
@@ -148,8 +148,8 @@ export default function AdminDashboard() {
       description: 'ორგანიზება და მართე კურსების კატეგორიები',
       icon: FolderTree,
       href: '/admin/categories',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-accent-500',
+      bgColor: 'bg-accent-100',
       stats: `${categories.length} კატეგორია`
     },
     {
@@ -196,19 +196,19 @@ export default function AdminDashboard() {
     <AdminLayout>
       <div className="space-y-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white">
+        <div className="bg-primary-900 rounded-2xl shadow-lg p-8 text-white">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 გამარჯობა, {user?.name}!
               </h1>
-              <p className="mt-2 text-indigo-100">
+              <p className="mt-2 text-primary-100">
                 კეთილი იყოს შენი მობრძანება ადმინისტრატორის პანელში
               </p>
             </div>
             <Link
               href="/admin/courses"
-              className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"
+              className="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-white text-primary-900 font-medium rounded-lg hover:bg-primary-50 transition-colors"
             >
               კურსების მართვა
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -222,8 +222,8 @@ export default function AdminDashboard() {
             title="სულ კურსები"
             value={courses.length}
             icon={<BookOpen className="w-6 h-6" />}
-            color="text-indigo-600"
-            bgColor="bg-indigo-100"
+            color="text-primary-900"
+            bgColor="bg-primary-100"
           />
           <StatCard
             title="გამოქვეყნებული"
@@ -243,8 +243,8 @@ export default function AdminDashboard() {
             title="ჩარიცხვები"
             value={totalEnrollments}
             icon={<Users className="w-6 h-6" />}
-            color="text-blue-600"
-            bgColor="bg-blue-100"
+            color="text-accent-500"
+            bgColor="bg-accent-100"
           />
         </div>
 
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-semibold text-gray-900">ბოლო კურსები</h2>
             <Link
               href="/admin/courses"
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+              className="text-sm text-primary-900 hover:text-primary-800 font-medium"
             >
               ყველას ნახვა
             </Link>
@@ -286,7 +286,7 @@ export default function AdminDashboard() {
               <p className="text-gray-500 mb-4">შექმენი პირველი კურსი!</p>
               <Link
                 href="/admin/courses"
-                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
               >
                 კურსის დამატება
               </Link>

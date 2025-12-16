@@ -57,9 +57,9 @@ interface StatCardProps {
 
 const colorClasses = {
   indigo: {
-    bg: 'bg-indigo-50',
-    icon: 'text-indigo-600',
-    ring: 'ring-indigo-600/10'
+    bg: 'bg-primary-50',
+    icon: 'text-primary-900',
+    ring: 'ring-primary-900/10'
   },
   green: {
     bg: 'bg-green-50',
@@ -82,9 +82,9 @@ const colorClasses = {
     ring: 'ring-blue-600/10'
   },
   purple: {
-    bg: 'bg-purple-50',
-    icon: 'text-purple-600',
-    ring: 'ring-purple-600/10'
+    bg: 'bg-accent-50',
+    icon: 'text-accent-500',
+    ring: 'ring-accent-500/10'
   },
   pink: {
     bg: 'bg-pink-50',
@@ -372,8 +372,8 @@ export function RealtimeStat({ title, value, icon: Icon, pulse = false, classNam
           </span>
         )}
         {Icon && !pulse && (
-          <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+            <Icon className="w-5 h-5 text-primary-900" />
           </div>
         )}
         <div className="flex-1">
@@ -427,8 +427,8 @@ export function Leaderboard({ title, items, showRank = true }: LeaderboardProps)
             {item.avatar ? (
               <img src={item.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                <span className="text-sm font-medium text-indigo-600">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                <span className="text-sm font-medium text-primary-900">
                   {item.name.charAt(0).toUpperCase()}
                 </span>
               </div>

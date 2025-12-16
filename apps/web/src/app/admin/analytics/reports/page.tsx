@@ -240,9 +240,9 @@ export default function ReportsBuilderPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Reports</span>
             </div>
@@ -261,7 +261,7 @@ export default function ReportsBuilderPage() {
           </div>
           <button
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Report
@@ -277,12 +277,12 @@ export default function ReportsBuilderPage() {
                 return (
                   <div
                     key={template.id}
-                    className="p-4 border border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors cursor-pointer"
+                    className="p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors cursor-pointer"
                     onClick={() => handleUseTemplate(template)}
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                        <ChartIcon className="w-5 h-5 text-indigo-600" />
+                      <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                        <ChartIcon className="w-5 h-5 text-primary-900" />
                       </div>
                       <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
                         {template.type}
@@ -325,7 +325,7 @@ export default function ReportsBuilderPage() {
                     value={newReport.name}
                     onChange={(e) => setNewReport({ ...newReport, name: e.target.value })}
                     placeholder="Enter report name"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 
@@ -338,7 +338,7 @@ export default function ReportsBuilderPage() {
                     onChange={(e) => setNewReport({ ...newReport, description: e.target.value })}
                     placeholder="Brief description of the report"
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 
@@ -353,7 +353,7 @@ export default function ReportsBuilderPage() {
                       type: e.target.value as ReportConfig['type'],
                       metrics: []
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
                     <option value="revenue">Revenue</option>
                     <option value="students">Students</option>
@@ -376,7 +376,7 @@ export default function ReportsBuilderPage() {
                           onClick={() => setNewReport({ ...newReport, chartType: type })}
                           className={`p-3 rounded-lg border flex flex-col items-center gap-1 transition-colors ${
                             newReport.chartType === type
-                              ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
+                              ? 'border-primary-500 bg-primary-50 text-primary-900'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
@@ -400,7 +400,7 @@ export default function ReportsBuilderPage() {
                         ...newReport,
                         dateRange: { ...newReport.dateRange, start: e.target.value }
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                   <div>
@@ -414,7 +414,7 @@ export default function ReportsBuilderPage() {
                         ...newReport,
                         dateRange: { ...newReport.dateRange, end: e.target.value }
                       })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
                 </div>
@@ -436,7 +436,7 @@ export default function ReportsBuilderPage() {
                           type="checkbox"
                           checked={newReport.metrics.includes(metric.id)}
                           onChange={() => handleMetricToggle(metric.id)}
-                          className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                          className="w-4 h-4 text-primary-900 border-gray-300 rounded focus:ring-primary-500"
                         />
                         <span className="text-sm text-gray-700">{metric.name}</span>
                       </label>
@@ -454,7 +454,7 @@ export default function ReportsBuilderPage() {
                         ...newReport,
                         schedule: { ...newReport.schedule!, enabled: e.target.checked }
                       })}
-                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      className="w-4 h-4 text-primary-900 border-gray-300 rounded focus:ring-primary-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Schedule this report</span>
                   </label>
@@ -526,7 +526,7 @@ export default function ReportsBuilderPage() {
               <button
                 onClick={handleSaveReport}
                 disabled={!newReport.name || newReport.metrics.length === 0 || createReportMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createReportMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -557,8 +557,8 @@ export default function ReportsBuilderPage() {
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-                        <ChartIcon className="w-6 h-6 text-indigo-600" />
+                      <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+                        <ChartIcon className="w-6 h-6 text-primary-900" />
                       </div>
                       <div>
                         <h3 className="font-medium text-gray-900">{report.name}</h3>
@@ -592,7 +592,7 @@ export default function ReportsBuilderPage() {
                       <button
                         onClick={() => runReportMutation.mutate(report.id)}
                         disabled={runReportMutation.isPending}
-                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-2 text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
                         title="Run Report"
                       >
                         {runReportMutation.isPending ? (
@@ -652,10 +652,10 @@ export default function ReportsBuilderPage() {
                 a.download = `students-${new Date().toISOString().split('T')[0]}.csv`;
                 a.click();
               })}
-              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors"
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Download className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center">
+                <Download className="w-5 h-5 text-accent-500" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-gray-900">Export Students</p>
@@ -675,7 +675,7 @@ export default function ReportsBuilderPage() {
                 a.download = `revenue-${new Date().toISOString().split('T')[0]}.csv`;
                 a.click();
               })}
-              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors"
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors"
             >
               <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
                 <Download className="w-5 h-5 text-green-600" />
@@ -695,10 +695,10 @@ export default function ReportsBuilderPage() {
                 a.download = `courses-${new Date().toISOString().split('T')[0]}.csv`;
                 a.click();
               })}
-              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors"
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Download className="w-5 h-5 text-purple-600" />
+              <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center">
+                <Download className="w-5 h-5 text-accent-500" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-gray-900">Export Courses</p>
@@ -708,7 +708,7 @@ export default function ReportsBuilderPage() {
 
             <button
               onClick={() => {/* API endpoint for full export */}}
-              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors"
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors"
             >
               <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
                 <Download className="w-5 h-5 text-orange-600" />

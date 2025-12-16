@@ -42,14 +42,14 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ['#10b981', '#3b82f6', '#8b5cf6'],
+          colors: ['#0e3355', '#ff4d40', '#10b981'],
         });
         confetti({
           particleCount: 3,
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ['#10b981', '#3b82f6', '#8b5cf6'],
+          colors: ['#0e3355', '#ff4d40', '#10b981'],
         });
 
         if (Date.now() < end) {
@@ -104,13 +104,13 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 px-8 pt-10 pb-16 text-center text-white">
+        {/* Header */}
+        <div className="bg-primary-900 px-8 pt-10 pb-16 text-center text-white">
           <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
             <Award className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold mb-2">გილოცავთ! 🎉</h2>
-          <p className="text-emerald-100">კურსი წარმატებით დაასრულეთ</p>
+          <p className="text-primary-100">კურსი წარმატებით დაასრულეთ</p>
         </div>
 
         {/* Content */}
@@ -121,14 +121,14 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 text-emerald-600 mb-1">
+                <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
                   <CheckCircle className="w-4 h-4" />
                   <span className="text-xl font-bold">{completedChapters}</span>
                 </div>
                 <p className="text-xs text-gray-500">თავი გავლილი</p>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 text-blue-600 mb-1">
+                <div className="flex items-center justify-center gap-1 text-accent-500 mb-1">
                   <BookOpen className="w-4 h-4" />
                   <span className="text-xl font-bold">100%</span>
                 </div>
@@ -157,7 +157,7 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
             {certificate?.pdfUrl && (
               <button
                 onClick={handleDownloadCertificate}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-500 text-white rounded-xl font-medium hover:bg-accent-600 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 სერტიფიკატის ჩამოტვირთვა

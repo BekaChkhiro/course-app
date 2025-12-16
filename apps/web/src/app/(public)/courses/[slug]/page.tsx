@@ -58,7 +58,7 @@ export default function CoursePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">კურსი ვერ მოიძებნა</h1>
           <p className="mt-2 text-gray-600">სამწუხაროდ, ეს კურსი არ არსებობს ან წაშლილია</p>
-          <Link href="/courses" className="mt-4 inline-block text-indigo-600 hover:underline">
+          <Link href="/courses" className="mt-4 inline-block text-primary-900 hover:underline">
             კურსებზე დაბრუნება
           </Link>
         </div>
@@ -79,7 +79,7 @@ export default function CoursePage() {
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+          <div className="w-full h-full bg-primary-900 flex items-center justify-center">
             <svg className="w-20 h-20 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
@@ -121,7 +121,7 @@ export default function CoursePage() {
               <button
                 onClick={handleEnroll}
                 disabled={isEnrolling}
-                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="block w-full text-center bg-accent-500 text-white py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isEnrolling ? (
                   <span className="flex items-center justify-center">
@@ -143,7 +143,7 @@ export default function CoursePage() {
         ) : (
           <Link
             href={`/auth/login?redirect=/courses/${course.slug}`}
-            className="block w-full text-center bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+            className="block w-full text-center bg-accent-500 text-white py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors"
           >
             {course.price === 0 ? 'დაიწყე უფასოდ' : 'შესვლა'}
           </Link>
@@ -310,7 +310,7 @@ export default function CoursePage() {
                         className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
                       >
                         <div className="flex items-center space-x-3">
-                          <span className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-medium">
+                          <span className="w-8 h-8 bg-primary-100 text-primary-900 rounded-full flex items-center justify-center text-sm font-medium">
                             {index + 1}
                           </span>
                           <div>
@@ -382,8 +382,8 @@ function ReviewsSection({ courseId }: { courseId: string }) {
             <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-indigo-600 font-medium">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-900 font-medium">
                       {review.user.firstName?.[0] || review.user.email[0].toUpperCase()}
                     </span>
                   </div>

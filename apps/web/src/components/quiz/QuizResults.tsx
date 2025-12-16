@@ -93,7 +93,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       {/* Result Header */}
-      <div className={`p-8 text-center ${passed ? 'bg-emerald-50' : 'bg-gray-50'}`}>
+      <div className={`p-8 text-center ${passed ? 'bg-green-50' : 'bg-gray-50'}`}>
         {/* Score Circle */}
         <div className="relative inline-flex items-center justify-center mb-4">
           <svg className="w-32 h-32 transform -rotate-90">
@@ -115,7 +115,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
               fill="none"
               strokeDasharray={`${(score / 100) * 352} 352`}
               strokeLinecap="round"
-              className={passed ? 'text-emerald-500' : 'text-gray-400'}
+              className={passed ? 'text-green-500' : 'text-gray-400'}
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -123,7 +123,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
           </div>
         </div>
 
-        <h2 className={`text-xl font-semibold mb-1 ${passed ? 'text-emerald-700' : 'text-gray-700'}`}>
+        <h2 className={`text-xl font-semibold mb-1 ${passed ? 'text-green-700' : 'text-gray-700'}`}>
           {passed ? 'გილოცავთ!' : 'სამწუხაროდ'}
         </h2>
         <p className="text-sm text-gray-500">
@@ -169,16 +169,16 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
 
       {/* Certificate */}
       {attempt.certificate ? (
-        <div className="px-6 py-4 bg-indigo-50 border-b border-indigo-100">
+        <div className="px-6 py-4 bg-primary-50 border-b border-primary-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-indigo-600" />
-              <span className="text-sm font-medium text-indigo-900">სერტიფიკატი მზადაა</span>
+              <Award className="w-5 h-5 text-primary-900" />
+              <span className="text-sm font-medium text-primary-900">სერტიფიკატი მზადაა</span>
             </div>
             {attempt.certificate.pdfUrl && (
               <button
                 onClick={() => window.open(attempt.certificate?.pdfUrl, '_blank')}
-                className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800"
+                className="flex items-center gap-1.5 text-sm text-primary-900 hover:text-primary-800"
               >
                 <Download className="w-4 h-4" />
                 ჩამოტვირთვა
@@ -233,7 +233,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
             return (
               <button
                 onClick={onRetry}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-500 text-white rounded-xl font-medium hover:bg-accent-600 transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 თავიდან ცდა ({attemptsUsed} / {maxAttempts})
@@ -276,14 +276,14 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                 <div
                   key={question.id}
                   className={`p-4 rounded-xl border-2 ${
-                    isCorrect ? 'border-emerald-100 bg-emerald-50/50' : 'border-red-100 bg-red-50/50'
+                    isCorrect ? 'border-green-100 bg-green-50/50' : 'border-red-100 bg-red-50/50'
                   }`}
                 >
                   {/* Question header */}
                   <div className="flex items-start gap-3 mb-3">
                     <span
                       className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+                        isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                       }`}
                     >
                       {isCorrect ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
@@ -321,7 +321,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
 
                       let className = 'px-3 py-2 rounded-lg text-sm ';
                       if (isCorrectAnswer) {
-                        className += 'bg-emerald-100 text-emerald-800';
+                        className += 'bg-green-100 text-green-800';
                       } else if (isUserAnswer && !isCorrectAnswer) {
                         className += 'bg-red-100 text-red-800 line-through';
                       } else {
@@ -331,7 +331,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                       return (
                         <div key={answer.id} className={className}>
                           <div className="flex items-center gap-2">
-                            {isCorrectAnswer && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                            {isCorrectAnswer && <Check className="w-3.5 h-3.5 text-green-600" />}
                             {isUserAnswer && !isCorrectAnswer && <X className="w-3.5 h-3.5 text-red-600" />}
                             <span>{answer.answer}</span>
                           </div>
@@ -359,7 +359,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
         <div className="flex items-center justify-center gap-4 mb-2">
           <span className="flex items-center gap-1.5 text-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>
             <span className="text-gray-600">{correctCount} სწორი</span>
           </span>
           <span className="flex items-center gap-1.5 text-sm">

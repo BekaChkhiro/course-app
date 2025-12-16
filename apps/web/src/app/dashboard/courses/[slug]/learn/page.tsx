@@ -67,9 +67,9 @@ const getFileIconConfig = (previewType: string | null) => {
     };
   }
   return {
-    bg: 'bg-indigo-100',
+    bg: 'bg-primary-100',
     icon: (
-      <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-primary-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
     )
@@ -170,7 +170,7 @@ function FileSection({
                 <a
                   href={attachment.url}
                   download={attachment.fileName}
-                  className="px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                  className="px-3 py-2 bg-accent-500 text-white text-sm font-medium rounded-lg hover:bg-accent-600 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -261,7 +261,7 @@ function ChapterSidebar({
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           {(isMobile || !isCollapsed) && (
             <div className="flex-1 min-w-0 pr-2">
-              <Link href="/dashboard/courses" className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center mb-1">
+              <Link href="/dashboard/courses" className="text-sm text-primary-900 hover:text-primary-800 flex items-center mb-1">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -321,7 +321,7 @@ function ChapterSidebar({
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${
-                  overallProgress === 100 ? 'bg-green-500' : 'bg-indigo-600'
+                  overallProgress === 100 ? 'bg-green-500' : 'bg-accent-500'
                 }`}
                 style={{ width: `${overallProgress}%` }}
               />
@@ -396,7 +396,7 @@ function ChapterSidebar({
                 onClick={handleChapterClick}
                 className={`w-full text-left transition-colors ${
                   isActive
-                    ? 'bg-indigo-50 border-r-2 border-indigo-600'
+                    ? 'bg-primary-50 border-r-2 border-primary-900'
                     : 'hover:bg-gray-50'
                 }`}
               >
@@ -407,7 +407,7 @@ function ChapterSidebar({
                       isCompleted
                         ? 'bg-green-100 text-green-600'
                         : isActive
-                        ? 'bg-indigo-100 text-indigo-600'
+                        ? 'bg-primary-100 text-primary-900'
                         : 'bg-gray-100 text-gray-500'
                     }`}
                   >
@@ -422,7 +422,7 @@ function ChapterSidebar({
 
                   {(isMobile || !isCollapsed) && (
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${isActive ? 'text-indigo-600' : 'text-gray-900'}`}>
+                      <p className={`text-sm font-medium truncate ${isActive ? 'text-primary-900' : 'text-gray-900'}`}>
                         {chapter.title}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -459,7 +459,7 @@ function ChapterSidebar({
                       {chapter.progress.watchPercentage > 0 && !isCompleted && (
                         <div className="mt-2 w-full bg-gray-200 rounded-full h-1">
                           <div
-                            className="bg-indigo-400 h-1 rounded-full"
+                            className="bg-accent-400 h-1 rounded-full"
                             style={{ width: `${chapter.progress.watchPercentage}%` }}
                           />
                         </div>
@@ -651,7 +651,7 @@ function ChapterContent({
                 onClick={() => onTabChange(tab.id)}
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? 'border-indigo-600 text-indigo-600'
+                    ? 'border-primary-900 text-primary-900'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -736,7 +736,7 @@ function ChapterContent({
         {/* Theory Tab */}
         {activeTab === 'theory' && chapter.theory && (
           <div
-            className="prose prose-indigo max-w-none"
+            className="prose prose-primary max-w-none prose-headings:text-primary-900 prose-a:text-accent-500 hover:prose-a:text-accent-600"
             dangerouslySetInnerHTML={{ __html: chapter.theory }}
           />
         )}
@@ -756,7 +756,7 @@ function ChapterContent({
                       <a
                         href={previewFile.url}
                         download
-                        className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 flex items-center gap-1"
+                        className="px-3 py-1.5 bg-accent-500 text-white text-sm rounded-lg hover:bg-accent-600 flex items-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -777,7 +777,7 @@ function ChapterContent({
                     {isLoadingPreview ? (
                       <div className="w-full h-full flex items-center justify-center min-h-[200px]">
                         <div className="text-center">
-                          <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+                          <div className="w-12 h-12 border-4 border-gray-200 border-t-primary-900 rounded-full animate-spin mx-auto mb-4" />
                           <p className="text-gray-600">იტვირთება...</p>
                         </div>
                       </div>
@@ -1105,7 +1105,7 @@ export default function CourseLearningPage() {
   if (isCourseLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-900"></div>
       </div>
     );
   }
@@ -1121,7 +1121,7 @@ export default function CourseLearningPage() {
           <p className="text-gray-500 mb-4">ეს კურსი შესაძლოა არ არსებობდეს ან თქვენ არ გაქვთ მასზე წვდომა.</p>
           <Link
             href="/dashboard/courses"
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
           >
             ჩემს კურსებზე დაბრუნება
           </Link>
@@ -1154,7 +1154,7 @@ export default function CourseLearningPage() {
     <div className="h-screen bg-gray-50 overflow-hidden">
       {/* Upgrade Banner */}
       {upgradeInfo && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-3 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-accent-500 text-white px-4 py-3 shadow-lg">
           <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 rounded-full p-1.5">
@@ -1173,7 +1173,7 @@ export default function CourseLearningPage() {
             </div>
             <button
               onClick={handleUpgrade}
-              className="px-4 py-1.5 bg-white text-orange-600 rounded-lg text-sm font-medium hover:bg-orange-50 transition-colors"
+              className="px-4 py-1.5 bg-white text-accent-600 rounded-lg text-sm font-medium hover:bg-accent-50 transition-colors"
             >
               განახლება {upgradeInfo.upgradePrice > 0 && `- ${upgradeInfo.upgradePrice.toFixed(2)} ₾`}
             </button>
@@ -1254,7 +1254,7 @@ export default function CourseLearningPage() {
         {finalExamMode !== 'idle' && courseData.data.finalExam ? (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             {/* Final Exam Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="bg-primary-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1295,7 +1295,7 @@ export default function CourseLearningPage() {
           </div>
         ) : isChapterLoading || !chapterData?.data ? (
           <div className="flex items-center justify-center h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-900"></div>
           </div>
         ) : (
           <ChapterContent
@@ -1352,7 +1352,7 @@ export default function CourseLearningPage() {
               disabled={!hasNextChapter}
               className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
                 hasNextChapter
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800'
+                  ? 'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-600'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >

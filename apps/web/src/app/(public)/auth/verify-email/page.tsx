@@ -46,14 +46,14 @@ function VerifyEmailContent() {
   }, [token, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
         {/* Loading State */}
         {status === 'loading' && (
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
-            <div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-indigo-100 mb-6">
+            <div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-primary-100 mb-6">
               <svg
-                className="animate-spin h-10 w-10 text-indigo-600"
+                className="animate-spin h-10 w-10 text-primary-900"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -82,7 +82,7 @@ function VerifyEmailContent() {
 
             {/* Progress bar animation */}
             <div className="mt-6 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 h-1.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+              <div className="bg-primary-900 h-1.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
             </div>
           </div>
         )}
@@ -115,7 +115,7 @@ function VerifyEmailContent() {
             </p>
 
             <div className="flex items-center justify-center text-sm text-gray-500 mb-6">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-primary-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -123,7 +123,7 @@ function VerifyEmailContent() {
             </div>
 
             <Link href="/auth/login">
-              <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25">
+              <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 transition-all duration-200 shadow-lg shadow-accent-500/25">
                 შესვლის გვერდზე გადასვლა
                 <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -160,7 +160,7 @@ function VerifyEmailContent() {
 
             <div className="space-y-3">
               <Link href="/auth/register">
-                <button className="w-full flex items-center justify-center px-4 py-3 border-2 border-indigo-600 text-base font-medium rounded-xl text-indigo-600 bg-white hover:bg-indigo-50 transition-all duration-200">
+                <button className="w-full flex items-center justify-center px-4 py-3 border-2 border-accent-500 text-base font-medium rounded-xl text-accent-500 bg-white hover:bg-primary-50 transition-all duration-200">
                   <svg className="mr-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
@@ -169,7 +169,7 @@ function VerifyEmailContent() {
               </Link>
 
               <Link href="/auth/login">
-                <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg shadow-indigo-500/25">
+                <button className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 transition-all duration-200 shadow-lg shadow-accent-500/25">
                   შესვლის გვერდზე გადასვლა
                   <svg className="ml-2 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -184,7 +184,7 @@ function VerifyEmailContent() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
             დახმარება გჭირდება?{' '}
-            <Link href="/contact" className="text-indigo-600 hover:text-indigo-500 font-medium">
+            <Link href="/contact" className="text-primary-900 hover:text-primary-500 font-medium">
               დაგვიკავშირდი
             </Link>
           </p>
@@ -197,12 +197,12 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full px-4">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
-            <div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-indigo-100 mb-6">
+            <div className="mx-auto flex items-center justify-center w-20 h-20 rounded-full bg-primary-100 mb-6">
               <svg
-                className="animate-spin h-10 w-10 text-indigo-600"
+                className="animate-spin h-10 w-10 text-primary-900"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"

@@ -91,7 +91,7 @@ export default function MessageComposer({
           }}
           placeholder="Brief description of your question or issue"
           maxLength={200}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
             errors.subject ? 'border-red-300' : 'border-gray-300'
           }`}
         />
@@ -109,7 +109,7 @@ export default function MessageComposer({
           id="course"
           value={courseId}
           onChange={(e) => setCourseId(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
         >
           <option value="">No specific course</option>
           {coursesData?.data.courses.map((course) => (
@@ -183,7 +183,7 @@ export default function MessageComposer({
           }}
           placeholder="Describe your question, issue, or feedback in detail..."
           rows={6}
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
             errors.content ? 'border-red-300' : 'border-gray-300'
           }`}
         />
@@ -225,7 +225,7 @@ export default function MessageComposer({
         <button
           type="submit"
           disabled={sendMutation.isPending || sendMutation.isSuccess}
-          className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+          className="flex-1 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 flex items-center justify-center"
         >
           {sendMutation.isPending ? (
             <>

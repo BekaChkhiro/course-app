@@ -137,7 +137,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
         <h2 className="text-xl font-semibold">კურსის ვერსიები</h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600"
         >
           <Plus className="w-4 h-4" />
           ახალი ვერსია
@@ -168,7 +168,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
           <p className="text-gray-500 mb-4">ვერსიები არ არის</p>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-accent-500 hover:text-accent-600 font-medium"
           >
             შექმენი პირველი ვერსია
           </button>
@@ -244,7 +244,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                   </div>
 
                   <div className="flex items-center">
-                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" />
                   </div>
                 </div>
               </Link>
@@ -277,7 +277,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       handleCreateDraftCopy(version);
                     }}
                     disabled={createDraftCopyMutation.isPending}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="px-3 py-1.5 bg-accent-500 hover:bg-accent-600 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="Draft ასლის შექმნა"
                   >
                     <Copy className="w-3.5 h-3.5" />
@@ -294,7 +294,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       handleActivate(version);
                     }}
                     disabled={activateMutation.isPending}
-                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="px-3 py-1.5 bg-accent-600 hover:bg-accent-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="აქტიურის გახდომა"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -441,7 +441,7 @@ function VersionModal({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Info banner for new versions */}
         {!version && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+          <div className="bg-accent-50 border border-accent-200 rounded-lg p-3 text-sm text-accent-600">
             ახალი ვერსია იქმნება Draft სტატუსით. გამოქვეყნებამდე შეგიძლიათ თავისუფლად დაარედაქტიროთ.
           </div>
         )}
@@ -454,7 +454,7 @@ function VersionModal({
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
             required
           />
         </div>
@@ -467,13 +467,13 @@ function VersionModal({
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
           />
         </div>
 
         {/* Copy from previous version - only show when creating new version */}
         {!version && availableVersions.length > 0 && (
-          <div className="border border-blue-200 bg-blue-50 rounded-lg p-4">
+          <div className="border border-accent-200 bg-accent-50 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -483,7 +483,7 @@ function VersionModal({
                   setCopyFromVersion(e.target.checked);
                   if (!e.target.checked) setSelectedVersionId('');
                 }}
-                className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-4 h-4 text-accent-500 rounded focus:ring-2 focus:ring-accent-500"
               />
               <div className="flex-1">
                 <label htmlFor="copyFromVersion" className="block text-sm font-medium text-gray-900 cursor-pointer">
@@ -503,7 +503,7 @@ function VersionModal({
                 <select
                   value={selectedVersionId}
                   onChange={(e) => setSelectedVersionId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
                   required={copyFromVersion}
                 >
                   <option value="">აირჩიეთ ვერსია...</option>
@@ -543,7 +543,7 @@ function VersionModal({
                     ...formData,
                     upgradePriceType: e.target.value as '' | UpgradePriceType
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
                 >
                   <option value="">არ მითითებულა</option>
                   <option value="FIXED">ფიქსირებული თანხა (GEL)</option>
@@ -562,7 +562,7 @@ function VersionModal({
                   max={formData.upgradePriceType === 'PERCENTAGE' ? '100' : undefined}
                   value={formData.upgradePriceValue}
                   onChange={(e) => setFormData({ ...formData, upgradePriceValue: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
                   disabled={!formData.upgradePriceType}
                   placeholder={formData.upgradePriceType === 'PERCENTAGE' ? 'მაგ: 30' : 'მაგ: 50.00'}
                 />
@@ -599,7 +599,7 @@ function VersionModal({
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'შენახვა...'

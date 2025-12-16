@@ -108,7 +108,7 @@ export default function AnalyticsDashboardPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">მთავარი</Link>
+              <Link href="/admin" className="hover:text-primary-900">მთავარი</Link>
               <span>/</span>
               <span>ანალიტიკა</span>
             </div>
@@ -119,7 +119,7 @@ export default function AnalyticsDashboardPage() {
             <select
               value={period}
               onChange={(e) => setPeriod(parseInt(e.target.value))}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value={7}>ბოლო 7 დღე</option>
               <option value={30}>ბოლო 30 დღე</option>
@@ -128,14 +128,14 @@ export default function AnalyticsDashboardPage() {
             </select>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
               title="განახლება"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
             <Link
               href="/admin/analytics/reports"
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
             >
               <Download className="w-4 h-4" />
               ექსპორტი
@@ -212,7 +212,7 @@ export default function AnalyticsDashboardPage() {
                 action={
                   <Link
                     href="/admin/analytics/revenue"
-                    className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    className="text-sm text-primary-900 hover:text-primary-800 flex items-center gap-1"
                   >
                     დეტალები
                     <ArrowRight className="w-4 h-4" />
@@ -233,14 +233,14 @@ export default function AnalyticsDashboardPage() {
               {/* Revenue Breakdown */}
               <ChartContainer title="შემოსავალი პერიოდების მიხედვით">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-primary-50 rounded-lg">
                     <div>
                       <p className="text-sm text-gray-500">დღეს</p>
                       <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(dashboard.revenue?.today || 0)}
                       </p>
                     </div>
-                    <DollarSign className="w-8 h-8 text-indigo-600" />
+                    <DollarSign className="w-8 h-8 text-primary-900" />
                   </div>
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                     <div>
@@ -251,14 +251,14 @@ export default function AnalyticsDashboardPage() {
                     </div>
                     <Calendar className="w-8 h-8 text-green-600" />
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-accent-50 rounded-lg">
                     <div>
                       <p className="text-sm text-gray-500">ეს წელი</p>
                       <p className="text-xl font-bold text-gray-900">
                         {formatCurrency(dashboard.revenue?.year || 0)}
                       </p>
                     </div>
-                    <TrendingUp className="w-8 h-8 text-purple-600" />
+                    <TrendingUp className="w-8 h-8 text-accent-500" />
                   </div>
                 </div>
               </ChartContainer>
@@ -273,7 +273,7 @@ export default function AnalyticsDashboardPage() {
                 action={
                   <Link
                     href="/admin/analytics/students"
-                    className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    className="text-sm text-primary-900 hover:text-primary-800 flex items-center gap-1"
                   >
                     დეტალები
                     <ArrowRight className="w-4 h-4" />
@@ -344,7 +344,7 @@ export default function AnalyticsDashboardPage() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-200 rounded-xl hover:border-indigo-300 hover:shadow-md transition-all"
+                    className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-md transition-all"
                   >
                     <div className={`p-3 rounded-lg bg-${link.color}-100`}>
                       <Icon className={`w-6 h-6 text-${link.color}-600`} />

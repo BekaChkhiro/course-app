@@ -59,9 +59,9 @@ export default function FinalExamSection({
       description: 'დაასრულე ყველა თავი',
     },
     available: {
-      bgColor: 'bg-indigo-50',
-      textColor: 'text-indigo-600',
-      borderColor: 'border-indigo-200',
+      bgColor: 'bg-primary-50',
+      textColor: 'text-primary-900',
+      borderColor: 'border-primary-100',
       icon: <Trophy className="w-5 h-5" />,
       label: 'ხელმისაწვდომი',
       description: 'დაიწყე გამოცდა',
@@ -159,7 +159,7 @@ export default function FinalExamSection({
                     ? 'bg-green-600 hover:bg-green-700 text-white'
                     : hasAttempted
                     ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    : 'bg-accent-500 hover:bg-accent-600 text-white'
                 }`}
               >
                 <Play className="w-4 h-4" />

@@ -125,7 +125,7 @@ export default function ChapterView({
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-900 mx-auto"></div>
           <p className="text-gray-500 mt-4">Loading chapter...</p>
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function ChapterView({
                 onClick={() => setActiveTab(tab.id)}
                 className={`inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50'
+                    ? 'border-primary-900 text-primary-900 bg-primary-50'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >
@@ -347,8 +347,8 @@ export default function ChapterView({
           <div className="p-6">
             <div className="max-w-2xl mx-auto bg-white rounded-xl border border-gray-200 p-8">
               <div className="text-center">
-                <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-primary-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -377,7 +377,7 @@ export default function ChapterView({
                 </div>
                 <Link
                   href={`/quiz/${chapter.quiz.id}`}
-                  className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                  className="inline-flex items-center px-6 py-3 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors font-medium"
                 >
                   Start Quiz
                   <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,7 +430,7 @@ export default function ChapterView({
             disabled={!hasNextChapter}
             className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
               hasNextChapter
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                ? 'bg-accent-500 text-white hover:bg-accent-600'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >

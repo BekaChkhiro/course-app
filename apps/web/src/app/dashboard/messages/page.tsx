@@ -21,7 +21,7 @@ function MessageListItem({
   const statusColors: Record<string, string> = {
     OPEN: 'bg-blue-100 text-blue-700',
     IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
-    AWAITING_RESPONSE: 'bg-purple-100 text-purple-700',
+    AWAITING_RESPONSE: 'bg-accent-100 text-accent-600',
     RESOLVED: 'bg-green-100 text-green-700',
     CLOSED: 'bg-gray-100 text-gray-700',
   };
@@ -40,7 +40,7 @@ function MessageListItem({
       onClick={onClick}
       className={`w-full text-left p-4 border-b border-gray-100 transition-colors border-l-4 ${
         priorityIndicators[message.priority] || 'border-l-gray-300'
-      } ${isSelected ? 'bg-indigo-50' : hasUnread ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+      } ${isSelected ? 'bg-primary-50' : hasUnread ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
     >
       <div className="flex items-start justify-between gap-2 mb-1">
         <h4 className={`text-sm truncate ${hasUnread ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
@@ -132,7 +132,7 @@ export default function MessagesPage() {
               setShowComposer(true);
               setSelectedMessageId(null);
             }}
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -152,7 +152,7 @@ export default function MessagesPage() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 {filterOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -182,7 +182,7 @@ export default function MessagesPage() {
                   <p className="text-gray-500">შეტყობინებები ჯერ არ არის</p>
                   <button
                     onClick={() => setShowComposer(true)}
-                    className="mt-4 text-indigo-600 hover:underline"
+                    className="mt-4 text-primary-900 hover:underline"
                   >
                     საუბრის დაწყება
                   </button>
@@ -247,7 +247,7 @@ export default function MessagesPage() {
                   </p>
                   <button
                     onClick={() => setShowComposer(true)}
-                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

@@ -68,9 +68,9 @@ export default function EngagementAnalyticsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Link href="/admin" className="hover:text-indigo-600">Dashboard</Link>
+              <Link href="/admin" className="hover:text-primary-900">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/analytics" className="hover:text-indigo-600">Analytics</Link>
+              <Link href="/admin/analytics" className="hover:text-primary-900">Analytics</Link>
               <span>/</span>
               <span>Engagement</span>
             </div>
@@ -99,7 +99,7 @@ export default function EngagementAnalyticsPage() {
             </select>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -267,7 +267,7 @@ export default function EngagementAnalyticsPage() {
 
                     return (
                       <div key={feature.feature} className="text-center p-4 bg-gray-50 rounded-xl">
-                        <Icon className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
+                        <Icon className="w-8 h-8 text-primary-900 mx-auto mb-2" />
                         <p className="text-2xl font-bold text-gray-900">{feature.usage}</p>
                         <p className="text-xs text-gray-500 mt-1">
                           {labels[feature.feature] || feature.feature.replace('_', ' ')}

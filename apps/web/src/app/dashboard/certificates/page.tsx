@@ -16,7 +16,7 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       {/* Certificate Preview */}
-      <div className="relative h-48 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6">
+      <div className="relative h-48 bg-primary-900 p-6">
         <div className="absolute inset-0 bg-black bg-opacity-10" />
         <div className="relative text-white">
           <div className="flex items-center justify-between mb-4">
@@ -60,7 +60,7 @@ function CertificateCard({ certificate }: { certificate: Certificate }) {
             <a
               href={certificate.pdfUrl}
               download
-              className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+              className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors text-sm font-medium"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -154,7 +154,7 @@ export default function CertificatesPage() {
             </p>
             <a
               href="/dashboard/courses"
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
             >
               სწავლის დაწყება
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
