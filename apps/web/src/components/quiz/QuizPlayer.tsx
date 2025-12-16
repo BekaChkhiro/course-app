@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, ChevronLeft, ChevronRight, AlertTriangle, Check, Loader2 } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, AlertTriangle, Check, Loader2, X, ZoomIn } from 'lucide-react';
 import {
   quizApi,
   quizAttemptApi,
@@ -29,6 +29,9 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [passedAttemptId, setPassedAttemptId] = useState<string | null>(null);
+  const [attemptsInfo, setAttemptsInfo] = useState<{ used: number; max: number } | null>(null);
 
   const autoSaveTimerRef = useRef<NodeJS.Timeout>();
   const countdownTimerRef = useRef<NodeJS.Timeout>();
@@ -54,8 +57,26 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
   const loadQuiz = async () => {
     try {
-      const response = await quizApi.getById(quizId, true);
-      setQuiz(response.data);
+      const [quizResponse, attemptsResponse] = await Promise.all([
+        quizApi.getById(quizId, true),
+        quizAttemptApi.getUserAttempts(quizId)
+      ]);
+
+      setQuiz(quizResponse.data);
+
+      // Check if user has already passed
+      const attempts = attemptsResponse.data || [];
+      const passedAttempt = attempts.find((a: any) => a.passed && (a.status === 'COMPLETED' || a.status === 'TIME_EXPIRED'));
+
+      if (passedAttempt) {
+        setPassedAttemptId(passedAttempt.id);
+      }
+
+      // Calculate attempts info
+      const completedAttempts = attempts.filter((a: any) => a.status === 'COMPLETED' || a.status === 'TIME_EXPIRED');
+      const maxAttempts = quizResponse.data.maxAttempts ?? 2;
+      setAttemptsInfo({ used: completedAttempts.length, max: maxAttempts });
+
       setLoading(false);
     } catch (error) {
       console.error('Failed to load quiz:', error);
@@ -97,7 +118,17 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
       if (quiz?.preventCopyPaste) setupCopyPasteDetection();
     } catch (error: any) {
       console.error('Failed to start quiz:', error);
-      toast.error(error.response?.data?.message || 'ვერ დაიწყო ქვიზი');
+      const errorMessage = error.response?.data?.message || '';
+
+      if (errorMessage.includes('ALREADY_PASSED')) {
+        toast.error('ქვიზი უკვე გაიარეთ!');
+        // Reload to show results
+        loadQuiz();
+      } else if (errorMessage.includes('Maximum attempts')) {
+        toast.error('მცდელობები ამოიწურა');
+      } else {
+        toast.error(errorMessage || 'ვერ დაიწყო ქვიზი');
+      }
     }
   };
 
@@ -204,6 +235,19 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
   const goToQuestion = (index: number) => {
     if (!quiz?.questions) return;
+
+    // Check if trying to go forward
+    if (index > currentQuestionIndex) {
+      const currentQuestion = quiz.questions[currentQuestionIndex];
+      const currentAnswers = answers[currentQuestion.id];
+
+      // Block if current question is not answered
+      if (!currentAnswers || currentAnswers.length === 0) {
+        toast.error('გთხოვთ უპასუხოთ კითხვას შემდეგზე გადასვლამდე');
+        return;
+      }
+    }
+
     if (index >= 0 && index < quiz.questions.length) {
       setCurrentQuestionIndex(index);
     }
@@ -216,11 +260,10 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
       (q) => !answers[q.id] || answers[q.id].length === 0
     ).length || 0;
 
+    // Block submission if any questions are unanswered
     if (unansweredCount > 0) {
-      const confirm = window.confirm(
-        `${unansweredCount} კითხვა უპასუხოდ დარჩა. გსურთ დასრულება?`
-      );
-      if (!confirm) return;
+      toast.error(`${unansweredCount} კითხვა უპასუხოდაა. უპასუხეთ ყველა კითხვას დასრულებამდე.`);
+      return;
     }
 
     setIsSubmitting(true);
@@ -265,6 +308,31 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     );
   }
 
+  // If already passed - redirect to results
+  if (passedAttemptId) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-xl mx-auto">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8 text-emerald-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">ქვიზი ჩაბარებულია!</h2>
+          <p className="text-gray-500 text-sm">{quiz.title}</p>
+        </div>
+
+        <button
+          onClick={() => router.push(`/quiz/${quizId}/results/${passedAttemptId}`)}
+          className="w-full py-3.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+        >
+          შედეგების ნახვა
+        </button>
+      </div>
+    );
+  }
+
+  // Check if max attempts reached
+  const maxAttemptsReached = attemptsInfo && attemptsInfo.used >= attemptsInfo.max;
+
   // Start screen - Minimalist
   if (!hasStarted) {
     return (
@@ -293,13 +361,29 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
           </div>
         </div>
 
-        {(quiz.preventTabSwitch || quiz.maxAttempts) && (
+        {/* Attempts info */}
+        {attemptsInfo && (
+          <div className={`mb-6 p-4 rounded-xl ${maxAttemptsReached ? 'bg-red-50' : 'bg-blue-50'}`}>
+            <div className="flex items-center justify-between">
+              <span className={`text-sm ${maxAttemptsReached ? 'text-red-700' : 'text-blue-700'}`}>
+                მცდელობები
+              </span>
+              <span className={`text-sm font-medium ${maxAttemptsReached ? 'text-red-700' : 'text-blue-700'}`}>
+                {attemptsInfo.used} / {attemptsInfo.max}
+              </span>
+            </div>
+            {maxAttemptsReached && (
+              <p className="text-xs text-red-600 mt-2">მცდელობები ამოიწურა</p>
+            )}
+          </div>
+        )}
+
+        {(quiz.preventTabSwitch) && (
           <div className="mb-6 p-4 bg-amber-50 rounded-xl">
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-amber-700 space-y-1">
                 {quiz.preventTabSwitch && <p>ტაბის გადართვა აღირიცხება</p>}
-                {quiz.maxAttempts && <p>მაქსიმუმ {quiz.maxAttempts} მცდელობა</p>}
               </div>
             </div>
           </div>
@@ -307,7 +391,12 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
         <button
           onClick={startQuiz}
-          className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+          disabled={maxAttemptsReached}
+          className={`w-full py-3.5 rounded-xl font-medium transition-colors ${
+            maxAttemptsReached
+              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : 'bg-gray-900 text-white hover:bg-gray-800'
+          }`}
         >
           დაწყება
         </button>
@@ -369,11 +458,21 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
               )}
             </div>
             {currentQuestion.questionImage && (
-              <img
-                src={currentQuestion.questionImage}
-                alt=""
-                className="mt-4 max-w-md rounded-lg"
-              />
+              <div
+                className="mt-4 relative inline-block cursor-zoom-in group"
+                onClick={() => setZoomedImage(currentQuestion.questionImage)}
+              >
+                <img
+                  src={currentQuestion.questionImage}
+                  alt=""
+                  className="max-w-md rounded-lg transition-opacity group-hover:opacity-90"
+                />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-black/50 rounded-full p-2">
+                    <ZoomIn className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
@@ -407,7 +506,24 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
                     </span>
                   </div>
                   {answer.answerImage && (
-                    <img src={answer.answerImage} alt="" className="mt-3 ml-10 max-w-xs rounded-lg" />
+                    <div
+                      className="mt-3 ml-10 relative inline-block cursor-zoom-in group"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setZoomedImage(answer.answerImage);
+                      }}
+                    >
+                      <img
+                        src={answer.answerImage}
+                        alt=""
+                        className="max-w-xs rounded-lg transition-opacity group-hover:opacity-90"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="bg-black/50 rounded-full p-2">
+                          <ZoomIn className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </button>
               );
@@ -491,6 +607,27 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
           >
             {markedForReview.has(currentQuestion.id) ? '★ მონიშნული' : '☆ მონიშვნა'}
           </button>
+        </div>
+      )}
+
+      {/* Image Lightbox Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setZoomedImage(null)}
+        >
+          <button
+            onClick={() => setZoomedImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          <img
+            src={zoomedImage}
+            alt=""
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

@@ -122,13 +122,6 @@ export const createChapter = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Course version not found' });
     }
 
-    // Block modifications on PUBLISHED versions
-    if (courseVersion.status === 'PUBLISHED') {
-      return res.status(400).json({
-        error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
-      });
-    }
-
     // If order is not provided, set it as the last chapter
     let chapterOrder = order;
     if (chapterOrder === undefined) {
@@ -191,13 +184,6 @@ export const updateChapter = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Chapter not found' });
     }
 
-    // Block modifications on PUBLISHED versions
-    if (existingChapter.courseVersion.status === 'PUBLISHED') {
-      return res.status(400).json({
-        error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
-      });
-    }
-
     // Delete old files if being replaced
     if (assignmentFile && existingChapter.assignmentFile && assignmentFile !== existingChapter.assignmentFile) {
       const oldFilename = getFilenameFromUrl(existingChapter.assignmentFile);
@@ -251,13 +237,6 @@ export const deleteChapter = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Chapter not found' });
     }
 
-    // Block modifications on PUBLISHED versions
-    if (chapter.courseVersion.status === 'PUBLISHED') {
-      return res.status(400).json({
-        error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
-      });
-    }
-
     // Delete associated files
     if (chapter.assignmentFile) {
       const filename = getFilenameFromUrl(chapter.assignmentFile);
@@ -289,18 +268,6 @@ export const reorderChapters = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Chapters must be a non-empty array' });
     }
 
-    // Check if the version is published
-    const firstChapter = await prisma.chapter.findUnique({
-      where: { id: chapters[0].id },
-      include: { courseVersion: true }
-    });
-
-    if (firstChapter?.courseVersion.status === 'PUBLISHED') {
-      return res.status(400).json({
-        error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
-      });
-    }
-
     // Update all chapters in a transaction
     await prisma.$transaction(
       chapters.map(({ id, order }) =>
@@ -325,19 +292,6 @@ export const bulkDeleteChapters = async (req: Request, res: Response) => {
 
     if (!Array.isArray(chapterIds) || chapterIds.length === 0) {
       return res.status(400).json({ error: 'Chapter IDs must be a non-empty array' });
-    }
-
-    // Check if any of the chapters belong to a published version
-    const chaptersWithVersion = await prisma.chapter.findMany({
-      where: { id: { in: chapterIds } },
-      include: { courseVersion: true }
-    });
-
-    const publishedVersionChapter = chaptersWithVersion.find(c => c.courseVersion.status === 'PUBLISHED');
-    if (publishedVersionChapter) {
-      return res.status(400).json({
-        error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
-      });
     }
 
     // Get all chapters to delete their files

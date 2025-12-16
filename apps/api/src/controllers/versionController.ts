@@ -188,16 +188,6 @@ export const updateVersion = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Version not found' });
     }
 
-    // Block updates on PUBLISHED versions (except isActive changes)
-    if (existingVersion.status === 'PUBLISHED') {
-      // Only allow isActive changes on published versions
-      if (title || description || changelog !== undefined || upgradePriceType !== undefined || upgradePriceValue !== undefined) {
-        return res.status(400).json({
-          error: 'Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.'
-        });
-      }
-    }
-
     // If activating this version, deactivate all other versions of the course
     if (isActive === true && !existingVersion.isActive) {
       await prisma.courseVersion.updateMany({

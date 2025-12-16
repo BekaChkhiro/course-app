@@ -1,12 +1,30 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Clock, Target, Trash2, Plus, Settings,
-  CheckCircle, FileQuestion, ChevronDown, ChevronUp, Save, X, Edit2
+  CheckCircle, FileQuestion, ChevronDown, ChevronUp, Save, X, Edit2, GripVertical, ImagePlus, Loader2
 } from 'lucide-react';
 import { quizApi, QuestionType, QuizType } from '@/lib/api/quizApi';
+import { uploadApi } from '@/lib/api/adminApi';
 import toast from 'react-hot-toast';
 
 interface FinalExamTabProps {
@@ -18,6 +36,7 @@ interface QuestionForm {
   id?: string;
   type: QuestionType;
   question: string;
+  questionImage?: string;
   explanation: string;
   points: number;
   answers: { id?: string; answer: string; isCorrect: boolean }[];
@@ -52,6 +71,43 @@ function QuestionFormFields({
   isEditing = false,
   isSaving = false
 }: QuestionFormFieldsProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('მხოლოდ სურათის ატვირთვა შეიძლება');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('სურათი არ უნდა აღემატებოდეს 5MB-ს');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await uploadApi.quizImage(file);
+      const imageUrl = response.data.file.url;
+      setCurrentQuestion({ ...currentQuestion, questionImage: imageUrl });
+      toast.success('სურათი აიტვირთა');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('სურათის ატვირთვა ვერ მოხერხდა');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setCurrentQuestion({ ...currentQuestion, questionImage: undefined });
+  };
 
   const handleAnswerChange = (index: number, field: 'answer' | 'isCorrect', value: any) => {
     const newAnswers = [...currentQuestion.answers];
@@ -112,6 +168,55 @@ function QuestionFormFields({
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
           placeholder="შეიყვანეთ კითხვა..."
         />
+      </div>
+
+      {/* Question Image Upload */}
+      <div>
+        <label className="block text-sm text-gray-600 mb-1.5">სურათი (არასავალდებულო)</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {currentQuestion.questionImage ? (
+          <div className="relative inline-block">
+            <img
+              src={currentQuestion.questionImage}
+              alt="კითხვის სურათი"
+              className="max-w-xs max-h-40 rounded-lg border border-gray-200"
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm"
+              title="სურათის წაშლა"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-purple-600 hover:bg-purple-50 border border-dashed border-gray-300 hover:border-purple-300 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                იტვირთება...
+              </>
+            ) : (
+              <>
+                <ImagePlus className="w-4 h-4" />
+                სურათის დამატება
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       <div>
@@ -208,6 +313,16 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
   const [editingSettings, setEditingSettings] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // DnD sensors for question reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 }
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
 
   const { data: quizzesData, isLoading } = useQuery({
     queryKey: ['version-final-exam', versionId],
@@ -327,6 +442,48 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
     }
   });
 
+  // Reorder questions mutation
+  const reorderQuestionsMutation = useMutation({
+    mutationFn: async (questions: { id: string; order: number }[]) => {
+      // Update each question's order
+      for (const q of questions) {
+        await quizApi.updateQuestion(q.id, { order: q.order });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['version-final-exam', versionId] });
+      toast.success('თანმიმდევრობა შეინახა');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'შეცდომა');
+    }
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !existingExam?.questions) return;
+
+    const oldIndex = existingExam.questions.findIndex((q: any) => q.id === active.id);
+    const newIndex = existingExam.questions.findIndex((q: any) => q.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reorderedQuestions = arrayMove(existingExam.questions, oldIndex, newIndex);
+
+      // Optimistically update the UI
+      setExistingExam((prev: any) => ({
+        ...prev,
+        questions: reorderedQuestions
+      }));
+
+      // Save the new order
+      const updates = reorderedQuestions.map((q: any, index: number) => ({
+        id: q.id,
+        order: index
+      }));
+      reorderQuestionsMutation.mutate(updates);
+    }
+  };
+
   const resetQuestionForm = useCallback(() => {
     setCurrentQuestion({ ...emptyQuestion });
   }, []);
@@ -346,6 +503,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
       id: question.id,
       type: question.type,
       question: question.question,
+      questionImage: question.questionImage || undefined,
       explanation: question.explanation || '',
       points: question.points,
       answers: question.answers?.map((a: any) => ({
@@ -376,6 +534,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
     const questionData = {
       type: currentQuestion.type,
       question: currentQuestion.question,
+      questionImage: currentQuestion.questionImage,
       explanation: currentQuestion.explanation,
       points: currentQuestion.points,
       answers: validAnswers.map((a, i) => ({
@@ -563,107 +722,36 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
               </button>
             </div>
           ) : questions.length > 0 && (
-            <div className="border border-gray-200 rounded-xl divide-y divide-gray-100">
-              {questions.map((q: any, index: number) => {
-                const isExpanded = expandedQuestions.includes(q.id);
-                const isEditing = editingQuestionId === q.id;
-
-                return (
-                  <div key={q.id} className={`p-4 ${isEditing ? 'bg-gray-50' : ''}`}>
-                    {isEditing ? (
-                      // Edit Mode
-                      <div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
-                            {index + 1}
-                          </span>
-                          <span className="text-sm font-medium text-gray-700">რედაქტირება</span>
-                        </div>
-                        <QuestionFormFields
-                          currentQuestion={currentQuestion}
-                          setCurrentQuestion={setCurrentQuestion}
-                          onSave={handleSaveQuestion}
-                          onCancel={handleCancelEdit}
-                          isEditing={true}
-                          isSaving={updateQuestionMutation.isPending}
-                        />
-                      </div>
-                    ) : (
-                      // View Mode
-                      <>
-                        <div
-                          className="flex items-start gap-3 cursor-pointer"
-                          onClick={() => toggleQuestion(q.id)}
-                        >
-                          <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0 mt-0.5">
-                            {index + 1}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900">{q.question}</p>
-                            <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
-                              <span>{q.points} ქულა</span>
-                              <span>{q.answers?.length || 0} პასუხი</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditQuestion(q);
-                              }}
-                              className="p-1.5 text-gray-300 hover:text-gray-600 rounded"
-                              title="რედაქტირება"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                confirm('წავშალოთ?') && deleteQuestionMutation.mutate(q.id);
-                              }}
-                              className="p-1.5 text-gray-300 hover:text-red-500 rounded"
-                              title="წაშლა"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 text-gray-400" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
-                            )}
-                          </div>
-                        </div>
-
-                        {isExpanded && (
-                          <div className="mt-4 ml-9 space-y-2">
-                            {q.answers?.map((a: any, aIndex: number) => (
-                              <div
-                                key={a.id || aIndex}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
-                                  a.isCorrect ? 'bg-green-50 text-green-800' : 'bg-gray-50 text-gray-600'
-                                }`}
-                              >
-                                {a.isCorrect ? (
-                                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                                ) : (
-                                  <div className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                                )}
-                                {a.answer}
-                              </div>
-                            ))}
-                            {q.explanation && (
-                              <p className="text-xs text-gray-500 mt-3 pl-1">
-                                {q.explanation}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={questions.map((q: any) => q.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="border border-gray-200 rounded-xl divide-y divide-gray-100">
+                  {questions.map((q: any, index: number) => (
+                    <SortableQuestionItem
+                      key={q.id}
+                      question={q}
+                      index={index}
+                      isExpanded={expandedQuestions.includes(q.id)}
+                      isEditing={editingQuestionId === q.id}
+                      currentQuestion={currentQuestion}
+                      setCurrentQuestion={setCurrentQuestion}
+                      handleSaveQuestion={handleSaveQuestion}
+                      handleCancelEdit={handleCancelEdit}
+                      handleEditQuestion={handleEditQuestion}
+                      deleteQuestionMutation={deleteQuestionMutation}
+                      updateQuestionMutation={updateQuestionMutation}
+                      toggleQuestion={toggleQuestion}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>
@@ -754,6 +842,174 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
           {createExamMutation.isPending ? 'იქმნება...' : 'შექმნა'}
         </button>
       </form>
+    </div>
+  );
+}
+
+// Sortable Question Item Component
+function SortableQuestionItem({
+  question,
+  index,
+  isExpanded,
+  isEditing,
+  currentQuestion,
+  setCurrentQuestion,
+  handleSaveQuestion,
+  handleCancelEdit,
+  handleEditQuestion,
+  deleteQuestionMutation,
+  updateQuestionMutation,
+  toggleQuestion
+}: {
+  question: any;
+  index: number;
+  isExpanded: boolean;
+  isEditing: boolean;
+  currentQuestion: QuestionForm;
+  setCurrentQuestion: (q: QuestionForm) => void;
+  handleSaveQuestion: () => void;
+  handleCancelEdit: () => void;
+  handleEditQuestion: (q: any) => void;
+  deleteQuestionMutation: any;
+  updateQuestionMutation: any;
+  toggleQuestion: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`p-4 ${isEditing ? 'bg-gray-50' : ''}`}
+    >
+      {isEditing ? (
+        // Edit Mode
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+              {index + 1}
+            </span>
+            <span className="text-sm font-medium text-gray-700">რედაქტირება</span>
+          </div>
+          <QuestionFormFields
+            currentQuestion={currentQuestion}
+            setCurrentQuestion={setCurrentQuestion}
+            onSave={handleSaveQuestion}
+            onCancel={handleCancelEdit}
+            isEditing={true}
+            isSaving={updateQuestionMutation.isPending}
+          />
+        </div>
+      ) : (
+        // View Mode
+        <>
+          <div className="flex items-start gap-3">
+            {/* Drag Handle */}
+            <button
+              type="button"
+              className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none mt-0.5"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="w-4 h-4" />
+            </button>
+
+            <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0 mt-0.5">
+              {index + 1}
+            </span>
+
+            <div
+              className="flex-1 min-w-0 cursor-pointer"
+              onClick={() => toggleQuestion(question.id)}
+            >
+              <p className="text-sm text-gray-900">{question.question}</p>
+              {question.questionImage && (
+                <img
+                  src={question.questionImage}
+                  alt="კითხვის სურათი"
+                  className="mt-2 max-w-xs max-h-32 rounded-lg border border-gray-200"
+                />
+              )}
+              <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
+                <span>{question.points} ქულა</span>
+                <span>{question.answers?.length || 0} პასუხი</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditQuestion(question);
+                }}
+                className="p-1.5 text-gray-300 hover:text-gray-600 rounded"
+                title="რედაქტირება"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  confirm('წავშალოთ?') && deleteQuestionMutation.mutate(question.id);
+                }}
+                className="p-1.5 text-gray-300 hover:text-red-500 rounded"
+                title="წაშლა"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => toggleQuestion(question.id)}
+                className="p-1.5 text-gray-400"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {isExpanded && (
+            <div className="mt-4 ml-14 space-y-2">
+              {question.answers?.map((a: any, aIndex: number) => (
+                <div
+                  key={a.id || aIndex}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                    a.isCorrect ? 'bg-green-50 text-green-800' : 'bg-gray-50 text-gray-600'
+                  }`}
+                >
+                  {a.isCorrect ? (
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                  )}
+                  {a.answer}
+                </div>
+              ))}
+              {question.explanation && (
+                <p className="text-xs text-gray-500 mt-3 pl-1">
+                  {question.explanation}
+                </p>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

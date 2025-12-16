@@ -2,7 +2,24 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Check, X, ChevronDown, ChevronUp, Edit2, Eye, EyeOff, Clock, Target, Shuffle, CheckCircle, Settings, ImagePlus, Loader2 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Plus, Trash2, Check, X, ChevronDown, ChevronUp, Edit2, Eye, EyeOff, Clock, Target, Shuffle, CheckCircle, Settings, ImagePlus, Loader2, GripVertical } from 'lucide-react';
 import { quizApi, QuestionType, Quiz } from '@/lib/api/quizApi';
 import { uploadApi } from '@/lib/api/adminApi';
 import toast from 'react-hot-toast';
@@ -33,6 +50,25 @@ export default function QuizManager({
     showCorrectAnswers: true,
     randomizeQuestions: false
   });
+
+  // DnD sensors for question reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 }
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = questions.findIndex((q, i) => (q.id || `temp-${i}`) === active.id);
+      const newIndex = questions.findIndex((q, i) => (q.id || `temp-${i}`) === over.id);
+      setQuestions(arrayMove(questions, oldIndex, newIndex));
+    }
+  };
 
   // Reset mode when quiz is deleted (only if we're in view mode, not during creation)
   useEffect(() => {
@@ -91,12 +127,14 @@ export default function QuizManager({
       // API returns { success: true, data: quiz }
       const createdQuiz = quizResult.data;
 
-      for (const q of questions) {
+      for (let qIndex = 0; qIndex < questions.length; qIndex++) {
+        const q = questions[qIndex];
         await quizApi.addQuestion(createdQuiz.id, {
           type: q.type,
           question: q.question,
           questionImage: q.questionImage,
           points: q.points,
+          order: qIndex,
           answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
             answer: a.text,
             isCorrect: a.isCorrect,
@@ -143,13 +181,15 @@ export default function QuizManager({
       }
 
       // Update/create questions
-      for (const q of questions) {
+      for (let qIndex = 0; qIndex < questions.length; qIndex++) {
+        const q = questions[qIndex];
         if (q.id) {
           await quizApi.updateQuestion(q.id, {
             type: q.type,
             question: q.question,
             questionImage: q.questionImage,
             points: q.points,
+            order: qIndex,
             answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
               answer: a.text,
               isCorrect: a.isCorrect,
@@ -162,6 +202,7 @@ export default function QuizManager({
             question: q.question,
             questionImage: q.questionImage,
             points: q.points,
+            order: qIndex,
             answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
               answer: a.text,
               isCorrect: a.isCorrect,
@@ -474,20 +515,32 @@ export default function QuizManager({
         )}
 
         {/* Questions */}
-        <div className="space-y-3">
-          {questions.map((question, qIndex) => (
-            <QuestionCard
-              key={question.id || qIndex}
-              index={qIndex}
-              question={question}
-              onUpdate={(updates) => updateQuestion(qIndex, updates)}
-              onRemove={() => removeQuestion(qIndex)}
-              onAddAnswer={() => addAnswer(qIndex)}
-              onUpdateAnswer={(aIndex, updates) => updateAnswer(qIndex, aIndex, updates)}
-              onRemoveAnswer={(aIndex) => removeAnswer(qIndex, aIndex)}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={questions.map((q, i) => q.id || `temp-${i}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {questions.map((question, qIndex) => (
+                <QuestionCard
+                  key={question.id || `temp-${qIndex}`}
+                  id={question.id || `temp-${qIndex}`}
+                  index={qIndex}
+                  question={question}
+                  onUpdate={(updates) => updateQuestion(qIndex, updates)}
+                  onRemove={() => removeQuestion(qIndex)}
+                  onAddAnswer={() => addAnswer(qIndex)}
+                  onUpdateAnswer={(aIndex, updates) => updateAnswer(qIndex, aIndex, updates)}
+                  onRemoveAnswer={(aIndex) => removeAnswer(qIndex, aIndex)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {/* Add Question Button */}
         <button
@@ -555,6 +608,7 @@ interface QuestionInput {
 
 // Question Card Component
 function QuestionCard({
+  id,
   index,
   question,
   onUpdate,
@@ -563,6 +617,7 @@ function QuestionCard({
   onUpdateAnswer,
   onRemoveAnswer
 }: {
+  id: string;
   index: number;
   question: QuestionInput;
   onUpdate: (updates: Partial<QuestionInput>) => void;
@@ -573,6 +628,22 @@ function QuestionCard({
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -613,9 +684,21 @@ function QuestionCard({
   };
 
   return (
-    <div className="bg-white rounded-lg border p-3 space-y-3">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-white rounded-lg border p-3 space-y-3"
+    >
       {/* Question Header */}
       <div className="flex items-start gap-2">
+        <button
+          type="button"
+          className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
         <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs flex items-center justify-center font-medium flex-shrink-0">
           {index + 1}
         </span>

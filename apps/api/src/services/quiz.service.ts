@@ -298,19 +298,32 @@ class QuizService {
       throw new Error('Quiz not found');
     }
 
-    // Check max attempts
-    if (quiz.maxAttempts) {
-      const existingAttempts = await prisma.quizAttempt.count({
-        where: {
-          userId,
-          quizId,
-          status: { in: ['COMPLETED', 'TIME_EXPIRED'] },
-        },
-      });
+    // Check if user already passed the quiz
+    const passedAttempt = await prisma.quizAttempt.findFirst({
+      where: {
+        userId,
+        quizId,
+        passed: true,
+        status: { in: ['COMPLETED', 'TIME_EXPIRED'] },
+      },
+    });
 
-      if (existingAttempts >= quiz.maxAttempts) {
-        throw new Error('Maximum attempts reached');
-      }
+    if (passedAttempt) {
+      throw new Error('ALREADY_PASSED');
+    }
+
+    // Check max attempts (default to 2 if not set)
+    const maxAttempts = quiz.maxAttempts ?? 2;
+    const existingAttempts = await prisma.quizAttempt.count({
+      where: {
+        userId,
+        quizId,
+        status: { in: ['COMPLETED', 'TIME_EXPIRED'] },
+      },
+    });
+
+    if (existingAttempts >= maxAttempts) {
+      throw new Error('Maximum attempts reached');
     }
 
     // Check for existing in-progress attempt
@@ -659,7 +672,18 @@ class QuizService {
     const attempt = await prisma.quizAttempt.findUnique({
       where: { id: attemptId },
       include: {
-        quiz: true,
+        quiz: {
+          include: {
+            questions: {
+              include: {
+                answers: {
+                  orderBy: { order: 'asc' },
+                },
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+        },
         responses: {
           include: {
             question: {

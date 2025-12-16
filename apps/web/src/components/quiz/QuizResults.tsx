@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Award,
   Download,
+  ZoomIn,
 } from 'lucide-react';
 import { quizAttemptApi, QuizAttempt } from '@/lib/api/quizApi';
 import toast from 'react-hot-toast';
@@ -25,6 +26,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
   const [loading, setLoading] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
   const [regeneratingCert, setRegeneratingCert] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
     loadResults();
@@ -209,15 +211,38 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
 
       {/* Actions */}
       <div className="p-6 space-y-3">
-        {!passed && onRetry && (
-          <button
-            onClick={onRetry}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-            თავიდან ცდა
-          </button>
-        )}
+        {(() => {
+          // Don't show retry if passed
+          if (passed) return null;
+
+          // Check if max attempts reached
+          const maxAttempts = attempt.quiz?.maxAttempts ?? 2;
+          const attemptsUsed = attempt.attemptNumber || 1;
+
+          if (attemptsUsed >= maxAttempts) {
+            return (
+              <div className="text-center p-4 bg-red-50 rounded-xl">
+                <p className="text-sm text-red-700 font-medium">მცდელობები ამოიწურა</p>
+                <p className="text-xs text-red-600 mt-1">{attemptsUsed} / {maxAttempts} მცდელობა</p>
+              </div>
+            );
+          }
+
+          // Show retry button if onRetry is provided
+          if (onRetry) {
+            return (
+              <button
+                onClick={onRetry}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                თავიდან ცდა ({attemptsUsed} / {maxAttempts})
+              </button>
+            );
+          }
+
+          return null;
+        })()}
 
         {attempt.quiz?.showCorrectAnswers && (
           <button
@@ -268,6 +293,23 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                         <span className="text-gray-400 mr-1">{index + 1}.</span>
                         {question.question}
                       </p>
+                      {question.questionImage && (
+                        <div
+                          className="mt-2 relative inline-block cursor-zoom-in group"
+                          onClick={() => setZoomedImage(question.questionImage)}
+                        >
+                          <img
+                            src={question.questionImage}
+                            alt=""
+                            className="max-w-xs rounded-lg transition-opacity group-hover:opacity-90"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-black/50 rounded-full p-2">
+                              <ZoomIn className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -330,6 +372,27 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
           {attempt.quiz?.maxAttempts && ` / ${attempt.quiz.maxAttempts}`}
         </p>
       </div>
+
+      {/* Image Lightbox Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setZoomedImage(null)}
+        >
+          <button
+            onClick={() => setZoomedImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          <img
+            src={zoomedImage}
+            alt=""
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, ArrowRight, BookOpen, Users, Calendar, DollarSign, Globe, FileEdit, Copy, Rocket } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, BookOpen, Users, Calendar, DollarSign, Globe, FileEdit, Copy, Rocket, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { versionApi } from '@/lib/api/adminApi';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -76,6 +76,17 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
     }
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id: string) => versionApi.activate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['versions', courseId] });
+      toast.success('ვერსია გააქტიურდა');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'შეცდომა');
+    }
+  });
+
   const versions = versionsData?.versions || [];
 
   const handleDelete = (version: Version) => {
@@ -109,6 +120,16 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
     }
   };
 
+  const handleActivate = (version: Version) => {
+    if (version.isActive) {
+      toast.error('ეს ვერსია უკვე აქტიურია');
+      return;
+    }
+    if (confirm(`გავაქტიუროთ "${version.title}" (v${version.version})? \n\nეს გახდება მთავარი ვერსია და სტუდენტები დაინახავენ.`)) {
+      activateMutation.mutate(version.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -127,11 +148,15 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
       <div className="flex items-center gap-4 text-sm text-gray-600">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
-          Draft - რედაქტირებადი
+          Draft
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-          Published - ჩაკეტილი
+          Published
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Badge variant="info" size="sm">აქტიური</Badge>
+          სტუდენტები ხედავენ
         </span>
       </div>
 
@@ -257,6 +282,23 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                   >
                     <Copy className="w-3.5 h-3.5" />
                     Draft ასლი
+                  </button>
+                )}
+
+                {/* Set as Active button - show for non-active versions */}
+                {!version.isActive && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleActivate(version);
+                    }}
+                    disabled={activateMutation.isPending}
+                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    title="აქტიურის გახდომა"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    აქტიური
                   </button>
                 )}
 

@@ -114,10 +114,6 @@ export default function CourseChaptersTab({
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
-    if (isPublished) {
-      toast.error('Published ვერსიის რედაქტირება შეუძლებელია');
-      return;
-    }
 
     const { active, over } = event;
 
@@ -139,20 +135,12 @@ export default function CourseChaptersTab({
   };
 
   const handleDelete = (chapter: Chapter) => {
-    if (isPublished) {
-      toast.error('Published ვერსიის რედაქტირება შეუძლებელია');
-      return;
-    }
     if (confirm(`წავშალოთ "${chapter.title}"?`)) {
       deleteMutation.mutate(chapter.id);
     }
   };
 
   const handleEdit = (chapterId: string) => {
-    if (isPublished) {
-      toast.error('Published ვერსიის რედაქტირება შეუძლებელია. შექმენით Draft ასლი.');
-      return;
-    }
     setEditingChapterId(chapterId);
   };
 
@@ -165,43 +153,16 @@ export default function CourseChaptersTab({
   return (
     <>
       <div className="space-y-6">
-        {/* Published Version Warning Banner */}
-        {isPublished && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-amber-800">
-                  Published ვერსია - რედაქტირება დაბლოკილია
-                </h3>
-                <p className="text-sm text-amber-700 mt-1">
-                  ცვლილებების შესატანად შექმენით Draft ასლი.
-                </p>
-              </div>
-              <button
-                onClick={handleCreateDraftCopy}
-                disabled={createDraftCopyMutation.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Copy className="w-4 h-4" />
-                Draft ასლი
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
-          {!isPublished && (
-            <button
-              onClick={() => setIsCreateOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4" />
-              ახალი თავი
-            </button>
-          )}
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4" />
+            ახალი თავი
+          </button>
         </div>
 
         {/* Chapters List */}
@@ -210,18 +171,16 @@ export default function CourseChaptersTab({
         ) : chapters.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-gray-500 mb-4">თავები არ არის</p>
-            {!isPublished && (
-              <button
-                onClick={() => setIsCreateOpen(true)}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                დაამატე პირველი თავი
-              </button>
-            )}
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              დაამატე პირველი თავი
+            </button>
           </div>
         ) : (
           <DndContext
-            sensors={isPublished ? [] : sensors}
+            sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
@@ -233,7 +192,7 @@ export default function CourseChaptersTab({
                     chapter={chapter}
                     onEdit={() => handleEdit(chapter.id)}
                     onDelete={() => handleDelete(chapter)}
-                    isPublished={isPublished}
+                    isPublished={false}
                   />
                 ))}
               </div>
@@ -243,7 +202,7 @@ export default function CourseChaptersTab({
       </div>
 
       {/* Edit Sidebar - Outside of space-y-6 */}
-      {editingChapterId && !isPublished && (
+      {editingChapterId && (
         <ChapterEditSidebar
           isOpen={!!editingChapterId}
           onClose={() => setEditingChapterId(null)}
@@ -253,16 +212,14 @@ export default function CourseChaptersTab({
       )}
 
       {/* Create Sidebar - Outside of space-y-6 */}
-      {!isPublished && (
-        <ChapterCreateSidebar
-          isOpen={isCreateOpen}
-          onClose={() => setIsCreateOpen(false)}
-          versionId={selectedVersionId}
-          onCreated={() => {
-            queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersionId] });
-          }}
-        />
-      )}
+      <ChapterCreateSidebar
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        versionId={selectedVersionId}
+        onCreated={() => {
+          queryClient.invalidateQueries({ queryKey: ['chapters', selectedVersionId] });
+        }}
+      />
     </>
   );
 }
