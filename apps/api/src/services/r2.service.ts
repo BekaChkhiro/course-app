@@ -385,6 +385,15 @@ class R2Service {
       return null;
     }
   }
+
+  /**
+   * Generate a key path for course submission files
+   */
+  generateSubmissionKey(submissionId: string, filename: string): string {
+    const timestamp = Date.now();
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+    return `submissions/${submissionId}/${timestamp}_${sanitizedFilename}`;
+  }
 }
 
 export default new R2Service();

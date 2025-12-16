@@ -79,7 +79,7 @@ export default function VersionDetailPage() {
                   className={`
                     relative py-4 px-1 font-medium text-sm transition-colors
                     ${activeTab === tab.id
-                      ? 'text-accent-500 border-b-2 border-accent-500'
+                      ? 'text-accent-600 border-b-2 border-accent-600'
                       : 'text-gray-500 hover:text-gray-700'
                     }
                   `}

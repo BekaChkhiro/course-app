@@ -135,7 +135,7 @@ export default function AnalyticsDashboardPage() {
             </button>
             <Link
               href="/admin/analytics/reports"
-              className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
             >
               <Download className="w-4 h-4" />
               ექსპორტი
@@ -258,7 +258,7 @@ export default function AnalyticsDashboardPage() {
                         {formatCurrency(dashboard.revenue?.year || 0)}
                       </p>
                     </div>
-                    <TrendingUp className="w-8 h-8 text-accent-500" />
+                    <TrendingUp className="w-8 h-8 text-accent-600" />
                   </div>
                 </div>
               </ChartContainer>

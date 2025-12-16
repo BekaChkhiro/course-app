@@ -25,8 +25,8 @@ function StatCard({
     green: 'bg-green-100 text-green-600',
     yellow: 'bg-yellow-100 text-yellow-600',
     red: 'bg-red-100 text-red-600',
-    blue: 'bg-accent-100 text-accent-500',
-    purple: 'bg-accent-100 text-accent-500',
+    blue: 'bg-accent-100 text-accent-600',
+    purple: 'bg-accent-100 text-accent-600',
   };
 
   return (
@@ -307,7 +307,7 @@ export default function CommunicationsAnalyticsPage() {
               data={[
                 { label: 'Urgent', value: messagingAnalytics.messagesByPriority?.URGENT || 0, color: 'bg-red-500' },
                 { label: 'High', value: messagingAnalytics.messagesByPriority?.HIGH || 0, color: 'bg-orange-500' },
-                { label: 'Medium', value: messagingAnalytics.messagesByPriority?.MEDIUM || 0, color: 'bg-accent-500' },
+                { label: 'Medium', value: messagingAnalytics.messagesByPriority?.MEDIUM || 0, color: 'bg-accent-600' },
                 { label: 'Low', value: messagingAnalytics.messagesByPriority?.LOW || 0, color: 'bg-gray-500' },
               ]}
             />

@@ -139,7 +139,7 @@ export default function AdminDashboard() {
       description: 'შექმენი, რედაქტირება და მართე კურსები',
       icon: BookOpen,
       href: '/admin/courses',
-      color: 'text-accent-500',
+      color: 'text-accent-600',
       bgColor: 'bg-accent-100',
       stats: `${courses.length} კურსი`
     },
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       description: 'ორგანიზება და მართე კურსების კატეგორიები',
       icon: FolderTree,
       href: '/admin/categories',
-      color: 'text-accent-500',
+      color: 'text-accent-600',
       bgColor: 'bg-accent-100',
       stats: `${categories.length} კატეგორია`
     },
@@ -243,7 +243,7 @@ export default function AdminDashboard() {
             title="ჩარიცხვები"
             value={totalEnrollments}
             icon={<Users className="w-6 h-6" />}
-            color="text-accent-500"
+            color="text-accent-600"
             bgColor="bg-accent-100"
           />
         </div>
@@ -286,7 +286,7 @@ export default function AdminDashboard() {
               <p className="text-gray-500 mb-4">შექმენი პირველი კურსი!</p>
               <Link
                 href="/admin/courses"
-                className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
               >
                 კურსის დამატება
               </Link>

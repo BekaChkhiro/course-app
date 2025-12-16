@@ -206,7 +206,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                     setExamData({ ...examData, title: e.target.value })
                   }
                   placeholder="მაგ: Final Exam - React Course"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
                   required
                 />
               </div>
@@ -223,7 +223,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                   }
                   rows={3}
                   placeholder="გამოცდის აღწერა და ინსტრუქციები..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
                 />
               </div>
 
@@ -243,7 +243,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                       })
                     }
                     min={0}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
                   />
                 </div>
 
@@ -263,7 +263,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                     }
                     min={0}
                     max={100}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
                   />
                 </div>
 
@@ -283,7 +283,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                     }
                     min={1}
                     max={5}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
                   />
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
               <button
                 type="submit"
                 disabled={createExamMutation.isPending}
-                className="w-full px-6 py-3 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 font-medium"
+                className="w-full px-6 py-3 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 font-medium"
               >
                 {createExamMutation.isPending
                   ? 'იქმნება...'
@@ -417,7 +417,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                       ],
                     })
                   }
-                  className="text-accent-500 hover:underline text-sm"
+                  className="text-accent-600 hover:underline text-sm"
                 >
                   + პასუხის დამატება
                 </button>
@@ -465,7 +465,7 @@ export default function CourseFinalExamPage({ params }: { params: { courseId: st
                 <button
                   type="submit"
                   disabled={addQuestionMutation.isPending}
-                  className="flex-1 px-6 py-3 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 font-medium"
+                  className="flex-1 px-6 py-3 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 font-medium"
                 >
                   {addQuestionMutation.isPending
                     ? 'ემატება...'

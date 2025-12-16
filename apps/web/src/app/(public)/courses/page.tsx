@@ -119,7 +119,7 @@ function CoursesContent() {
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-500 text-white px-6 py-2 rounded-lg hover:bg-accent-600 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-600 text-white px-6 py-2 rounded-lg hover:bg-accent-700 transition-colors"
               >
                 ძებნა
               </button>
@@ -334,7 +334,7 @@ function CoursesContent() {
                               onClick={() => setPage(pageNum)}
                               className={`w-10 h-10 rounded-lg ${
                                 page === pageNum
-                                  ? 'bg-accent-500 text-white'
+                                  ? 'bg-accent-600 text-white'
                                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                               }`}
                             >

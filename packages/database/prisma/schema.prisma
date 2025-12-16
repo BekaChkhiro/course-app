@@ -1548,3 +1548,62 @@ model PromoCodeAnalytics {
   @@index([date])
   @@map("promo_code_analytics")
 }
+
+// ==========================================
+// COURSE SUBMISSION SYSTEM
+// ==========================================
+
+enum CourseSubmissionStatus {
+  NEW
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
+model CourseSubmission {
+  id              String                  @id @default(cuid())
+
+  // Personal info
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+
+  // Course info
+  courseTitle     String
+  courseDescription String                @db.Text
+
+  // Files & Links
+  driveLink       String?                 // Google Drive link (optional)
+
+  // Status
+  status          CourseSubmissionStatus  @default(NEW)
+  adminNotes      String?                 @db.Text
+
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  // Relations
+  files           CourseSubmissionFile[]
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@map("course_submissions")
+}
+
+model CourseSubmissionFile {
+  id              String           @id @default(cuid())
+  submissionId    String
+  fileName        String           // Original file name
+  filePath        String           // Path in storage
+  fileSize        Int              // Size in bytes
+  mimeType        String           // e.g., application/pdf, video/mp4
+  createdAt       DateTime         @default(now())
+
+  // Relations
+  submission      CourseSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@map("course_submission_files")
+}

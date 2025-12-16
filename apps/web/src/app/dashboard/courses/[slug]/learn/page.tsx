@@ -170,7 +170,7 @@ function FileSection({
                 <a
                   href={attachment.url}
                   download={attachment.fileName}
-                  className="px-3 py-2 bg-accent-500 text-white text-sm font-medium rounded-lg hover:bg-accent-600 transition-colors flex items-center gap-2"
+                  className="px-3 py-2 bg-accent-600 text-white text-sm font-medium rounded-lg hover:bg-accent-700 transition-colors flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -321,7 +321,7 @@ function ChapterSidebar({
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${
-                  overallProgress === 100 ? 'bg-green-500' : 'bg-accent-500'
+                  overallProgress === 100 ? 'bg-green-500' : 'bg-accent-600'
                 }`}
                 style={{ width: `${overallProgress}%` }}
               />
@@ -736,7 +736,7 @@ function ChapterContent({
         {/* Theory Tab */}
         {activeTab === 'theory' && chapter.theory && (
           <div
-            className="prose prose-primary max-w-none prose-headings:text-primary-900 prose-a:text-accent-500 hover:prose-a:text-accent-600"
+            className="prose prose-primary max-w-none prose-headings:text-primary-900 prose-a:text-accent-600 hover:prose-a:text-accent-600"
             dangerouslySetInnerHTML={{ __html: chapter.theory }}
           />
         )}
@@ -756,7 +756,7 @@ function ChapterContent({
                       <a
                         href={previewFile.url}
                         download
-                        className="px-3 py-1.5 bg-accent-500 text-white text-sm rounded-lg hover:bg-accent-600 flex items-center gap-1"
+                        className="px-3 py-1.5 bg-accent-600 text-white text-sm rounded-lg hover:bg-accent-700 flex items-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1121,7 +1121,7 @@ export default function CourseLearningPage() {
           <p className="text-gray-500 mb-4">ეს კურსი შესაძლოა არ არსებობდეს ან თქვენ არ გაქვთ მასზე წვდომა.</p>
           <Link
             href="/dashboard/courses"
-            className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
           >
             ჩემს კურსებზე დაბრუნება
           </Link>
@@ -1154,7 +1154,7 @@ export default function CourseLearningPage() {
     <div className="h-screen bg-gray-50 overflow-hidden">
       {/* Upgrade Banner */}
       {upgradeInfo && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-accent-500 text-white px-4 py-3 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-accent-600 text-white px-4 py-3 shadow-lg">
           <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
               <div className="bg-white/20 rounded-full p-1.5">
@@ -1352,7 +1352,7 @@ export default function CourseLearningPage() {
               disabled={!hasNextChapter}
               className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
                 hasNextChapter
-                  ? 'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-600'
+                  ? 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-600'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >

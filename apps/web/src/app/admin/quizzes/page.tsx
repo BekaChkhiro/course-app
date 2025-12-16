@@ -188,7 +188,7 @@ export default function QuizzesPage() {
 
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
           >
             <Plus className="w-4 h-4" />
             ახალი ქვიზი
@@ -212,7 +212,7 @@ export default function QuizzesPage() {
         <div className="bg-white rounded-lg shadow">
           {isLoading ? (
             <div className="p-6 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-500 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-600 mx-auto"></div>
               <p className="mt-2 text-gray-500">იტვირთება...</p>
             </div>
           ) : quizzes.length === 0 ? (
@@ -221,7 +221,7 @@ export default function QuizzesPage() {
               <p className="text-gray-500">ქვიზები არ არის შექმნილი</p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="mt-3 text-accent-500 hover:underline"
+                className="mt-3 text-accent-600 hover:underline"
               >
                 შექმენით პირველი ქვიზი
               </button>
@@ -284,7 +284,7 @@ export default function QuizzesPage() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => copyQuizLink(quiz.id)}
-                              className="p-2 text-gray-400 hover:text-accent-500 hover:bg-accent-50 rounded"
+                              className="p-2 text-gray-400 hover:text-accent-600 hover:bg-accent-50 rounded"
                               title="ლინკის კოპირება"
                             >
                               <Copy className="w-4 h-4" />
@@ -301,7 +301,7 @@ export default function QuizzesPage() {
                                 setSelectedQuiz(quiz);
                                 setIsQuestionModalOpen(true);
                               }}
-                              className="p-2 text-gray-400 hover:text-accent-500 hover:bg-accent-50 rounded"
+                              className="p-2 text-gray-400 hover:text-accent-600 hover:bg-accent-50 rounded"
                               title="კითხვების დამატება"
                             >
                               <Plus className="w-4 h-4" />
@@ -342,7 +342,7 @@ export default function QuizzesPage() {
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
               placeholder="მაგ: Chapter 1 Quiz"
               required
             />
@@ -359,7 +359,7 @@ export default function QuizzesPage() {
                 setFormData({ ...formData, description: e.target.value })
               }
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
               placeholder="ქვიზის აღწერა..."
             />
           </div>
@@ -374,7 +374,7 @@ export default function QuizzesPage() {
               onChange={(e) =>
                 setFormData({ ...formData, type: e.target.value as QuizType })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
             >
               <option value="CHAPTER_QUIZ">Chapter Quiz (არჩევითი)</option>
               <option value="FINAL_EXAM">Final Exam (სავალდებულო)</option>
@@ -395,7 +395,7 @@ export default function QuizzesPage() {
                   setFormData({ ...formData, timeLimit: parseInt(e.target.value) || 0 })
                 }
                 min={0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
               />
               <p className="text-xs text-gray-500 mt-1">0 = უვადო</p>
             </div>
@@ -416,7 +416,7 @@ export default function QuizzesPage() {
                 }
                 min={0}
                 max={100}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
               />
             </div>
 
@@ -435,7 +435,7 @@ export default function QuizzesPage() {
                   })
                 }
                 min={0}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
               />
               <p className="text-xs text-gray-500 mt-1">0 = შეუზღუდავი</p>
             </div>
@@ -503,7 +503,7 @@ export default function QuizzesPage() {
             <button
               type="submit"
               disabled={createQuizMutation.isPending}
-              className="flex-1 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
             >
               {createQuizMutation.isPending ? 'იქმნება...' : 'შექმნა და კითხვების დამატება'}
             </button>
@@ -610,7 +610,7 @@ export default function QuizzesPage() {
                   answers: [...questionData.answers, { answer: '', isCorrect: false }],
                 })
               }
-              className="text-accent-500 hover:underline text-sm"
+              className="text-accent-600 hover:underline text-sm"
             >
               + პასუხის დამატება
             </button>
@@ -659,7 +659,7 @@ export default function QuizzesPage() {
             <button
               type="button"
               onClick={handleFinishAddingQuestions}
-              className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600"
+              className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
             >
               დასრულება
             </button>

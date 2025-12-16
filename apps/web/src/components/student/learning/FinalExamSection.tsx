@@ -159,7 +159,7 @@ export default function FinalExamSection({
                     ? 'bg-green-600 hover:bg-green-700 text-white'
                     : hasAttempted
                     ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                    : 'bg-accent-500 hover:bg-accent-600 text-white'
+                    : 'bg-accent-600 hover:bg-accent-700 text-white'
                 }`}
               >
                 <Play className="w-4 h-4" />

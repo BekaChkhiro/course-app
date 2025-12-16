@@ -121,7 +121,7 @@ export default function CoursePage() {
               <button
                 onClick={handleEnroll}
                 disabled={isEnrolling}
-                className="block w-full text-center bg-accent-500 text-white py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="block w-full text-center bg-accent-600 text-white py-3 rounded-xl font-medium hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isEnrolling ? (
                   <span className="flex items-center justify-center">
@@ -143,7 +143,7 @@ export default function CoursePage() {
         ) : (
           <Link
             href={`/auth/login?redirect=/courses/${course.slug}`}
-            className="block w-full text-center bg-accent-500 text-white py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors"
+            className="block w-full text-center bg-accent-600 text-white py-3 rounded-xl font-medium hover:bg-accent-700 transition-colors"
           >
             {course.price === 0 ? 'დაიწყე უფასოდ' : 'შესვლა'}
           </Link>

@@ -233,7 +233,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
             return (
               <button
                 onClick={onRetry}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-500 text-white rounded-xl font-medium hover:bg-accent-600 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-600 text-white rounded-xl font-medium hover:bg-accent-700 transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 თავიდან ცდა ({attemptsUsed} / {maxAttempts})

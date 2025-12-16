@@ -239,7 +239,7 @@ export default function CommentsSection({ chapterId }: CommentsSectionProps) {
                     <button
                       onClick={() => handleSubmitReply(comment.id)}
                       disabled={!replyContent.trim() || createCommentMutation.isPending}
-                      className="px-3 py-1.5 text-sm bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 text-sm bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Reply
                     </button>
@@ -305,7 +305,7 @@ export default function CommentsSection({ chapterId }: CommentsSectionProps) {
                 <button
                   type="submit"
                   disabled={!newComment.trim() || createCommentMutation.isPending}
-                  className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                  className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                 >
                   {createCommentMutation.isPending ? (
                     <>

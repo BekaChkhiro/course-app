@@ -261,7 +261,7 @@ export default function ReportsBuilderPage() {
           </div>
           <button
             onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Report
@@ -526,7 +526,7 @@ export default function ReportsBuilderPage() {
               <button
                 onClick={handleSaveReport}
                 disabled={!newReport.name || newReport.metrics.length === 0 || createReportMutation.isPending}
-                className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createReportMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -655,7 +655,7 @@ export default function ReportsBuilderPage() {
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors"
             >
               <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center">
-                <Download className="w-5 h-5 text-accent-500" />
+                <Download className="w-5 h-5 text-accent-600" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-gray-900">Export Students</p>
@@ -698,7 +698,7 @@ export default function ReportsBuilderPage() {
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-colors"
             >
               <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center">
-                <Download className="w-5 h-5 text-accent-500" />
+                <Download className="w-5 h-5 text-accent-600" />
               </div>
               <div className="text-left">
                 <p className="font-medium text-gray-900">Export Courses</p>

@@ -11,9 +11,10 @@ const ASSIGNMENTS_DIR = path.join(UPLOAD_DIR, 'assignments');
 const ANSWERS_DIR = path.join(UPLOAD_DIR, 'answers');
 const MEDIA_DIR = path.join(UPLOAD_DIR, 'media');
 const QUIZ_IMAGES_DIR = path.join(UPLOAD_DIR, 'quiz-images');
+const SUBMISSIONS_DIR = path.join(UPLOAD_DIR, 'submissions');
 
 // Create directories if they don't exist
-[UPLOAD_DIR, THUMBNAILS_DIR, VIDEOS_DIR, ASSIGNMENTS_DIR, ANSWERS_DIR, MEDIA_DIR, QUIZ_IMAGES_DIR].forEach(dir => {
+[UPLOAD_DIR, THUMBNAILS_DIR, VIDEOS_DIR, ASSIGNMENTS_DIR, ANSWERS_DIR, MEDIA_DIR, QUIZ_IMAGES_DIR, SUBMISSIONS_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -27,14 +28,27 @@ const FILE_TYPES = {
     extensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif']
   },
   video: {
-    mimeTypes: ['video/mp4', 'video/webm', 'video/ogg'],
+    mimeTypes: ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'],
     maxSize: 500 * 1024 * 1024, // 500MB
-    extensions: ['.mp4', '.webm', '.ogg']
+    extensions: ['.mp4', '.webm', '.ogg', '.mov']
   },
   document: {
     mimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
     maxSize: 50 * 1024 * 1024, // 50MB
     extensions: ['.pdf', '.doc', '.docx']
+  },
+  submission: {
+    mimeTypes: [
+      'application/pdf',
+      'application/zip',
+      'application/x-zip-compressed',
+      'video/mp4',
+      'video/webm',
+      'video/ogg',
+      'video/quicktime'
+    ],
+    maxSize: 50 * 1024 * 1024, // 50MB per file
+    extensions: ['.pdf', '.zip', '.mp4', '.webm', '.ogg', '.mov']
   }
 };
 
@@ -97,6 +111,13 @@ export const uploadQuizImage = multer({
   storage: createStorage(QUIZ_IMAGES_DIR),
   fileFilter: createFileFilter(FILE_TYPES.image.mimeTypes),
   limits: { fileSize: FILE_TYPES.image.maxSize }
+});
+
+// Course submission files (public - no auth required) - uses memory storage for R2 upload
+export const uploadSubmissionFiles = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: createFileFilter(FILE_TYPES.submission.mimeTypes),
+  limits: { fileSize: FILE_TYPES.submission.maxSize }
 });
 
 // Helper function to delete a file

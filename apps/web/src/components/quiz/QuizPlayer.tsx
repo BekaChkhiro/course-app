@@ -395,7 +395,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
           className={`w-full py-3.5 rounded-xl font-medium transition-colors ${
             maxAttemptsReached
               ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-              : 'bg-accent-500 text-white hover:bg-accent-600'
+              : 'bg-accent-600 text-white hover:bg-accent-700'
           }`}
         >
           დაწყება
@@ -437,7 +437,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
         {/* Progress bar */}
         <div className="mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-accent-500 rounded-full transition-all duration-300"
+            className="h-full bg-accent-600 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>
@@ -574,7 +574,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
             <button
               onClick={submitQuiz}
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white text-sm font-medium rounded-lg hover:bg-accent-600 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white text-sm font-medium rounded-lg hover:bg-accent-700 disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

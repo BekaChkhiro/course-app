@@ -83,8 +83,8 @@ const colorClasses = {
   },
   purple: {
     bg: 'bg-accent-50',
-    icon: 'text-accent-500',
-    ring: 'ring-accent-500/10'
+    icon: 'text-accent-600',
+    ring: 'ring-accent-600/10'
   },
   pink: {
     bg: 'bg-pink-50',

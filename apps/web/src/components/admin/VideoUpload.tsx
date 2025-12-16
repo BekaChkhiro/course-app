@@ -54,10 +54,10 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
       return (
         <div className="mb-4 p-4 bg-accent-50 border border-accent-200 rounded-lg">
           <div className="flex items-center gap-3">
-            <Loader className="w-5 h-5 text-accent-500 animate-spin" />
+            <Loader className="w-5 h-5 text-accent-600 animate-spin" />
             <div className="flex-1">
               <p className="font-medium text-accent-600">{originalName}</p>
-              <p className="text-sm text-accent-500">
+              <p className="text-sm text-accent-600">
                 {processingStatus === 'PROCESSING'
                   ? `დამუშავება... ${processingProgress || 0}%`
                   : 'რიგში ელოდება დამუშავებას...'}
@@ -67,7 +67,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
           {processingStatus === 'PROCESSING' && (
             <div className="mt-2 h-2 bg-accent-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-accent-500 transition-all duration-300"
+                className="h-full bg-accent-600 transition-all duration-300"
                 style={{ width: `${processingProgress || 0}%` }}
               />
             </div>
@@ -310,7 +310,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
       case 'pending':
       case 'uploading':
       case 'processing':
-        return <Loader className="w-5 h-5 text-accent-500 animate-spin" />;
+        return <Loader className="w-5 h-5 text-accent-600 animate-spin" />;
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'error':
@@ -343,7 +343,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
           dragActive
-            ? 'border-accent-500 bg-accent-50 dark:bg-accent-950'
+            ? 'border-accent-600 bg-accent-50 dark:bg-accent-950'
             : 'border-gray-300 dark:border-gray-700'
         }`}
         onDragEnter={handleDrag}
@@ -366,7 +366,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
             multiple
             onChange={(e) => handleFiles(e.target.files)}
           />
-          <span className="px-6 py-3 bg-accent-500 text-white rounded-lg cursor-pointer hover:bg-accent-600 transition-colors inline-block">
+          <span className="px-6 py-3 bg-accent-600 text-white rounded-lg cursor-pointer hover:bg-accent-700 transition-colors inline-block">
             {existingVideo ? 'ვიდეოს შეცვლა' : 'ფაილების არჩევა'}
           </span>
         </label>
@@ -403,7 +403,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
                     {upload.status === 'error' && (
                       <button
                         onClick={() => retryUpload(upload.id)}
-                        className="text-sm text-accent-500 hover:text-accent-600"
+                        className="text-sm text-accent-600 hover:text-accent-700"
                       >
                         თავიდან
                       </button>
@@ -424,7 +424,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
                   <div className="mt-2">
                     <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-accent-500 transition-all duration-300"
+                        className="h-full bg-accent-600 transition-all duration-300"
                         style={{ width: `${upload.progress}%` }}
                       />
                     </div>

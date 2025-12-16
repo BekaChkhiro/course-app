@@ -31,7 +31,7 @@ function ProgressRing({ progress, size = 60, strokeWidth = 6 }: { progress: numb
         cy={size / 2}
       />
       <circle
-        className="text-accent-500 transition-all duration-500"
+        className="text-accent-600 transition-all duration-500"
         strokeWidth={strokeWidth}
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -100,7 +100,7 @@ function ContinueLearningCard({ course }: { course: DashboardData['continueLearn
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-accent-500 h-2 rounded-full transition-all duration-500"
+                className="bg-accent-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${course.progressPercentage}%` }}
               />
             </div>
@@ -122,7 +122,7 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
   const adjustedToday = today === 0 ? 6 : today - 1;
 
   return (
-    <div className="bg-accent-500 rounded-xl shadow-sm p-6 text-white">
+    <div className="bg-accent-600 rounded-xl shadow-sm p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
           <p className="text-white text-opacity-80 text-sm">სწავლის სერია</p>
@@ -139,7 +139,7 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
               className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 index <= adjustedToday
                   ? streak.currentStreak > 0
-                    ? 'bg-white text-accent-500'
+                    ? 'bg-white text-accent-600'
                     : 'bg-white bg-opacity-30 text-white'
                   : 'bg-white bg-opacity-20 text-white text-opacity-50'
               }`}
@@ -361,7 +361,7 @@ export default function DashboardPage() {
                 <p className="text-gray-500 mb-4">დაიწყე სწავლა დღესვე!</p>
                 <Link
                   href="/dashboard/courses"
-                  className="inline-flex items-center px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+                  className="inline-flex items-center px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
                 >
                   კურსების ნახვა
                 </Link>

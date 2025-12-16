@@ -3,13 +3,18 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Initialize Resend with API key
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+// Lazy initialization for Resend (to ensure env vars are loaded)
+let resend: Resend | null = null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const getResend = () => {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+};
+
+const getFromEmail = () => process.env.FROM_EMAIL || 'onboarding@resend.dev';
+const getFrontendUrl = () => process.env.FRONTEND_URL || 'http://localhost:3000';
 
 interface SendEmailOptions {
   to: string;
@@ -27,8 +32,9 @@ export class EmailService {
    */
   static async sendEmail(options: SendEmailOptions): Promise<boolean> {
     const { to, subject, html, templateType, userId, metadata } = options;
+    const resendClient = getResend();
 
-    if (!resend) {
+    if (!resendClient) {
       console.warn('Resend API key not configured. Email not sent:', {
         to: options.to,
         subject: options.subject,
@@ -50,8 +56,8 @@ export class EmailService {
     }
 
     try {
-      const { data, error } = await resend.emails.send({
-        from: FROM_EMAIL,
+      const { data, error } = await resendClient.emails.send({
+        from: getFromEmail(),
         to: options.to,
         subject: options.subject,
         html: options.html,
@@ -121,7 +127,7 @@ export class EmailService {
     name: string,
     verificationToken: string
   ): Promise<boolean> {
-    const verificationUrl = `${FRONTEND_URL}/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `${getFrontendUrl()}/auth/verify-email?token=${verificationToken}`;
 
     const html = `
       <!DOCTYPE html>
@@ -208,7 +214,7 @@ export class EmailService {
     name: string,
     resetToken: string
   ): Promise<boolean> {
-    const resetUrl = `${FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
+    const resetUrl = `${getFrontendUrl()}/auth/reset-password?token=${resetToken}`;
 
     const html = `
       <!DOCTYPE html>
@@ -407,7 +413,7 @@ export class EmailService {
     messagePreview: string,
     messageId: string
   ): Promise<boolean> {
-    const messageUrl = `${FRONTEND_URL}/admin/messages/${messageId}`;
+    const messageUrl = `${getFrontendUrl()}/admin/messages/${messageId}`;
 
     const html = `
       <!DOCTYPE html>
@@ -461,7 +467,7 @@ export class EmailService {
     messageId: string,
     userId: string
   ): Promise<boolean> {
-    const messageUrl = `${FRONTEND_URL}/dashboard/messages/${messageId}`;
+    const messageUrl = `${getFrontendUrl()}/dashboard/messages/${messageId}`;
 
     const html = `
       <!DOCTYPE html>
@@ -515,7 +521,7 @@ export class EmailService {
     reviewId: string,
     userId: string
   ): Promise<boolean> {
-    const courseUrl = `${FRONTEND_URL}/courses`;
+    const courseUrl = `${getFrontendUrl()}/courses`;
 
     const html = `
       <!DOCTYPE html>
@@ -623,7 +629,7 @@ export class EmailService {
     courseSlug: string,
     userId: string
   ): Promise<boolean> {
-    const chapterUrl = `${FRONTEND_URL}/dashboard/courses/${courseSlug}/learn?chapter=${chapterId}`;
+    const chapterUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn?chapter=${chapterId}`;
 
     const html = `
       <!DOCTYPE html>
@@ -771,5 +777,189 @@ export class EmailService {
         return acc;
       }, {} as Record<string, number>),
     };
+  }
+
+  // ==========================================
+  // COURSE SUBMISSION EMAILS
+  // ==========================================
+
+  /**
+   * Send confirmation email to user who submitted a course
+   */
+  static async sendCourseSubmissionConfirmation(
+    email: string,
+    firstName: string,
+    courseTitle: string
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .success-box { background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981; }
+            .info-box { background: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+            h2 { color: #1F2937; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>განაცხადი მიღებულია!</h2>
+            <p>გამარჯობა ${firstName},</p>
+
+            <div class="success-box">
+              <p><strong>თქვენი კურსის განაცხადი წარმატებით გაიგზავნა!</strong></p>
+              <p>კურსი: <strong>${courseTitle}</strong></p>
+            </div>
+
+            <div class="info-box">
+              <p><strong>შემდეგი ნაბიჯები:</strong></p>
+              <ul>
+                <li>ჩვენი გუნდი განიხილავს თქვენს განაცხადს 2-3 სამუშაო დღის განმავლობაში</li>
+                <li>დამატებითი ინფორმაციის საჭიროების შემთხვევაში დაგიკავშირდებით</li>
+                <li>განაცხადის დამტკიცების შემდეგ მიიღებთ შეტყობინებას</li>
+              </ul>
+            </div>
+
+            <p>თუ გაქვთ კითხვები, გთხოვთ დაგვიკავშირდეთ.</p>
+
+            <div class="footer">
+              <p>პატივისცემით,<br>Course Platform გუნდი</p>
+              <p>&copy; ${new Date().getFullYear()} Course Platform. ყველა უფლება დაცულია.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `განაცხადი მიღებულია: ${courseTitle}`,
+      html,
+      templateType: 'course_submission_confirmation',
+      metadata: { courseTitle },
+    });
+  }
+
+  /**
+   * Send notification email to admin about new course submission
+   */
+  static async sendCourseSubmissionNotificationToAdmin(
+    adminEmail: string,
+    submissionId: string,
+    authorName: string,
+    authorEmail: string,
+    authorPhone: string,
+    courseTitle: string,
+    courseDescription: string,
+    driveLink: string | null,
+    files: { fileName: string; fileSize: number; mimeType: string; filePath: string }[]
+  ): Promise<boolean> {
+    const formatFileSize = (bytes: number) => {
+      if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+      }
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    };
+
+    const filesHtml = files.length > 0
+      ? files.map(f => `
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">
+              <strong>${f.fileName}</strong>
+              <br><span style="color: #6B7280; font-size: 12px;">${formatFileSize(f.fileSize)}</span>
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right; white-space: nowrap;">
+              <a href="${f.filePath}"
+                 target="_blank"
+                 style="background: #3B82F6; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-block; margin-right: 8px;">
+                ნახვა
+              </a>
+              <a href="${f.filePath}"
+                 download
+                 style="background: #10B981; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-block;">
+                გადმოწერა
+              </a>
+            </td>
+          </tr>
+        `).join('')
+      : '<tr><td colspan="2" style="padding: 12px; text-align: center; color: #6B7280;">არ არის ატვირთული</td></tr>';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .alert-box { background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B; }
+            .details-box { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E5E7EB; }
+            .description-box { background: #F9FAFB; padding: 15px; border-radius: 8px; margin: 10px 0; max-height: 200px; overflow-y: auto; }
+            .files-list { background: #F0FDF4; padding: 15px; border-radius: 8px; margin: 10px 0; }
+            .files-list ul { margin: 0; padding-left: 20px; }
+            .files-list li { margin: 5px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+            h2 { color: #1F2937; }
+            .label { font-weight: bold; color: #6B7280; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
+            .value { margin-bottom: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="alert-box">
+              <h2 style="margin: 0;">ახალი კურსის განაცხადი!</h2>
+            </div>
+
+            <div class="details-box">
+              <div class="label">განაცხადის ID</div>
+              <div class="value">${submissionId}</div>
+
+              <div class="label">ავტორის სახელი</div>
+              <div class="value">${authorName}</div>
+
+              <div class="label">ელ-ფოსტა</div>
+              <div class="value"><a href="mailto:${authorEmail}">${authorEmail}</a></div>
+
+              <div class="label">ტელეფონი</div>
+              <div class="value"><a href="tel:${authorPhone}">${authorPhone}</a></div>
+
+              <div class="label">კურსის დასახელება</div>
+              <div class="value"><strong>${courseTitle}</strong></div>
+
+              <div class="label">კურსის აღწერა</div>
+              <div class="description-box">${courseDescription.substring(0, 500)}${courseDescription.length > 500 ? '...' : ''}</div>
+
+              ${driveLink ? `
+              <div class="label">Drive ლინკი</div>
+              <div class="value"><a href="${driveLink}" target="_blank">${driveLink}</a></div>
+              ` : ''}
+
+              <div class="label">ატვირთული ფაილები (${files.length})</div>
+              <div class="files-list">
+                <table style="width: 100%; border-collapse: collapse;">${filesHtml}</table>
+              </div>
+            </div>
+
+            <p>გთხოვთ განიხილოთ განაცხადი და დაუკავშირდეთ ავტორს.</p>
+
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} Course Platform Admin</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: adminEmail,
+      subject: `ახალი კურსის განაცხადი: ${courseTitle}`,
+      html,
+      templateType: 'course_submission_admin_notification',
+      metadata: { submissionId, authorName, courseTitle },
+    });
   }
 }

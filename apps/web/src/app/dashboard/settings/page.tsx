@@ -22,7 +22,7 @@ function ToggleSwitch({
       onClick={() => onChange(!enabled)}
       disabled={disabled}
       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-        enabled ? 'bg-accent-500' : 'bg-gray-200'
+        enabled ? 'bg-accent-600' : 'bg-gray-200'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <span
@@ -177,7 +177,7 @@ export default function SettingsPage() {
 
                 <button
                   onClick={() => setEditingProfile(true)}
-                  className="mt-4 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+                  className="mt-4 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
                 >
                   პროფილის რედაქტირება
                 </button>
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+                    className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
                   >
                     ცვლილებების შენახვა
                   </button>
@@ -320,7 +320,7 @@ export default function SettingsPage() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
+                    className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
                   >
                     პაროლის განახლება
                   </button>

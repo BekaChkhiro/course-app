@@ -302,10 +302,10 @@ export default function PredictiveAnalyticsPage() {
                 />
                 <div className="mt-4 p-4 bg-accent-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-accent-500" />
+                    <Zap className="w-4 h-4 text-accent-600" />
                     <span className="text-sm font-medium text-accent-600">Recommendation</span>
                   </div>
-                  <p className="text-sm text-accent-500">
+                  <p className="text-sm text-accent-600">
                     Consider creating more courses in <strong>Web Development</strong> and{' '}
                     <strong>Data Science</strong> categories to meet growing demand.
                   </p>
@@ -371,26 +371,26 @@ export default function PredictiveAnalyticsPage() {
 
                 <div className="p-4 bg-accent-50 rounded-xl border border-accent-200">
                   <div className="flex items-center gap-2 mb-3">
-                    <Brain className="w-5 h-5 text-accent-500" />
+                    <Brain className="w-5 h-5 text-accent-600" />
                     <span className="text-sm font-semibold text-accent-600">Content Insight</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">
                     Quiz completion correlates strongly with course completion (r=0.82).
                   </p>
-                  <p className="text-xs text-accent-500 font-medium">
+                  <p className="text-xs text-accent-600 font-medium">
                     Consider: Add more interactive quizzes
                   </p>
                 </div>
 
                 <div className="p-4 bg-accent-50 rounded-xl border border-accent-200">
                   <div className="flex items-center gap-2 mb-3">
-                    <Clock className="w-5 h-5 text-accent-500" />
+                    <Clock className="w-5 h-5 text-accent-600" />
                     <span className="text-sm font-semibold text-accent-600">Timing Insight</span>
                   </div>
                   <p className="text-sm text-gray-700 mb-2">
                     Peak learning hours are 7-9 PM local time, with 40% higher engagement.
                   </p>
-                  <p className="text-xs text-accent-500 font-medium">
+                  <p className="text-xs text-accent-600 font-medium">
                     Consider: Schedule live sessions during peak hours
                   </p>
                 </div>
@@ -427,7 +427,7 @@ export default function PredictiveAnalyticsPage() {
             <div className="bg-primary-50 rounded-xl p-6 border border-accent-100">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-accent-500" />
+                  <Brain className="w-6 h-6 text-accent-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">About Predictive Models</h3>
@@ -437,15 +437,15 @@ export default function PredictiveAnalyticsPage() {
                   </p>
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-accent-500" />
+                      <BarChart3 className="w-4 h-4 text-accent-600" />
                       <span className="text-gray-600">Last updated: {new Date().toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-accent-500" />
+                      <Target className="w-4 h-4 text-accent-600" />
                       <span className="text-gray-600">Training data: 12 months</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-accent-500" />
+                      <Zap className="w-4 h-4 text-accent-600" />
                       <span className="text-gray-600">Model version: 2.1</span>
                     </div>
                   </div>

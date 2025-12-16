@@ -691,7 +691,7 @@ export default function RichTextEditor({
                   <button
                     type="button"
                     onClick={setLink}
-                    className="px-2 py-1 bg-accent-500 text-white rounded text-sm hover:bg-accent-600"
+                    className="px-2 py-1 bg-accent-600 text-white rounded text-sm hover:bg-accent-700"
                   >
                     დამატება
                   </button>

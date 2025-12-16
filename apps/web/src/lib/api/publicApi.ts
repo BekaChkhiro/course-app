@@ -126,4 +126,18 @@ export const publicApi = {
     }
     return data;
   },
+
+  // Submit course for review (become an instructor)
+  async submitCourse(formData: FormData) {
+    const response = await fetch(`${API_URL}/api/public/course-submissions`, {
+      method: 'POST',
+      body: formData, // FormData for file uploads - no Content-Type header needed
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to submit course');
+    }
+    return data;
+  },
 };

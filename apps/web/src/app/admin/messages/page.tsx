@@ -239,9 +239,9 @@ export default function AdminMessagesPage() {
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">ახალი</span>
-              <AlertCircle className="w-4 h-4 text-accent-500" />
+              <AlertCircle className="w-4 h-4 text-accent-600" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-accent-500">{analytics.newMessages || 0}</p>
+            <p className="mt-1 text-2xl font-bold text-accent-600">{analytics.newMessages || 0}</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 p-3">
             <div className="flex items-center justify-between">
@@ -636,7 +636,7 @@ export default function AdminMessagesPage() {
                       <button
                         onClick={handleSendReply}
                         disabled={!replyContent.trim() || replyMutation.isPending}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
                       >
                         <Send className="w-4 h-4" />
                         {isInternalNote ? 'ჩანაწერის დამატება' : 'პასუხის გაგზავნა'}

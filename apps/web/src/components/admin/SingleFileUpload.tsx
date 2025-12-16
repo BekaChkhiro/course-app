@@ -84,7 +84,7 @@ export default function SingleFileUpload({
           {isPdf ? (
             <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
           ) : (
-            <File className="w-5 h-5 text-accent-500 flex-shrink-0" />
+            <File className="w-5 h-5 text-accent-600 flex-shrink-0" />
           )}
 
           <div className="flex-1 min-w-0">
@@ -104,7 +104,7 @@ export default function SingleFileUpload({
                 href={value}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 text-gray-400 hover:text-accent-500 hover:bg-accent-50 rounded"
+                className="p-1.5 text-gray-400 hover:text-accent-600 hover:bg-accent-50 rounded"
                 title="ნახვა"
               >
                 <Eye className="w-4 h-4" />
@@ -147,7 +147,7 @@ export default function SingleFileUpload({
           />
           {uploading ? (
             <>
-              <Loader2 className="w-6 h-6 text-accent-500 mx-auto mb-1 animate-spin" />
+              <Loader2 className="w-6 h-6 text-accent-600 mx-auto mb-1 animate-spin" />
               <p className="text-sm text-gray-600">იტვირთება...</p>
             </>
           ) : (

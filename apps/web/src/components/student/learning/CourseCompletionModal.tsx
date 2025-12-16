@@ -128,7 +128,7 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
                 <p className="text-xs text-gray-500">თავი გავლილი</p>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-center gap-1 text-accent-500 mb-1">
+                <div className="flex items-center justify-center gap-1 text-accent-600 mb-1">
                   <BookOpen className="w-4 h-4" />
                   <span className="text-xl font-bold">100%</span>
                 </div>
@@ -157,7 +157,7 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
             {certificate?.pdfUrl && (
               <button
                 onClick={handleDownloadCertificate}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-500 text-white rounded-xl font-medium hover:bg-accent-600 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-600 text-white rounded-xl font-medium hover:bg-accent-700 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 სერტიფიკატის ჩამოტვირთვა

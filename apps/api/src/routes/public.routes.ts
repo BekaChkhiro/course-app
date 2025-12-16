@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { optionalAuth, AuthRequest } from '../middleware/auth';
+import { uploadSubmissionFiles } from '../services/uploadService';
+import { EmailService } from '../services/emailService';
+import r2Service from '../services/r2.service';
 
 const router = Router();
 
@@ -467,5 +470,180 @@ router.post('/contact', async (req: Request, res: Response) => {
     });
   }
 });
+
+// ==========================================
+// COURSE SUBMISSION (Become an Instructor)
+// ==========================================
+
+// Submit course for review - accepts up to 5 files (50MB each)
+router.post(
+  '/course-submissions',
+  uploadSubmissionFiles.array('files', 5),
+  async (req: Request, res: Response) => {
+    try {
+      const { firstName, lastName, email, phone, courseTitle, courseDescription, driveLink } = req.body;
+      const files = req.files as Express.Multer.File[];
+
+      // Validate required fields
+      if (!firstName || !lastName || !email || !phone || !courseTitle || !courseDescription) {
+        return res.status(400).json({
+          success: false,
+          message: 'ყველა სავალდებულო ველი უნდა შეავსოთ',
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'არასწორი ელ-ფოსტის ფორმატი',
+        });
+      }
+
+      // Validate phone format (Georgian format)
+      const phoneRegex = /^(\+995|995|0)?5\d{8}$/;
+      if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+        return res.status(400).json({
+          success: false,
+          message: 'არასწორი ტელეფონის ნომრის ფორმატი',
+        });
+      }
+
+      // Check if at least one of files or driveLink is provided
+      if ((!files || files.length === 0) && !driveLink) {
+        return res.status(400).json({
+          success: false,
+          message: 'გთხოვთ ატვირთოთ ფაილები ან მიუთითოთ Drive ლინკი',
+        });
+      }
+
+      // Create submission first (without files)
+      const submission = await prisma.courseSubmission.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          phone: phone.replace(/\s/g, ''),
+          courseTitle,
+          courseDescription,
+          driveLink: driveLink || null,
+        },
+      });
+
+      // Upload files to R2 and create file records
+      const uploadedFiles: { fileName: string; filePath: string; fileSize: number; mimeType: string }[] = [];
+
+      if (files && files.length > 0) {
+        for (const file of files) {
+          try {
+            // Fix encoding for non-ASCII filenames (Georgian, etc.)
+            const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
+            const key = r2Service.generateSubmissionKey(submission.id, originalName);
+            const result = await r2Service.uploadFile(key, file.buffer, file.mimetype, {
+              originalName: originalName,
+              submissionId: submission.id,
+            });
+
+            // Create file record in database
+            await prisma.courseSubmissionFile.create({
+              data: {
+                submissionId: submission.id,
+                fileName: originalName,
+                filePath: result.url, // R2 public URL
+                fileSize: file.size,
+                mimeType: file.mimetype,
+              },
+            });
+
+            uploadedFiles.push({
+              fileName: originalName,
+              filePath: result.url,
+              fileSize: file.size,
+              mimeType: file.mimetype,
+            });
+          } catch (uploadError) {
+            console.error('Failed to upload file to R2:', uploadError);
+            // Continue with other files even if one fails
+          }
+        }
+      }
+
+      // Get submission with files
+      const submissionWithFiles = await prisma.courseSubmission.findUnique({
+        where: { id: submission.id },
+        include: { files: true },
+      });
+
+      // Send confirmation email to user
+      try {
+        await EmailService.sendCourseSubmissionConfirmation(
+          email,
+          firstName,
+          courseTitle
+        );
+      } catch (emailError) {
+        console.error('Failed to send user confirmation email:', emailError);
+      }
+
+      // Send notification email to admin
+      try {
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+
+        await EmailService.sendCourseSubmissionNotificationToAdmin(
+          adminEmail,
+          submission.id,
+          `${firstName} ${lastName}`,
+          email,
+          phone,
+          courseTitle,
+          courseDescription,
+          driveLink,
+          uploadedFiles
+        );
+      } catch (emailError) {
+        console.error('Failed to send admin notification email:', emailError);
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'თქვენი განაცხადი წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.',
+        data: {
+          id: submission.id,
+          courseTitle: submission.courseTitle,
+          filesCount: submissionWithFiles?.files.length || 0,
+        },
+      });
+    } catch (error: any) {
+      console.error('Error submitting course:', error);
+
+      // Handle multer errors
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: 'ფაილის ზომა არ უნდა აღემატებოდეს 50MB-ს',
+        });
+      }
+      if (error.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({
+          success: false,
+          message: 'მაქსიმუმ 5 ფაილის ატვირთვა შეიძლება',
+        });
+      }
+      if (error.message?.includes('Invalid file type')) {
+        return res.status(400).json({
+          success: false,
+          message: 'მხოლოდ PDF, ZIP და ვიდეო ფაილები (MP4, WebM, MOV) არის დაშვებული',
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: 'განაცხადის გაგზავნა ვერ მოხერხდა',
+      });
+    }
+  }
+);
 
 export default router;

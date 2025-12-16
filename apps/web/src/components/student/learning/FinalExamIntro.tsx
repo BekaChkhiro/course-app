@@ -312,7 +312,7 @@ export default function FinalExamIntro({
               <button
                 onClick={onStartExam}
                 disabled={!agreedToRules || isStarting}
-                className="flex-1 px-4 py-3 bg-accent-500 text-white rounded-xl hover:bg-accent-600 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 bg-accent-600 text-white rounded-xl hover:bg-accent-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isStarting ? (
                   <>

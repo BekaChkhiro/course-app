@@ -12,6 +12,7 @@ export const Header = () => {
   const navigation = [
     { name: 'მთავარი', href: '/' },
     { name: 'კურსები', href: '/courses' },
+    { name: 'გახდი ინსტრუქტორი', href: '/submit-course' },
     { name: 'ჩვენ შესახებ', href: '/about' },
     { name: 'კონტაქტი', href: '/contact' },
   ];
@@ -52,7 +53,7 @@ export const Header = () => {
             {isAuthenticated ? (
               <Link
                 href={user?.role === 'ADMIN' ? '/admin' : '/dashboard'}
-                className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors"
               >
                 პანელი
               </Link>
@@ -66,7 +67,7 @@ export const Header = () => {
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
+                  className="inline-flex items-center justify-center px-4 py-2 text-base font-medium text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors"
                 >
                   რეგისტრაცია
                 </Link>
@@ -113,7 +114,7 @@ export const Header = () => {
                 {isAuthenticated ? (
                   <Link
                     href={user?.role === 'ADMIN' ? '/admin' : '/dashboard'}
-                    className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
+                    className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     პანელი
@@ -129,7 +130,7 @@ export const Header = () => {
                     </Link>
                     <Link
                       href="/auth/register"
-                      className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-accent-500 hover:bg-accent-600 rounded-lg transition-colors"
+                      className="block w-full text-center px-4 py-2 text-base font-medium text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       რეგისტრაცია

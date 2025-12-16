@@ -111,9 +111,9 @@ function SortableCategoryItem({
         {/* Icon */}
         {hasChildren ? (
           isExpanded ? (
-            <FolderOpen className="w-5 h-5 text-accent-500" />
+            <FolderOpen className="w-5 h-5 text-accent-600" />
           ) : (
-            <Folder className="w-5 h-5 text-accent-500" />
+            <Folder className="w-5 h-5 text-accent-600" />
           )
         ) : (
           <div className="w-5 h-5 rounded bg-gray-200" />
@@ -328,7 +328,7 @@ export default function CategoriesPage() {
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
             >
               <Plus className="w-4 h-4" />
               ახალი კატეგორია
@@ -528,7 +528,7 @@ function CategoryModal({
               const name = e.target.value;
               setFormData({ ...formData, name, slug: slugify(name) });
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
             required
           />
         </div>
@@ -539,7 +539,7 @@ function CategoryModal({
             type="text"
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
             required
           />
         </div>
@@ -550,7 +550,7 @@ function CategoryModal({
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
           />
         </div>
 
@@ -559,7 +559,7 @@ function CategoryModal({
           <select
             value={formData.parentId}
             onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
           >
             <option value="">არცერთი (მთავარი კატეგორია)</option>
             {parentCategoriesForSelect
@@ -608,7 +608,7 @@ function CategoryModal({
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'ინახება...'

@@ -207,7 +207,7 @@ export default function ContactPage() {
                   <button
                     type="submit"
                     disabled={mutation.isPending}
-                    className="w-full bg-accent-500 text-white py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="w-full bg-accent-600 text-white py-3 rounded-xl font-medium hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {mutation.isPending ? (
                       <>

@@ -60,10 +60,10 @@ const activityLabels: Record<string, string> = {
 };
 
 const activityColors: Record<string, string> = {
-  LOGIN: 'bg-accent-100 text-accent-500',
+  LOGIN: 'bg-accent-100 text-accent-600',
   COURSE_VIEW: 'bg-primary-100 text-primary-900',
   CHAPTER_COMPLETE: 'bg-green-100 text-green-600',
-  QUIZ_ATTEMPT: 'bg-accent-100 text-accent-500',
+  QUIZ_ATTEMPT: 'bg-accent-100 text-accent-600',
   PURCHASE: 'bg-emerald-100 text-emerald-600',
   VIDEO_PLAY: 'bg-pink-100 text-pink-600',
   COMMENT_POST: 'bg-yellow-100 text-yellow-600'

@@ -94,7 +94,7 @@ export default function VersionsPage() {
           <button
             onClick={() => setIsCreateModalOpen(true)}
             disabled={!selectedCourse}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             ახალი ვერსია
