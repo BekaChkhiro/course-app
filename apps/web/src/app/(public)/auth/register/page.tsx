@@ -86,6 +86,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    setFormErrors({});
 
     if (!validateForm()) {
       return;
@@ -93,9 +94,16 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
-      setRegistrationSuccess(true);
-    } catch (err) {
+
+      // Only show success if there's no error in the store
+      const { error: registerError } = useAuthStore.getState();
+      if (!registerError) {
+        setRegistrationSuccess(true);
+      }
+    } catch (err: any) {
+      // Error is already set in the store
       console.error('Registration failed:', err);
+      // Don't show success - stay on the page to show the error
     }
   };
 

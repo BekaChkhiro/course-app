@@ -43,6 +43,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    setFormErrors({});
 
     if (!validateForm()) {
       return;
@@ -51,15 +52,20 @@ export default function LoginPage() {
     try {
       await login(formData);
 
-      const { user } = useAuthStore.getState();
+      const { user, error: loginError } = useAuthStore.getState();
 
-      if (user?.role === 'ADMIN') {
-        router.push('/admin');
-      } else {
-        router.push('/dashboard');
+      // Only redirect if login was successful (no error and user exists)
+      if (!loginError && user) {
+        if (user.role === 'ADMIN') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
+      // Error is already set in the store, but we can also set a local error
       console.error('Login failed:', err);
+      // Don't redirect on error - stay on the page to show the error
     }
   };
 

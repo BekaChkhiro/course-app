@@ -2,6 +2,38 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authApi, User, LoginData, RegisterData } from '@/lib/api/authApi';
 
+// Translate error messages to Georgian
+const translateError = (message: string): string => {
+  const translations: Record<string, string> = {
+    'User with this email already exists': 'ამ ელ-ფოსტით მომხმარებელი უკვე არსებობს',
+    'User with this phone number already exists': 'ამ ტელეფონის ნომრით მომხმარებელი უკვე არსებობს',
+    'Invalid email or password': 'არასწორი ელ-ფოსტა ან პაროლი',
+    'Invalid refresh token': 'სესია ამოიწურა, გთხოვთ თავიდან შეხვიდეთ',
+    'Invalid or expired verification token': 'არასწორი ან ვადაგასული დადასტურების ბმული',
+    'Invalid or expired reset token': 'არასწორი ან ვადაგასული აღდგენის ბმული',
+    'Login failed': 'შესვლა ვერ მოხერხდა',
+    'Registration failed': 'რეგისტრაცია ვერ მოხერხდა',
+    'Email not verified': 'ელ-ფოსტა არ არის დადასტურებული',
+    'Account is disabled': 'ანგარიში გაუქმებულია',
+    'Too many login attempts': 'ძალიან ბევრი მცდელობა, სცადეთ მოგვიანებით',
+    'Network Error': 'ქსელის შეცდომა, შეამოწმეთ ინტერნეტ კავშირი',
+  };
+
+  // Check for exact match first
+  if (translations[message]) {
+    return translations[message];
+  }
+
+  // Check for partial matches
+  for (const [key, value] of Object.entries(translations)) {
+    if (message.toLowerCase().includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+
+  return message;
+};
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -41,8 +73,9 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(response.message || 'Login failed');
           }
         } catch (error: any) {
-          const errorMessage =
+          const rawMessage =
             error.response?.data?.message || error.message || 'Login failed';
+          const errorMessage = translateError(rawMessage);
           set({
             error: errorMessage,
             isLoading: false,
@@ -67,10 +100,11 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(response.message || 'Registration failed');
           }
         } catch (error: any) {
-          const errorMessage =
+          const rawMessage =
             error.response?.data?.message ||
             error.message ||
             'Registration failed';
+          const errorMessage = translateError(rawMessage);
           set({ error: errorMessage, isLoading: false });
           throw error;
         }

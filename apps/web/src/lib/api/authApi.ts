@@ -63,8 +63,14 @@ apiClient.interceptors.response.use(
 
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't try to refresh token for auth endpoints (login, register, etc.)
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
+                           originalRequest?.url?.includes('/auth/register') ||
+                           originalRequest?.url?.includes('/auth/forgot-password') ||
+                           originalRequest?.url?.includes('/auth/reset-password');
+
+    // If error is 401, not an auth endpoint, and we haven't retried yet
+    if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest._retry) {
       originalRequest._retry = true;
 
       console.log('🔄 Attempting token refresh...');
