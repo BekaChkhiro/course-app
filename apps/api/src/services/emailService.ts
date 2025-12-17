@@ -297,9 +297,11 @@ export class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: 'Password Reset - Course Platform',
+      subject: 'პაროლის აღდგენა - Kursebi',
       html,
       text,
+      templateType: 'password_reset',
+      metadata: { resetToken: resetToken.substring(0, 10) + '...' },
     });
   }
 
