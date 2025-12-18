@@ -99,6 +99,15 @@ router.get('/courses', async (req: Request, res: Response) => {
             where: { isActive: true },
             include: {
               _count: { select: { chapters: true } },
+              chapters: {
+                orderBy: { order: 'asc' },
+                take: 4,
+                select: {
+                  id: true,
+                  title: true,
+                  order: true,
+                },
+              },
             },
           },
         },
@@ -116,6 +125,7 @@ router.get('/courses', async (req: Request, res: Response) => {
 
       const activeVersion = course.versions[0];
       const chapterCount = activeVersion?._count?.chapters || 0;
+      const previewChapters = activeVersion?.chapters || [];
 
       return {
         id: course.id,
@@ -129,6 +139,7 @@ router.get('/courses', async (req: Request, res: Response) => {
         reviewCount: course._count.reviews,
         studentCount: course._count.purchases,
         chapterCount,
+        previewChapters,
       };
     });
 

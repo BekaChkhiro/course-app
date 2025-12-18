@@ -186,7 +186,7 @@ const PopularCoursesSection = () => {
             ))}
           </div>
         ) : courses?.length ? (
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
             {courses.map((course: any) => (
               <CourseCard key={course.id} course={course} />
             ))}
@@ -201,37 +201,50 @@ const PopularCoursesSection = () => {
   );
 };
 
-// Course Card Component
+// Course Card Component with Hover Syllabus
 const CourseCard = ({ course }: { course: any }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
-    <Link href={`/courses/${course.slug}`} className="group">
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
-        <div className="relative h-48 bg-gray-200">
-          {course.thumbnail ? (
-            <Image
-              src={course.thumbnail}
-              alt={course.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full bg-primary-900 flex items-center justify-center">
-              <svg className="w-16 h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-          )}
-          {course.category && (
-            <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-700">
-              {course.category.name}
-            </span>
-          )}
-        </div>
-        <div className="p-5">
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2">
-            {course.title}
-          </h3>
-          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{course.shortDescription}</p>
+    <div
+      className="group relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className={`bg-white overflow-hidden shadow-sm transition-all duration-300 ${isHovered ? 'shadow-xl rounded-t-2xl rounded-b-none' : 'rounded-2xl'}`}>
+        {/* Thumbnail */}
+        <Link href={`/courses/${course.slug}`} className="block">
+          <div className="relative h-48 bg-gray-200 overflow-hidden">
+            {course.thumbnail ? (
+              <Image
+                src={course.thumbnail}
+                alt={course.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full bg-primary-900 flex items-center justify-center">
+                <svg className="w-16 h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+            )}
+            {course.category && (
+              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-700">
+                {course.category.name}
+              </span>
+            )}
+          </div>
+        </Link>
+
+        {/* Content */}
+        <div className="p-5 flex flex-col">
+          <Link href={`/courses/${course.slug}`}>
+            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2 min-h-[56px]">
+              {course.title}
+            </h3>
+          </Link>
+          <p className="mt-2 text-sm text-gray-600 line-clamp-2 min-h-[40px]">{course.shortDescription || '\u00A0'}</p>
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center space-x-1">
               <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -248,7 +261,51 @@ const CourseCard = ({ course }: { course: any }) => {
           </div>
         </div>
       </div>
-    </Link>
+
+      {/* Hover Dropdown - Absolute positioned */}
+      <div
+        className={`absolute left-0 right-0 top-full z-50 bg-white rounded-b-2xl shadow-xl overflow-hidden transition-all duration-300 ease-out ${
+          isHovered ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-2 invisible pointer-events-none'
+        }`}
+      >
+        {/* Syllabus */}
+        {course.previewChapters && course.previewChapters.length > 0 && (
+          <div className="p-4">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+              <svg className="w-4 h-4 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              სილაბუსი
+            </h4>
+            <ul className="space-y-2">
+              {course.previewChapters.map((chapter: any, index: number) => (
+                <li key={chapter.id} className="flex items-center text-sm text-gray-600">
+                  <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs flex items-center justify-center mr-2 flex-shrink-0">
+                    {index + 1}
+                  </span>
+                  <span className="line-clamp-1">{chapter.title}</span>
+                </li>
+              ))}
+            </ul>
+            {course.chapterCount > 4 && (
+              <p className="mt-2 text-xs text-gray-500">
+                + კიდევ {course.chapterCount - 4} თავი
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Buy Button */}
+        <div className="p-4 pt-0">
+          <Link
+            href={`/courses/${course.slug}`}
+            className="block w-full py-3 px-4 bg-accent-600 hover:bg-accent-700 text-white text-center font-semibold rounded-xl transition-colors"
+          >
+            {course.price === 0 ? 'უფასოდ დაწყება' : `ყიდვა - ${course.price} ₾`}
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 };
 
