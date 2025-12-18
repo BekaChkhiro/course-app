@@ -404,18 +404,29 @@ const CTASection = () => {
   );
 };
 
+// Slider Skeleton for loading state
+const SliderSkeleton = () => (
+  <section className="w-full py-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="aspect-[2/1] sm:aspect-[16/9] lg:aspect-[1300/650] relative rounded-xl sm:rounded-2xl overflow-hidden bg-gray-200 animate-pulse" />
+    </div>
+  </section>
+);
+
 // Main Page Component
 export default function HomePage() {
   // Fetch hero slides
-  const { data: slides } = useQuery({
+  const { data: slides, isLoading } = useQuery({
     queryKey: ['hero-slides'],
     queryFn: publicApi.getSliders,
   });
 
   return (
     <>
-      {/* Show slider if slides exist, otherwise show static HeroSection */}
-      {slides && slides.length > 0 ? (
+      {/* Show skeleton while loading, slider if slides exist, otherwise HeroSection */}
+      {isLoading ? (
+        <SliderSkeleton />
+      ) : slides && slides.length > 0 ? (
         <HeroSlider slides={slides} />
       ) : (
         <HeroSection />
