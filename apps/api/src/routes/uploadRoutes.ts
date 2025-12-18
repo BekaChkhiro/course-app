@@ -6,7 +6,8 @@ import {
   uploadAssignment,
   uploadAnswer,
   uploadMedia,
-  uploadQuizImage
+  uploadQuizImage,
+  uploadSliderImage
 } from '../services/uploadService';
 import {
   uploadThumbnailHandler,
@@ -14,7 +15,8 @@ import {
   uploadAssignmentHandler,
   uploadAnswerHandler,
   uploadMediaHandler,
-  uploadQuizImageHandler
+  uploadQuizImageHandler,
+  uploadSliderImageHandler
 } from '../controllers/uploadController';
 
 const router = express.Router();
@@ -29,5 +31,6 @@ router.post('/assignment', uploadAssignment.single('file'), uploadAssignmentHand
 router.post('/answer', uploadAnswer.single('file'), uploadAnswerHandler);
 router.post('/media', uploadMedia.single('file'), uploadMediaHandler);
 router.post('/quiz-image', uploadQuizImage.single('file'), uploadQuizImageHandler);
+router.post('/slider-image', uploadSliderImage.single('file'), uploadSliderImageHandler);
 
 export default router;

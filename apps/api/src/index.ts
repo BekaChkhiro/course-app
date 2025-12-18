@@ -25,6 +25,8 @@ import comprehensiveAnalyticsRoutes from './routes/comprehensiveAnalyticsRoutes'
 import publicRoutes from './routes/public.routes'
 import purchaseRoutes from './routes/purchase.routes'
 import attachmentRoutes from './routes/attachment.routes'
+import faqRoutes from './routes/faqRoutes'
+import sliderRoutes from './routes/sliderRoutes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -131,6 +133,12 @@ app.use('/api/purchase', purchaseRoutes)
 
 // Attachment routes (file attachments for chapters)
 app.use('/api/attachments', attachmentRoutes)
+
+// FAQ routes
+app.use('/api/faqs', faqRoutes)
+
+// Slider routes
+app.use('/api/sliders', sliderRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

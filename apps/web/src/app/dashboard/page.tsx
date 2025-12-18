@@ -170,7 +170,11 @@ function StreakCard({ streak }: { streak: DashboardData['studyStreak'] }) {
 }
 
 function XPCard({ gamification }: { gamification: DashboardData['gamification'] }) {
-  const xpProgress = (gamification.totalXP / (gamification.totalXP + gamification.xpToNextLevel)) * 100;
+  // Safe calculation to avoid NaN when both values are 0
+  const totalRequired = gamification.totalXP + gamification.xpToNextLevel;
+  const xpProgress = totalRequired > 0
+    ? (gamification.totalXP / totalRequired) * 100
+    : 0;
 
   return (
     <div className="bg-primary-900 rounded-xl shadow-sm p-6 text-white">

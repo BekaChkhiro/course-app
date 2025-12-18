@@ -1607,3 +1607,40 @@ model CourseSubmissionFile {
   @@index([submissionId])
   @@map("course_submission_files")
 }
+
+// ==========================================
+// FAQ SYSTEM
+// ==========================================
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  category  String?  // Optional categorization
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+  @@map("faqs")
+}
+
+// ==========================================
+// SLIDER SYSTEM
+// ==========================================
+
+model Slider {
+  id        String   @id @default(cuid())
+  imageUrl  String   // Image URL (R2 storage)
+  linkUrl   String?  // Optional click-through link
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+  @@map("sliders")
+}

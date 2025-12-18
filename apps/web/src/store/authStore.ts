@@ -39,12 +39,14 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isInitialized: boolean; // ტოკენის ვალიდაცია დასრულებულია?
 
   // Actions
   login: (data: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
+  initializeAuth: () => Promise<void>; // აპის სტარტზე ვალიდაცია
   clearError: () => void;
   setUser: (user: User | null) => void;
 }
@@ -56,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      isInitialized: false,
 
       login: async (data: LoginData) => {
         set({ isLoading: true, error: null });
@@ -149,6 +152,58 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Fetch profile error:', error);
           set({ user: null, isAuthenticated: false, isLoading: false });
+        }
+      },
+
+      initializeAuth: async () => {
+        // თუ უკვე ინიციალიზებულია, არ გავიმეოროთ
+        if (get().isInitialized) return;
+
+        const token = localStorage.getItem('accessToken');
+
+        // თუ ტოკენი არ არის, მაშინვე დავასრულოთ
+        if (!token) {
+          set({
+            isAuthenticated: false,
+            user: null,
+            isInitialized: true,
+            isLoading: false
+          });
+          return;
+        }
+
+        // ტოკენი არის - შევამოწმოთ სერვერთან
+        set({ isLoading: true });
+        try {
+          const response = await authApi.getProfile();
+
+          if (response.success) {
+            set({
+              user: response.data.user,
+              isAuthenticated: true,
+              isLoading: false,
+              isInitialized: true,
+            });
+          } else {
+            // ტოკენი არავალიდურია
+            localStorage.removeItem('accessToken');
+            set({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              isInitialized: true,
+            });
+          }
+        } catch (error: any) {
+          console.error('Auth initialization error:', error);
+          // შეცდომის შემთხვევაში გავასუფთავოთ
+          localStorage.removeItem('accessToken');
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            isInitialized: true,
+          });
         }
       },
 

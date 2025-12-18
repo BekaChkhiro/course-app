@@ -503,6 +503,7 @@ function ChapterContent({
   completedAttemptId,
   onQuizComplete,
   onQuizRetry,
+  onViewResults,
 }: {
   chapterData: ChapterForLearning;
   activeTab: ActiveTab;
@@ -513,6 +514,7 @@ function ChapterContent({
   completedAttemptId: string | null;
   onQuizComplete: (attempt: QuizAttempt) => void;
   onQuizRetry: () => void;
+  onViewResults: (attemptId: string) => void;
 }) {
   const { chapter, progress } = chapterData;
   const [showAnswer, setShowAnswer] = useState(false);
@@ -609,28 +611,39 @@ function ChapterContent({
             <h1 className="text-xl font-bold text-gray-900">{chapter.title}</h1>
           </div>
           {!progress.isCompleted && (
-            <button
-              onClick={onMarkComplete}
-              disabled={isMarkingComplete}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
-            >
-              {isMarkingComplete ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  მონიშვნა...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  დასრულებულად მონიშვნა
-                </>
-              )}
-            </button>
+            chapter.quiz ? (
+              // Chapter has quiz - show disabled button with message
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 rounded-lg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-sm">ჯერ ჩააბარეთ ტესტი</span>
+              </div>
+            ) : (
+              // Chapter without quiz - show normal complete button
+              <button
+                onClick={onMarkComplete}
+                disabled={isMarkingComplete}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center"
+              >
+                {isMarkingComplete ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    მონიშვნა...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    დასრულებულად მონიშვნა
+                  </>
+                )}
+              </button>
+            )
           )}
           {progress.isCompleted && (
             <span className="px-4 py-2 bg-green-100 text-green-700 rounded-lg flex items-center">
@@ -862,6 +875,7 @@ function ChapterContent({
               <QuizPlayer
                 quizId={chapter.quiz.id}
                 onComplete={onQuizComplete}
+                onViewResults={onViewResults}
               />
             )}
           </div>
@@ -934,7 +948,7 @@ export default function CourseLearningPage() {
     enabled: !!finalExamId,
   });
 
-  const finalExamAttempts = finalExamAttemptsData?.data?.attempts || [];
+  const finalExamAttempts = finalExamAttemptsData?.data || [];
   const lastFinalExamAttempt = finalExamAttempts[0] ? {
     id: finalExamAttempts[0].id,
     attemptNumber: finalExamAttempts[0].attemptNumber,
@@ -1013,13 +1027,23 @@ export default function CourseLearningPage() {
   // Check if course is completed and show modal
   useEffect(() => {
     if (courseData?.data && !hasShownCompletionModal) {
-      const allCompleted = courseData.data.chapters.every((c) => c.progress.isCompleted);
-      if (allCompleted && courseData.data.chapters.length > 0) {
+      const allChaptersCompleted = courseData.data.chapters.every((c) => c.progress.isCompleted);
+      const hasFinalExam = !!courseData.data.finalExam;
+      const finalExamPassed = lastFinalExamAttempt?.passed ?? false;
+
+      // Course is completed when:
+      // 1. All chapters are completed
+      // 2. If there's a final exam, it must be passed
+      const courseCompleted = allChaptersCompleted &&
+        courseData.data.chapters.length > 0 &&
+        (!hasFinalExam || finalExamPassed);
+
+      if (courseCompleted) {
         setShowCompletionModal(true);
         setHasShownCompletionModal(true);
       }
     }
-  }, [courseData, hasShownCompletionModal]);
+  }, [courseData, hasShownCompletionModal, lastFinalExamAttempt]);
 
   const handleSelectChapter = (chapterId: string) => {
     setActiveChapterId(chapterId);
@@ -1038,6 +1062,12 @@ export default function CourseLearningPage() {
 
   // Final Exam handlers
   const handleOpenFinalExamIntro = () => {
+    // If already passed, go directly to results (skip the modal)
+    if (lastFinalExamAttempt?.passed && lastFinalExamAttempt?.id) {
+      setFinalExamAttemptId(lastFinalExamAttempt.id);
+      setFinalExamMode('results');
+      return;
+    }
     setShowFinalExamIntro(true);
   };
 
@@ -1095,10 +1125,12 @@ export default function CourseLearningPage() {
   const currentChapterIndex = chapters.findIndex((c) => c.id === activeChapterId);
   const hasPrevChapter = currentChapterIndex > 0;
   const hasNextChapter = currentChapterIndex >= 0 && currentChapterIndex < chapters.length - 1;
+  const isCurrentChapterCompleted = chapterData?.data?.progress?.isCompleted ?? false;
 
   // Swipe gestures for mobile navigation - must be called before any conditional returns
+  // Only allow swiping to next chapter if current chapter is completed
   const swipeHandlers = useSwipeGesture(
-    hasNextChapter ? () => navigateChapter('next') : undefined,
+    hasNextChapter && isCurrentChapterCompleted ? () => navigateChapter('next') : undefined,
     hasPrevChapter ? () => navigateChapter('prev') : undefined
   );
 
@@ -1288,6 +1320,12 @@ export default function CourseLearningPage() {
                   <QuizPlayer
                     quizId={courseData.data.finalExam.id}
                     onComplete={handleFinalExamComplete}
+                    onViewResults={(attemptId: string) => {
+                      setFinalExamAttemptId(attemptId);
+                      setFinalExamMode('results');
+                      // Refresh attempts data so sidebar shows correct status
+                      queryClient.invalidateQueries({ queryKey: ['finalExamAttempts', finalExamId] });
+                    }}
                   />
                 )}
               </div>
@@ -1309,6 +1347,10 @@ export default function CourseLearningPage() {
             onQuizComplete={(attempt: QuizAttempt) => {
               setCompletedAttemptId(attempt.id);
               setQuizMode('results');
+              // If quiz is passed, auto-mark chapter as complete
+              if (attempt.passed && activeChapterId) {
+                markCompleteMutation.mutate(activeChapterId);
+              }
               // Invalidate both chapter and course queries to reflect completion
               queryClient.invalidateQueries({ queryKey: ['chapterForLearning', activeChapterId] });
               queryClient.invalidateQueries({ queryKey: ['courseForLearning', slug] });
@@ -1316,6 +1358,10 @@ export default function CourseLearningPage() {
             onQuizRetry={() => {
               setQuizMode('start');
               setCompletedAttemptId(null);
+            }}
+            onViewResults={(attemptId: string) => {
+              setCompletedAttemptId(attemptId);
+              setQuizMode('results');
             }}
           />
         )}
@@ -1347,20 +1393,29 @@ export default function CourseLearningPage() {
               <span className="hidden sm:inline">თავი </span>{currentChapterIndex + 1}<span className="hidden sm:inline"> / </span><span className="sm:hidden">/</span>{chapters.length}<span className="hidden sm:inline">-დან</span>
             </span>
 
-            <button
-              onClick={() => navigateChapter('next')}
-              disabled={!hasNextChapter}
-              className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
-                hasNextChapter
-                  ? 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-600'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <span className="hidden sm:inline">შემდეგი</span>
-              <svg className="w-5 h-5 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            {isCurrentChapterCompleted ? (
+              <button
+                onClick={() => navigateChapter('next')}
+                disabled={!hasNextChapter}
+                className={`flex items-center px-3 py-2 sm:px-4 rounded-lg transition-colors ${
+                  hasNextChapter
+                    ? 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-600'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <span className="hidden sm:inline">შემდეგი</span>
+                <svg className="w-5 h-5 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ) : (
+              <div className="flex items-center px-3 py-2 sm:px-4 text-gray-400 text-sm">
+                <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="hidden sm:inline">დაასრულე თავი</span>
+              </div>
+            )}
           </div>
         )}
 

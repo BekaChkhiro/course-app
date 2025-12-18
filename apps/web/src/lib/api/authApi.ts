@@ -2,12 +2,6 @@ import axios, { AxiosInstance } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-// Log environment configuration
-console.log('🌍 Auth API Environment Configuration:');
-console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-console.log('API_URL (used):', API_URL);
-console.log('---');
-
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: `${API_URL}/api`,
@@ -17,50 +11,24 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true, // Important for cookies
 });
 
-// Request interceptor to add auth token with detailed logging
+// Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
-
-    console.group('🔐 Auth API Request');
-    console.log('URL:', config.baseURL + config.url);
-    console.log('Method:', config.method?.toUpperCase());
-    console.log('Token exists:', !!token);
     if (token) {
-      console.log('Token (first 20 chars):', token.substring(0, 20) + '...');
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.warn('⚠️ No accessToken in localStorage');
     }
-    console.log('Headers:', config.headers);
-    console.groupEnd();
-
     return config;
   },
   (error) => {
-    console.error('❌ Auth API Request Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for token refresh with detailed logging
+// Response interceptor for token refresh
 apiClient.interceptors.response.use(
-  (response) => {
-    console.group('✅ Auth API Response Success');
-    console.log('URL:', response.config.url);
-    console.log('Status:', response.status);
-    console.log('Data:', response.data);
-    console.groupEnd();
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    console.group('❌ Auth API Response Error');
-    console.log('URL:', error.config?.url);
-    console.log('Status:', error.response?.status);
-    console.log('Error Message:', error.response?.data?.message || error.message);
-    console.log('Full Error:', error.response?.data);
-    console.groupEnd();
-
     const originalRequest = error.config;
 
     // Don't try to refresh token for auth endpoints (login, register, etc.)
@@ -72,8 +40,6 @@ apiClient.interceptors.response.use(
     // If error is 401, not an auth endpoint, and we haven't retried yet
     if (error.response?.status === 401 && !isAuthEndpoint && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      console.log('🔄 Attempting token refresh...');
 
       try {
         // Try to refresh the token
@@ -87,14 +53,12 @@ apiClient.interceptors.response.use(
 
         // Save new token
         localStorage.setItem('accessToken', accessToken);
-        console.log('✅ Token refreshed successfully');
 
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        console.error('❌ Token refresh failed, redirecting to login');
         localStorage.removeItem('accessToken');
         window.location.href = '/auth/login';
         return Promise.reject(refreshError);
@@ -146,9 +110,12 @@ export interface Device {
   deviceName: string;
   deviceType: string;
   browser?: string;
+  os?: string;
+  osVersion?: string;
   ipAddress: string;
   lastActiveAt: string;
   createdAt: string;
+  isCurrentDevice: boolean;
 }
 
 // Auth API endpoints

@@ -11,7 +11,7 @@ export const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, isInitialized } = useAuthStore();
 
   const navigation = [
     { name: 'მთავარი', href: '/' },
@@ -152,7 +152,10 @@ export const Header = () => {
 
           {/* Auth Section */}
           <div className="hidden md:flex md:items-center md:space-x-4">
-            {isAuthenticated && user ? (
+            {!isInitialized ? (
+              // ვალიდაციის დროს აჩვენე placeholder
+              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+            ) : isAuthenticated && user ? (
               <div className="relative" ref={dropdownRef}>
                 {/* Avatar Button */}
                 <button
@@ -295,7 +298,16 @@ export const Header = () => {
               ))}
 
               <div className="pt-4 mt-4 border-t border-gray-200">
-                {isAuthenticated && user ? (
+                {!isInitialized ? (
+                  // ვალიდაციის დროს აჩვენე placeholder
+                  <div className="px-3 py-3 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-32" />
+                    </div>
+                  </div>
+                ) : isAuthenticated && user ? (
                   <>
                     {/* User Info - Mobile */}
                     <div className="px-3 py-3 mb-2 bg-gray-50 rounded-lg">

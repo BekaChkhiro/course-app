@@ -167,46 +167,48 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
         </div>
       )}
 
-      {/* Certificate */}
-      {attempt.certificate ? (
-        <div className="px-6 py-4 bg-primary-50 border-b border-primary-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-primary-900" />
-              <span className="text-sm font-medium text-primary-900">სერტიფიკატი მზადაა</span>
-            </div>
-            {attempt.certificate.pdfUrl && (
-              <button
-                onClick={() => window.open(attempt.certificate?.pdfUrl, '_blank')}
-                className="flex items-center gap-1.5 text-sm text-primary-900 hover:text-primary-800"
-              >
-                <Download className="w-4 h-4" />
-                ჩამოტვირთვა
-              </button>
-            )}
-          </div>
-        </div>
-      ) : passed && (
-        <div className="px-6 py-4 bg-amber-50 border-b border-amber-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-amber-600" />
-              <span className="text-sm font-medium text-amber-900">სერტიფიკატი ჯერ არ შექმნილა</span>
-            </div>
-            <button
-              onClick={handleRegenerateCertificate}
-              disabled={regeneratingCert}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 disabled:opacity-50"
-            >
-              {regeneratingCert ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Award className="w-4 h-4" />
+      {/* Certificate - only show if quiz generates certificates (final exams) */}
+      {attempt.quiz?.generateCertificate && (
+        attempt.certificate ? (
+          <div className="px-6 py-4 bg-primary-50 border-b border-primary-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-primary-900" />
+                <span className="text-sm font-medium text-primary-900">სერტიფიკატი მზადაა</span>
+              </div>
+              {attempt.certificate.pdfUrl && (
+                <button
+                  onClick={() => window.open(attempt.certificate?.pdfUrl, '_blank')}
+                  className="flex items-center gap-1.5 text-sm text-primary-900 hover:text-primary-800"
+                >
+                  <Download className="w-4 h-4" />
+                  ჩამოტვირთვა
+                </button>
               )}
-              {regeneratingCert ? 'იქმნება...' : 'სერტიფიკატის გენერაცია'}
-            </button>
+            </div>
           </div>
-        </div>
+        ) : passed && (
+          <div className="px-6 py-4 bg-amber-50 border-b border-amber-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-amber-600" />
+                <span className="text-sm font-medium text-amber-900">სერტიფიკატი ჯერ არ შექმნილა</span>
+              </div>
+              <button
+                onClick={handleRegenerateCertificate}
+                disabled={regeneratingCert}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 disabled:opacity-50"
+              >
+                {regeneratingCert ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Award className="w-4 h-4" />
+                )}
+                {regeneratingCert ? 'იქმნება...' : 'სერტიფიკატის გენერაცია'}
+              </button>
+            </div>
+          </div>
+        )
       )}
 
       {/* Actions */}
@@ -216,7 +218,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
           if (passed) return null;
 
           // Check if max attempts reached
-          const maxAttempts = attempt.quiz?.maxAttempts ?? 2;
+          const maxAttempts = attempt.quiz?.maxAttempts ?? 3;
           const attemptsUsed = attempt.attemptNumber || 1;
 
           if (attemptsUsed >= maxAttempts) {

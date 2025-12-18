@@ -140,4 +140,31 @@ export const publicApi = {
     }
     return data;
   },
+
+  // Get FAQs (public - only active ones)
+  async getFAQs(category?: string) {
+    const params = category ? `?category=${encodeURIComponent(category)}` : '';
+    const response = await fetch(`${API_URL}/api/faqs/public${params}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    return data.faqs || [];
+  },
+
+  // Get sliders (public - only active ones)
+  async getSliders() {
+    const response = await fetch(`${API_URL}/api/sliders/public`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    return data.sliders || [];
+  },
 };

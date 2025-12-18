@@ -6,6 +6,8 @@ export interface DeviceInfo {
   deviceName: string;
   deviceType: 'mobile' | 'tablet' | 'desktop';
   browser?: string;
+  os?: string;
+  osVersion?: string;
   userAgent: string;
   fingerprint: string;
 }
@@ -62,6 +64,10 @@ export function parseDeviceInfo(req: Request): DeviceInfo {
   const browserVersion = result.browser.version || '';
   const browser = browserVersion ? `${browserName} ${browserVersion}` : browserName;
 
+  // Get OS info
+  const os = result.os.name || undefined;
+  const osVersion = result.os.version || undefined;
+
   // Generate fingerprint
   const fingerprint = generateDeviceFingerprint(req);
 
@@ -69,6 +75,8 @@ export function parseDeviceInfo(req: Request): DeviceInfo {
     deviceName,
     deviceType,
     browser,
+    os,
+    osVersion,
     userAgent,
     fingerprint,
   };

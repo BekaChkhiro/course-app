@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { publicApi } from '@/lib/api/publicApi';
+import HeroSlider from '@/components/public/HeroSlider';
 
 // Hero Section
 const HeroSection = () => {
@@ -295,6 +297,81 @@ const CategoriesSection = () => {
   );
 };
 
+// FAQ Section
+const FAQSection = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const { data: faqs, isLoading } = useQuery({
+    queryKey: ['public-faqs'],
+    queryFn: () => publicApi.getFAQs(),
+  });
+
+  if (isLoading) {
+    return (
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
+          </div>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl h-16 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!faqs || faqs.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="py-20 bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
+          <p className="mt-4 text-lg text-gray-600">
+            პასუხები ყველაზე გავრცელებულ კითხვებზე
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq: any, index: number) => (
+            <div
+              key={faq.id}
+              className="bg-white rounded-xl shadow-sm overflow-hidden"
+            >
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors"
+              >
+                <span className="font-medium text-gray-900 pr-4">{faq.question}</span>
+                <svg
+                  className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform ${
+                    openIndex === index ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openIndex === index && (
+                <div className="px-5 pb-5">
+                  <p className="text-gray-600 whitespace-pre-line">{faq.answer}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // CTA Section
 const CTASection = () => {
   return (
@@ -329,12 +406,24 @@ const CTASection = () => {
 
 // Main Page Component
 export default function HomePage() {
+  // Fetch hero slides
+  const { data: slides } = useQuery({
+    queryKey: ['hero-slides'],
+    queryFn: publicApi.getSliders,
+  });
+
   return (
     <>
-      <HeroSection />
+      {/* Show slider if slides exist, otherwise show static HeroSection */}
+      {slides && slides.length > 0 ? (
+        <HeroSlider slides={slides} />
+      ) : (
+        <HeroSection />
+      )}
       <FeaturesSection />
       <PopularCoursesSection />
       <CategoriesSection />
+      <FAQSection />
       <CTASection />
     </>
   );

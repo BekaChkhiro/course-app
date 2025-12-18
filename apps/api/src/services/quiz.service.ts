@@ -312,8 +312,8 @@ class QuizService {
       throw new Error('ALREADY_PASSED');
     }
 
-    // Check max attempts (default to 2 if not set)
-    const maxAttempts = quiz.maxAttempts ?? 2;
+    // Check max attempts (default to 3 if not set)
+    const maxAttempts = quiz.maxAttempts ?? 3;
     const existingAttempts = await prisma.quizAttempt.count({
       where: {
         userId,

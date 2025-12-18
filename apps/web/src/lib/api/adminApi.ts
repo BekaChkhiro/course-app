@@ -84,6 +84,11 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
     return adminApi.post('/upload/quiz-image', formData);
+  },
+  sliderImage: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return adminApi.post('/upload/slider-image', formData);
   }
 };
 
@@ -364,6 +369,35 @@ export const attachmentApi = {
     adminApi.delete(`/attachments/${id}`),
   reorder: (chapterId: string, attachmentIds: string[]) =>
     adminApi.put(`/attachments/chapter/${chapterId}/reorder`, { attachmentIds })
+};
+
+// FAQ APIs (Admin)
+export const faqApi = {
+  getAll: () => adminApi.get('/faqs'),
+  getById: (id: string) => adminApi.get(`/faqs/${id}`),
+  create: (data: { question: string; answer: string; category?: string; order?: number; isActive?: boolean }) =>
+    adminApi.post('/faqs', data),
+  update: (id: string, data: { question?: string; answer?: string; category?: string; order?: number; isActive?: boolean }) =>
+    adminApi.put(`/faqs/${id}`, data),
+  delete: (id: string) => adminApi.delete(`/faqs/${id}`),
+  reorder: (faqs: { id: string; order: number }[]) =>
+    adminApi.post('/faqs/reorder', { faqs }),
+  toggle: (id: string) => adminApi.patch(`/faqs/${id}/toggle`),
+  getCategories: () => adminApi.get('/faqs/categories')
+};
+
+// Slider APIs (Admin)
+export const sliderApi = {
+  getAll: () => adminApi.get('/sliders'),
+  getById: (id: string) => adminApi.get(`/sliders/${id}`),
+  create: (data: { imageUrl: string; linkUrl?: string; order?: number; isActive?: boolean }) =>
+    adminApi.post('/sliders', data),
+  update: (id: string, data: { imageUrl?: string; linkUrl?: string; order?: number; isActive?: boolean }) =>
+    adminApi.put(`/sliders/${id}`, data),
+  delete: (id: string) => adminApi.delete(`/sliders/${id}`),
+  reorder: (sliders: { id: string; order: number }[]) =>
+    adminApi.post('/sliders/reorder', { sliders }),
+  toggle: (id: string) => adminApi.patch(`/sliders/${id}/toggle`)
 };
 
 export default adminApi;

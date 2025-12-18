@@ -15,9 +15,10 @@ import toast from 'react-hot-toast';
 interface QuizPlayerProps {
   quizId: string;
   onComplete?: (attempt: QuizAttempt) => void;
+  onViewResults?: (attemptId: string) => void;
 }
 
-const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
+const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onViewResults }) => {
   const router = useRouter();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
@@ -42,6 +43,13 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     loadQuiz();
     return () => cleanup();
   }, [quizId]);
+
+  // If already passed and onViewResults is provided, show results directly
+  useEffect(() => {
+    if (passedAttemptId && onViewResults) {
+      onViewResults(passedAttemptId);
+    }
+  }, [passedAttemptId, onViewResults]);
 
   const cleanup = () => {
     if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
@@ -74,7 +82,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
 
       // Calculate attempts info
       const completedAttempts = attempts.filter((a: any) => a.status === 'COMPLETED' || a.status === 'TIME_EXPIRED');
-      const maxAttempts = quizResponse.data.maxAttempts ?? 2;
+      const maxAttempts = quizResponse.data.maxAttempts ?? 3;
       setAttemptsInfo({ used: completedAttempts.length, max: maxAttempts });
 
       setLoading(false);
@@ -308,8 +316,8 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
     );
   }
 
-  // If already passed - redirect to results
-  if (passedAttemptId) {
+  // If already passed and no onViewResults callback, show the passed screen
+  if (passedAttemptId && !onViewResults) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-xl mx-auto">
         <div className="text-center mb-8">
@@ -328,6 +336,11 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete }) => {
         </button>
       </div>
     );
+  }
+
+  // If onViewResults is provided and quiz is passed, don't render (parent shows results)
+  if (passedAttemptId && onViewResults) {
+    return null;
   }
 
   // Check if max attempts reached

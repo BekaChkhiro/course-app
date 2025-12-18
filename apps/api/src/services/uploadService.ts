@@ -12,9 +12,10 @@ const ANSWERS_DIR = path.join(UPLOAD_DIR, 'answers');
 const MEDIA_DIR = path.join(UPLOAD_DIR, 'media');
 const QUIZ_IMAGES_DIR = path.join(UPLOAD_DIR, 'quiz-images');
 const SUBMISSIONS_DIR = path.join(UPLOAD_DIR, 'submissions');
+const SLIDERS_DIR = path.join(UPLOAD_DIR, 'sliders');
 
 // Create directories if they don't exist
-[UPLOAD_DIR, THUMBNAILS_DIR, VIDEOS_DIR, ASSIGNMENTS_DIR, ANSWERS_DIR, MEDIA_DIR, QUIZ_IMAGES_DIR, SUBMISSIONS_DIR].forEach(dir => {
+[UPLOAD_DIR, THUMBNAILS_DIR, VIDEOS_DIR, ASSIGNMENTS_DIR, ANSWERS_DIR, MEDIA_DIR, QUIZ_IMAGES_DIR, SUBMISSIONS_DIR, SLIDERS_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -111,6 +112,12 @@ export const uploadQuizImage = multer({
   storage: createStorage(QUIZ_IMAGES_DIR),
   fileFilter: createFileFilter(FILE_TYPES.image.mimeTypes),
   limits: { fileSize: FILE_TYPES.image.maxSize }
+});
+
+export const uploadSliderImage = multer({
+  storage: createStorage(SLIDERS_DIR),
+  fileFilter: createFileFilter(FILE_TYPES.image.mimeTypes),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB for slider images
 });
 
 // Course submission files (public - no auth required) - uses memory storage for R2 upload

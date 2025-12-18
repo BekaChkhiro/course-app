@@ -216,3 +216,44 @@ export const uploadQuizImageHandler = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to upload quiz image' });
   }
 };
+
+export const uploadSliderImageHandler = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Read file buffer
+    const fileBuffer = await fs.readFile(req.file.path);
+
+    // Generate R2 key
+    const key = r2Service.generateSliderImageKey(req.file.originalname);
+
+    // Upload to R2
+    const result = await r2Service.uploadFile(key, fileBuffer, req.file.mimetype, {
+      originalname: req.file.originalname,
+    });
+
+    // Delete local file after upload
+    await fs.unlink(req.file.path).catch(() => {});
+
+    res.status(200).json({
+      message: 'Slider image uploaded successfully',
+      file: {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        url: result.url,
+        path: key
+      }
+    });
+  } catch (error) {
+    console.error('Slider image upload error:', error);
+    // Clean up local file on error
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+    res.status(500).json({ error: 'Failed to upload slider image' });
+  }
+};

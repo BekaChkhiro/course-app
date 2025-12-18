@@ -480,19 +480,43 @@ export class AuthController {
   static async getDevices(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId!;
+      const refreshToken = req.cookies.refreshToken;
 
       const sessions = await DeviceSessionService.getUserSessions(userId);
 
+      // Find current session by refresh token
+      let currentSessionId: string | null = null;
+      if (refreshToken) {
+        const currentSession = await DeviceSessionService.verifyRefreshToken(refreshToken);
+        if (currentSession) {
+          currentSessionId = currentSession.id;
+        }
+      }
+
+      // Parse OS from user agent for each device
+      const UAParser = require('ua-parser-js');
+
       // Format response
-      const devices = sessions.map((session) => ({
-        id: session.id,
-        deviceName: session.deviceName,
-        deviceType: session.deviceType,
-        browser: session.browser,
-        ipAddress: session.ipAddress,
-        lastActiveAt: session.lastActiveAt,
-        createdAt: session.createdAt,
-      }));
+      const devices = sessions.map((session) => {
+        // Parse user agent to get OS info
+        const parser = new UAParser(session.userAgent || '');
+        const result = parser.getResult();
+        const os = result.os.name || null;
+        const osVersion = result.os.version || null;
+
+        return {
+          id: session.id,
+          deviceName: session.deviceName,
+          deviceType: session.deviceType,
+          browser: session.browser,
+          os,
+          osVersion,
+          ipAddress: session.ipAddress,
+          lastActiveAt: session.lastActiveAt,
+          createdAt: session.createdAt,
+          isCurrentDevice: session.id === currentSessionId,
+        };
+      });
 
       return res.status(200).json({
         success: true,
