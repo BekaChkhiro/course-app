@@ -26,11 +26,27 @@ function MessageListItem({
     CLOSED: 'bg-gray-100 text-gray-700',
   };
 
+  const statusLabels: Record<string, string> = {
+    OPEN: 'ღია',
+    IN_PROGRESS: 'მიმდინარე',
+    AWAITING_RESPONSE: 'პასუხის მოლოდინში',
+    RESOLVED: 'გადაჭრილი',
+    CLOSED: 'დახურული',
+  };
+
   const priorityIndicators: Record<string, string> = {
     LOW: 'border-l-gray-300',
     MEDIUM: 'border-l-blue-500',
     HIGH: 'border-l-orange-500',
     URGENT: 'border-l-red-500',
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
   };
 
   const hasUnread = !message.isRead;
@@ -53,10 +69,10 @@ function MessageListItem({
       <p className="text-xs text-gray-500 truncate mb-2">{message.content}</p>
       <div className="flex items-center justify-between">
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[message.status] || 'bg-gray-100 text-gray-700'}`}>
-          {message.status?.replace('_', ' ')}
+          {statusLabels[message.status] || message.status}
         </span>
         <span className="text-xs text-gray-400">
-          {new Date(message.updatedAt).toLocaleDateString()}
+          {formatDate(message.updatedAt)}
         </span>
       </div>
       {message.course && (

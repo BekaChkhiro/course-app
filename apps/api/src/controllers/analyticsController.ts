@@ -3,6 +3,256 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Helper function to convert BigInt values to numbers in query results
+function serializeBigInt(data: any): any {
+  if (data === null || data === undefined) return data;
+  if (typeof data === 'bigint') return Number(data);
+  if (Array.isArray(data)) return data.map(serializeBigInt);
+  if (typeof data === 'object') {
+    const result: any = {};
+    for (const key in data) {
+      result[key] = serializeBigInt(data[key]);
+    }
+    return result;
+  }
+  return data;
+}
+
+// Get consolidated analytics for the unified dashboard
+export const getConsolidatedAnalytics = async (req: Request, res: Response) => {
+  try {
+    const { period = '30' } = req.query;
+    const days = parseInt(period as string);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Previous period for comparison
+    const prevStartDate = new Date(startDate);
+    prevStartDate.setDate(prevStartDate.getDate() - days);
+
+    // ===== PAYMENTS SECTION =====
+
+    // Current period revenue
+    const currentRevenue = await prisma.purchase.aggregate({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: startDate }
+      },
+      _sum: { finalAmount: true },
+      _count: true
+    });
+
+    // Previous period revenue for comparison
+    const previousRevenue = await prisma.purchase.aggregate({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: prevStartDate, lt: startDate }
+      },
+      _sum: { finalAmount: true },
+      _count: true
+    });
+
+    // Calculate growth
+    const currentTotal = Number(currentRevenue._sum.finalAmount) || 0;
+    const previousTotal = Number(previousRevenue._sum.finalAmount) || 0;
+    const revenueGrowth = previousTotal > 0
+      ? ((currentTotal - previousTotal) / previousTotal * 100).toFixed(1)
+      : currentTotal > 0 ? '100' : '0';
+
+    // Average order value
+    const avgOrderValue = currentRevenue._count > 0
+      ? currentTotal / currentRevenue._count
+      : 0;
+
+    // Revenue trend for chart
+    const revenueTrend = await prisma.$queryRaw`
+      SELECT
+        DATE("createdAt") as date,
+        SUM("finalAmount") as revenue,
+        COUNT(*) as purchases
+      FROM purchases
+      WHERE status = 'COMPLETED'
+        AND "createdAt" >= ${startDate}
+      GROUP BY DATE("createdAt")
+      ORDER BY date ASC
+    `;
+
+    // Top courses by revenue
+    const topCoursesByRevenue = await prisma.$queryRaw`
+      SELECT
+        c.id,
+        c.title,
+        c.slug,
+        SUM(p."finalAmount") as revenue,
+        COUNT(p.id) as purchases
+      FROM purchases p
+      JOIN courses c ON p."courseId" = c.id
+      WHERE p.status = 'COMPLETED'
+        AND p."createdAt" >= ${startDate}
+      GROUP BY c.id, c.title, c.slug
+      ORDER BY revenue DESC
+      LIMIT 5
+    `;
+
+    // ===== USERS SECTION =====
+
+    // Total students
+    const totalStudents = await prisma.user.count({
+      where: { role: 'STUDENT' }
+    });
+
+    // Previous period total for growth
+    const prevTotalStudents = await prisma.user.count({
+      where: {
+        role: 'STUDENT',
+        createdAt: { lt: startDate }
+      }
+    });
+
+    // New registrations in period
+    const newRegistrations = await prisma.user.count({
+      where: {
+        role: 'STUDENT',
+        createdAt: { gte: startDate }
+      }
+    });
+
+    // Previous period registrations
+    const prevRegistrations = await prisma.user.count({
+      where: {
+        role: 'STUDENT',
+        createdAt: { gte: prevStartDate, lt: startDate }
+      }
+    });
+
+    const registrationGrowth = prevRegistrations > 0
+      ? ((newRegistrations - prevRegistrations) / prevRegistrations * 100).toFixed(1)
+      : newRegistrations > 0 ? '100' : '0';
+
+    // Active students (with purchases in period)
+    const activeStudents = await prisma.purchase.findMany({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: startDate }
+      },
+      select: { userId: true },
+      distinct: ['userId']
+    });
+
+    // Registration trend for chart
+    const registrationTrend = await prisma.$queryRaw`
+      SELECT
+        DATE("createdAt") as date,
+        COUNT(*) as registrations
+      FROM users
+      WHERE role = 'STUDENT' AND "createdAt" >= ${startDate}
+      GROUP BY DATE("createdAt")
+      ORDER BY date ASC
+    `;
+
+    // ===== COURSES SECTION =====
+
+    // Total courses
+    const totalCourses = await prisma.course.count({
+      where: { status: 'PUBLISHED' }
+    });
+
+    // Total enrollments in period
+    const totalEnrollments = await prisma.purchase.count({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: startDate }
+      }
+    });
+
+    // Previous period enrollments
+    const prevEnrollments = await prisma.purchase.count({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: prevStartDate, lt: startDate }
+      }
+    });
+
+    const enrollmentGrowth = prevEnrollments > 0
+      ? ((totalEnrollments - prevEnrollments) / prevEnrollments * 100).toFixed(1)
+      : totalEnrollments > 0 ? '100' : '0';
+
+    // Average rating
+    const avgRating = await prisma.review.aggregate({
+      _avg: { rating: true },
+      _count: true
+    });
+
+    // Completion rate
+    const completionStats = await prisma.$queryRaw`
+      SELECT
+        COUNT(DISTINCT CASE WHEN pr."isCompleted" = true THEN pr."userId" || '-' || pr."courseVersionId" END) as completed,
+        COUNT(DISTINCT pr."userId" || '-' || pr."courseVersionId") as total
+      FROM progress pr
+    ` as any[];
+
+    const completedCount = Number(completionStats[0]?.completed || 0);
+    const totalCount = Number(completionStats[0]?.total || 0);
+    const completionRate = totalCount > 0
+      ? ((completedCount / totalCount) * 100).toFixed(1)
+      : '0';
+
+    // Top courses by enrollments
+    const topCoursesByEnrollments = await prisma.$queryRaw`
+      SELECT
+        c.id,
+        c.title,
+        c.slug,
+        COUNT(p.id) as enrollments,
+        COALESCE(AVG(r.rating), 0) as avg_rating
+      FROM courses c
+      LEFT JOIN purchases p ON c.id = p."courseId" AND p.status = 'COMPLETED'
+      LEFT JOIN reviews r ON c.id = r."courseId"
+      WHERE c.status = 'PUBLISHED'
+      GROUP BY c.id, c.title, c.slug
+      ORDER BY enrollments DESC
+      LIMIT 5
+    `;
+
+    res.json({
+      success: true,
+      data: serializeBigInt({
+        payments: {
+          totalRevenue: currentTotal,
+          purchases: currentRevenue._count,
+          avgOrderValue: Math.round(avgOrderValue),
+          growth: parseFloat(revenueGrowth as string),
+          trend: revenueTrend,
+          topCourses: topCoursesByRevenue
+        },
+        users: {
+          total: totalStudents,
+          active: activeStudents.length,
+          newRegistrations,
+          growth: parseFloat(registrationGrowth as string),
+          trend: registrationTrend
+        },
+        courses: {
+          total: totalCourses,
+          enrollments: totalEnrollments,
+          enrollmentGrowth: parseFloat(enrollmentGrowth as string),
+          avgRating: avgRating._avg.rating || 0,
+          totalReviews: avgRating._count,
+          completionRate: parseFloat(completionRate),
+          topCourses: topCoursesByEnrollments
+        },
+        period: days
+      })
+    });
+  } catch (error) {
+    console.error('Get consolidated analytics error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch analytics data'
+    });
+  }
+};
+
 // Get admin dashboard statistics
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {

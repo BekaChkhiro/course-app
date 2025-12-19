@@ -362,9 +362,13 @@ router.get('/courses/:courseId/reviews', async (req: Request, res: Response) => 
 
     const formattedReviews = reviews.map((review) => ({
       id: review.id,
-      rating: review.rating,
+      rating: Math.round(review.rating / 10), // Convert 10-50 to 1-5
       title: review.title,
       comment: review.comment,
+      pros: review.pros,
+      cons: review.cons,
+      wouldRecommend: review.wouldRecommend,
+      completionPercentage: review.completionPercentage,
       createdAt: review.createdAt,
       user: review.isAnonymous
         ? { firstName: 'ანონიმური', lastName: '', avatar: null }

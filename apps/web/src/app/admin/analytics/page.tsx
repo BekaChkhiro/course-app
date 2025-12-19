@@ -3,103 +3,102 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { comprehensiveAnalyticsApi } from '@/lib/api/adminApi';
+import { analyticsApi } from '@/lib/api/adminApi';
 import AdminLayout from '@/components/admin/AdminLayout';
-import {
-  ChartContainer,
-  RevenueLineChart,
-  SimpleBarChart,
-  DonutChart,
-  ProgressBars,
-  Sparkline
-} from '@/components/analytics/Charts';
-import {
-  StatCard,
-  StatsGrid,
-  Leaderboard,
-  RealtimeStat
-} from '@/components/analytics/StatCards';
 import {
   DollarSign,
   Users,
   BookOpen,
   Star,
   TrendingUp,
-  ArrowRight,
+  TrendingDown,
   RefreshCw,
-  Download,
-  Calendar,
-  Activity,
-  Eye,
-  Clock,
-  Target,
-  Zap
+  ShoppingCart,
+  UserPlus,
+  GraduationCap,
+  CheckCircle
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return new Intl.NumberFormat('ka-GE', {
+    style: 'decimal',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(value) + ' ₾';
 }
 
-function formatDate(date: string | Date) {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    year: 'numeric'
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('ka-GE', {
+    day: 'numeric',
+    month: 'short'
   });
 }
 
-export default function AnalyticsDashboardPage() {
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  change?: number;
+  icon: React.ReactNode;
+  iconBg: string;
+}
+
+function StatCard({ title, value, subtitle, change, icon, iconBg }: StatCardProps) {
+  const isPositive = change !== undefined && change >= 0;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="flex items-start justify-between">
+        <div className={`p-3 rounded-lg ${iconBg}`}>
+          {icon}
+        </div>
+        {change !== undefined && (
+          <div className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+            {isPositive ? '+' : ''}{change}%
+          </div>
+        )}
+      </div>
+      <div className="mt-4">
+        <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
+        <p className="text-sm text-gray-500 mt-1">{title}</p>
+        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      </div>
+    </div>
+  );
+}
+
+interface TopCourse {
+  id: string;
+  title: string;
+  slug: string;
+  revenue?: number;
+  purchases?: number;
+  enrollments?: number;
+  avg_rating?: number;
+}
+
+export default function AnalyticsPage() {
   const [period, setPeriod] = useState(30);
 
-  // Fetch dashboard overview
-  const { data: dashboardData, isLoading: dashboardLoading, refetch } = useQuery({
-    queryKey: ['analytics-dashboard', period],
-    queryFn: () => comprehensiveAnalyticsApi.getDashboardOverview({ period }),
+  const { data, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ['consolidated-analytics', period],
+    queryFn: () => analyticsApi.getConsolidated({ period }),
     staleTime: 60000
   });
 
-  // Fetch revenue trend
-  const { data: revenueTrendData, isLoading: trendLoading } = useQuery({
-    queryKey: ['analytics-revenue-trend'],
-    queryFn: () => comprehensiveAnalyticsApi.getRevenueTrend({ months: 12 }),
-    staleTime: 60000
-  });
-
-  // Fetch top courses
-  const { data: topCoursesData, isLoading: coursesLoading } = useQuery({
-    queryKey: ['analytics-top-courses'],
-    queryFn: () => comprehensiveAnalyticsApi.getTopCourses({ limit: 5 }),
-    staleTime: 60000
-  });
-
-  // Fetch realtime activity
-  const { data: realtimeData, isLoading: realtimeLoading } = useQuery({
-    queryKey: ['analytics-realtime'],
-    queryFn: () => comprehensiveAnalyticsApi.getRealtimeActivity(),
-    staleTime: 30000,
-    refetchInterval: 30000
-  });
-
-  const dashboard = dashboardData?.data?.data;
-  const revenueTrend = revenueTrendData?.data?.data || [];
-  const topCourses = topCoursesData?.data?.data || [];
-  const realtime = realtimeData?.data?.data;
-
-  const isLoading = dashboardLoading || trendLoading || coursesLoading;
-
-  // Quick links for analytics sections
-  const analyticsLinks = [
-    { name: 'შემოსავალი', href: '/admin/analytics/revenue', icon: DollarSign, color: 'indigo' },
-    { name: 'სტუდენტები', href: '/admin/analytics/students', icon: Users, color: 'blue' },
-    { name: 'კურსები', href: '/admin/analytics/courses', icon: BookOpen, color: 'green' },
-    { name: 'სწავლა', href: '/admin/analytics/learning', icon: Target, color: 'purple' },
-    { name: 'ჩართულობა', href: '/admin/analytics/engagement', icon: Activity, color: 'yellow' },
-    { name: 'რეალტაიმ', href: '/admin/analytics/realtime', icon: Zap, color: 'red' }
-  ];
+  const analytics = data?.data?.data;
 
   return (
     <AdminLayout>
@@ -112,8 +111,8 @@ export default function AnalyticsDashboardPage() {
               <span>/</span>
               <span>ანალიტიკა</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">ანალიტიკის დაშბორდი</h1>
-            <p className="text-gray-500 mt-1">პლატფორმის შესრულების სრული მიმოხილვა</p>
+            <h1 className="text-2xl font-bold text-gray-900">ანალიტიკა</h1>
+            <p className="text-gray-500 mt-1">გადახდები, მომხმარებლები და კურსების სტატისტიკა</p>
           </div>
           <div className="flex items-center gap-3">
             <select
@@ -128,277 +127,292 @@ export default function AnalyticsDashboardPage() {
             </select>
             <button
               onClick={() => refetch()}
-              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors"
+              disabled={isFetching}
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50"
               title="განახლება"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={`w-5 h-5 ${isFetching ? 'animate-spin' : ''}`} />
             </button>
-            <Link
-              href="/admin/analytics/reports"
-              className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              ექსპორტი
-            </Link>
           </div>
         </div>
 
-        {/* Real-time stats bar */}
-        {realtime && (
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-              </span>
-              <span className="text-sm font-medium text-gray-700">პირდაპირ</span>
-            </div>
-            <RealtimeStat label="აქტიური მომხმარებლები" value={realtime.activeUsers} pulse={false} />
-            <RealtimeStat label="უყურებენ ახლა" value={realtime.currentStreams} pulse={false} />
-            <RealtimeStat label="დღევანდელი შემოსავალი" value={realtime.today?.revenue || 0} unit="ლარი" pulse={false} />
-            <RealtimeStat label="დღევანდელი გაყიდვები" value={realtime.today?.purchases || 0} pulse={false} />
-          </div>
-        )}
-
-        {/* Loading state */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-gray-200 rounded-xl animate-pulse h-32" />
+          <div className="space-y-8">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-gray-200 rounded-xl animate-pulse h-64" />
             ))}
           </div>
-        ) : dashboard ? (
+        ) : analytics ? (
           <>
-            {/* Main Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard
-                title="სულ შემოსავალი"
-                value={formatCurrency(dashboard.revenue?.period || 0)}
-                subtitle={`${dashboard.revenue?.purchases || 0} შეძენა`}
-                change={dashboard.revenue?.growth}
-                icon="revenue"
-                color="indigo"
-              />
-              <StatCard
-                title="აქტიური სტუდენტები"
-                value={dashboard.students?.active30d || 0}
-                subtitle={`${dashboard.students?.total || 0} სულ რეგისტრირებული`}
-                icon="users"
-                color="blue"
-              />
-              <StatCard
-                title="დასრულებული კურსები"
-                value={dashboard.completions?.month || 0}
-                subtitle={`${dashboard.completions?.allTime || 0} ყველა დროის`}
-                icon="courses"
-                color="green"
-              />
-              <StatCard
-                title="საშუალო რეიტინგი"
-                value={dashboard.rating?.average?.toFixed(1) || '0.0'}
-                subtitle="ყველა შეფასებიდან"
-                icon="rating"
-                color="yellow"
-              />
-            </div>
+            {/* ===== PAYMENTS SECTION ===== */}
+            <section>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">გადახდები</h2>
+              </div>
 
-            {/* Revenue Chart + Quick Stats */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Revenue Trend Chart */}
-              <ChartContainer
-                title="შემოსავლის ტრენდი"
-                subtitle="ყოველთვიური შემოსავალი ბოლო წლის განმავლობაში"
-                className="lg:col-span-2"
-                action={
-                  <Link
-                    href="/admin/analytics/revenue"
-                    className="text-sm text-primary-900 hover:text-primary-800 flex items-center gap-1"
-                  >
-                    დეტალები
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                }
-              >
-                <RevenueLineChart
-                  data={revenueTrend.map((item: any) => ({
-                    month: formatDate(item.month),
-                    revenue: parseFloat(item.revenue) || 0,
-                    purchases: parseInt(item.purchases) || 0
-                  }))}
-                  showPurchases
-                  height={300}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard
+                  title="სულ შემოსავალი"
+                  value={formatCurrency(analytics.payments?.totalRevenue || 0)}
+                  change={analytics.payments?.growth}
+                  icon={<DollarSign className="w-5 h-5 text-green-600" />}
+                  iconBg="bg-green-100"
                 />
-              </ChartContainer>
+                <StatCard
+                  title="შესყიდვები"
+                  value={analytics.payments?.purchases || 0}
+                  subtitle="შეძენილი კურსი"
+                  icon={<ShoppingCart className="w-5 h-5 text-blue-600" />}
+                  iconBg="bg-blue-100"
+                />
+                <StatCard
+                  title="საშუალო შეკვეთა"
+                  value={formatCurrency(analytics.payments?.avgOrderValue || 0)}
+                  icon={<TrendingUp className="w-5 h-5 text-purple-600" />}
+                  iconBg="bg-purple-100"
+                />
+                <StatCard
+                  title="ზრდა"
+                  value={`${analytics.payments?.growth >= 0 ? '+' : ''}${analytics.payments?.growth || 0}%`}
+                  subtitle="წინა პერიოდთან შედარებით"
+                  icon={<TrendingUp className="w-5 h-5 text-accent-600" />}
+                  iconBg="bg-accent-100"
+                />
+              </div>
 
-              {/* Revenue Breakdown */}
-              <ChartContainer title="შემოსავალი პერიოდების მიხედვით">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-primary-50 rounded-lg">
-                    <div>
-                      <p className="text-sm text-gray-500">დღეს</p>
-                      <p className="text-xl font-bold text-gray-900">
-                        {formatCurrency(dashboard.revenue?.today || 0)}
-                      </p>
-                    </div>
-                    <DollarSign className="w-8 h-8 text-primary-900" />
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <div>
-                      <p className="text-sm text-gray-500">ეს თვე</p>
-                      <p className="text-xl font-bold text-gray-900">
-                        {formatCurrency(dashboard.revenue?.month || 0)}
-                      </p>
-                    </div>
-                    <Calendar className="w-8 h-8 text-green-600" />
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-accent-50 rounded-lg">
-                    <div>
-                      <p className="text-sm text-gray-500">ეს წელი</p>
-                      <p className="text-xl font-bold text-gray-900">
-                        {formatCurrency(dashboard.revenue?.year || 0)}
-                      </p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-accent-600" />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Revenue Chart */}
+                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
+                  <h3 className="text-sm font-medium text-gray-700 mb-4">შემოსავლის ტრენდი</h3>
+                  <div className="h-64">
+                    {analytics.payments?.trend && analytics.payments.trend.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={analytics.payments.trend}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis
+                            dataKey="date"
+                            tickFormatter={formatDate}
+                            tick={{ fontSize: 12 }}
+                            stroke="#9ca3af"
+                          />
+                          <YAxis
+                            tickFormatter={(v) => `${v}₾`}
+                            tick={{ fontSize: 12 }}
+                            stroke="#9ca3af"
+                          />
+                          <Tooltip
+                            formatter={(value: number) => [formatCurrency(value), 'შემოსავალი']}
+                            labelFormatter={formatDate}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="revenue"
+                            stroke="#10b981"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-gray-400">
+                        მონაცემები არ არის
+                      </div>
+                    )}
                   </div>
                 </div>
-              </ChartContainer>
-            </div>
 
-            {/* Student Activity + Top Courses */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Student Activity Stats */}
-              <ChartContainer
-                title="სტუდენტების აქტივობა"
-                subtitle="აქტიური მომხმარებლები პერიოდების მიხედვით"
-                action={
-                  <Link
-                    href="/admin/analytics/students"
-                    className="text-sm text-primary-900 hover:text-primary-800 flex items-center gap-1"
-                  >
-                    დეტალები
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                }
-              >
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <p className="text-3xl font-bold text-gray-900">
-                      {dashboard.students?.active24h || 0}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">ბოლო 24 სთ</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <p className="text-3xl font-bold text-gray-900">
-                      {dashboard.students?.active7d || 0}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">ბოლო 7 დღე</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <p className="text-3xl font-bold text-gray-900">
-                      {dashboard.students?.active30d || 0}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">ბოლო 30 დღე</p>
+                {/* Top Courses by Revenue */}
+                <div className="bg-white rounded-xl border border-gray-200 p-5">
+                  <h3 className="text-sm font-medium text-gray-700 mb-4">Top კურსები შემოსავლით</h3>
+                  <div className="space-y-3">
+                    {analytics.payments?.topCourses && analytics.payments.topCourses.length > 0 ? (
+                      analytics.payments.topCourses.map((course: TopCourse, index: number) => (
+                        <div key={course.id} className="flex items-center gap-3">
+                          <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                            {index + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{course.title}</p>
+                            <p className="text-xs text-gray-500">{course.purchases} შეძენა</p>
+                          </div>
+                          <span className="text-sm font-semibold text-green-600">
+                            {formatCurrency(Number(course.revenue) || 0)}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-400 text-center py-4">მონაცემები არ არის</p>
+                    )}
                   </div>
                 </div>
-                <div className="mt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-500">დღევანდელი რეგისტრაციები</span>
-                    <span className="text-lg font-semibold text-green-600">
-                      +{dashboard.students?.todayRegistrations || 0}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full bg-green-500"
-                      style={{
-                        width: `${Math.min(
-                          ((dashboard.students?.todayRegistrations || 0) /
-                            Math.max(dashboard.students?.total || 1, 100)) *
-                            100 *
-                            10,
-                          100
-                        )}%`
-                      }}
-                    />
-                  </div>
+              </div>
+            </section>
+
+            {/* ===== USERS SECTION ===== */}
+            <section>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-600" />
                 </div>
-              </ChartContainer>
+                <h2 className="text-lg font-semibold text-gray-900">მომხმარებლები</h2>
+              </div>
 
-              {/* Top Courses */}
-              <Leaderboard
-                title="ყველაზე გაყიდვადი კურსები"
-                items={topCourses.map((course: any, index: number) => ({
-                  rank: index + 1,
-                  name: course.title,
-                  value: formatCurrency(parseFloat(course.revenue) || 0),
-                  subtitle: `${course.sales} გაყიდვა`
-                }))}
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard
+                  title="სულ სტუდენტები"
+                  value={analytics.users?.total || 0}
+                  icon={<Users className="w-5 h-5 text-blue-600" />}
+                  iconBg="bg-blue-100"
+                />
+                <StatCard
+                  title="აქტიური"
+                  value={analytics.users?.active || 0}
+                  subtitle="შეძენით ამ პერიოდში"
+                  icon={<UserPlus className="w-5 h-5 text-green-600" />}
+                  iconBg="bg-green-100"
+                />
+                <StatCard
+                  title="ახალი რეგისტრაციები"
+                  value={analytics.users?.newRegistrations || 0}
+                  change={analytics.users?.growth}
+                  icon={<UserPlus className="w-5 h-5 text-purple-600" />}
+                  iconBg="bg-purple-100"
+                />
+                <StatCard
+                  title="ზრდა"
+                  value={`${analytics.users?.growth >= 0 ? '+' : ''}${analytics.users?.growth || 0}%`}
+                  subtitle="წინა პერიოდთან შედარებით"
+                  icon={<TrendingUp className="w-5 h-5 text-accent-600" />}
+                  iconBg="bg-accent-100"
+                />
+              </div>
 
-            {/* Quick Links to Analytics Sections */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {analyticsLinks.map((link) => {
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className="flex flex-col items-center gap-2 p-4 bg-white border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-md transition-all"
-                  >
-                    <div className={`p-3 rounded-lg bg-${link.color}-100`}>
-                      <Icon className={`w-6 h-6 text-${link.color}-600`} />
+              {/* Registration Trend Chart */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 className="text-sm font-medium text-gray-700 mb-4">რეგისტრაციის ტრენდი</h3>
+                <div className="h-48">
+                  {analytics.users?.trend && analytics.users.trend.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.users.trend}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis
+                          dataKey="date"
+                          tickFormatter={formatDate}
+                          tick={{ fontSize: 12 }}
+                          stroke="#9ca3af"
+                        />
+                        <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                        <Tooltip
+                          formatter={(value: number) => [value, 'რეგისტრაციები']}
+                          labelFormatter={formatDate}
+                        />
+                        <Bar dataKey="registrations" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-gray-400">
+                      მონაცემები არ არის
                     </div>
-                    <span className="text-sm font-medium text-gray-700">{link.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
+                  )}
+                </div>
+              </div>
+            </section>
 
-            {/* Recent Activities */}
-            {dashboard.recentActivities && dashboard.recentActivities.length > 0 && (
-              <ChartContainer title="ბოლო შეძენები" subtitle="უახლესი ტრანზაქციები">
+            {/* ===== COURSES SECTION ===== */}
+            <section>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-purple-600" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">კურსები</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard
+                  title="გამოქვეყნებული კურსები"
+                  value={analytics.courses?.total || 0}
+                  icon={<BookOpen className="w-5 h-5 text-purple-600" />}
+                  iconBg="bg-purple-100"
+                />
+                <StatCard
+                  title="ჩარიცხვები"
+                  value={analytics.courses?.enrollments || 0}
+                  change={analytics.courses?.enrollmentGrowth}
+                  icon={<GraduationCap className="w-5 h-5 text-blue-600" />}
+                  iconBg="bg-blue-100"
+                />
+                <StatCard
+                  title="საშუალო რეიტინგი"
+                  value={`${(analytics.courses?.avgRating || 0).toFixed(1)} ★`}
+                  subtitle={`${analytics.courses?.totalReviews || 0} შეფასება`}
+                  icon={<Star className="w-5 h-5 text-yellow-500" />}
+                  iconBg="bg-yellow-100"
+                />
+                <StatCard
+                  title="დასრულების რეიტი"
+                  value={`${analytics.courses?.completionRate || 0}%`}
+                  icon={<CheckCircle className="w-5 h-5 text-green-600" />}
+                  iconBg="bg-green-100"
+                />
+              </div>
+
+              {/* Top Courses by Enrollments */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h3 className="text-sm font-medium text-gray-700 mb-4">Top კურსები ჩარიცხვებით</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">მომხმარებელი</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">კურსი</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">თანხა</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">დრო</th>
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">#</th>
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">კურსი</th>
+                        <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase">ჩარიცხვები</th>
+                        <th className="text-right py-3 px-4 text-xs font-medium text-gray-500 uppercase">რეიტინგი</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {dashboard.recentActivities.slice(0, 5).map((activity: any) => (
-                        <tr key={activity.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-3 px-4">
-                            <span className="text-sm font-medium text-gray-900">{activity.userName}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600 truncate max-w-xs block">
-                              {activity.courseName}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-sm font-semibold text-green-600">
-                              {formatCurrency(parseFloat(activity.amount) || 0)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-sm text-gray-500">
-                              {new Date(activity.createdAt).toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
+                      {analytics.courses?.topCourses && analytics.courses.topCourses.length > 0 ? (
+                        analytics.courses.topCourses.map((course: TopCourse, index: number) => (
+                          <tr key={course.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="py-3 px-4">
+                              <span className="w-6 h-6 inline-flex items-center justify-center bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                                {index + 1}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Link
+                                href={`/admin/courses/${course.id}`}
+                                className="text-sm font-medium text-gray-900 hover:text-primary-900"
+                              >
+                                {course.title}
+                              </Link>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="text-sm font-semibold text-gray-900">
+                                {course.enrollments}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="text-sm text-yellow-600">
+                                {Number(course.avg_rating || 0).toFixed(1)} ★
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="py-8 text-center text-sm text-gray-400">
+                            მონაცემები არ არის
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
-              </ChartContainer>
-            )}
+              </div>
+            </section>
           </>
         ) : (
           <div className="text-center py-12">

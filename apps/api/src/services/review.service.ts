@@ -141,8 +141,8 @@ export class ReviewService {
     }
 
     // Check minimum comment length if provided
-    if (comment && comment.length < 50) {
-      throw new Error('Review comment must be at least 50 characters');
+    if (comment && comment.length < 10) {
+      throw new Error('Review comment must be at least 10 characters');
     }
 
     // Get user's completion percentage
@@ -235,8 +235,8 @@ export class ReviewService {
     }
 
     // Validate comment length if provided
-    if (input.comment && input.comment.length < 50) {
-      throw new Error('Review comment must be at least 50 characters');
+    if (input.comment && input.comment.length < 10) {
+      throw new Error('Review comment must be at least 10 characters');
     }
 
     // Reset to pending if content changed

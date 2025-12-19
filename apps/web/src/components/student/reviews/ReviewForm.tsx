@@ -29,7 +29,7 @@ export default function ReviewForm({
   const queryClient = useQueryClient();
   const isEditing = !!existingReview;
 
-  const [rating, setRating] = useState(existingReview?.rating || 0);
+  const [rating, setRating] = useState(existingReview?.rating ? Math.round(existingReview.rating / 10) : 0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState(existingReview?.title || '');
   const [comment, setComment] = useState(existingReview?.comment || '');
@@ -67,10 +67,10 @@ export default function ReviewForm({
     // Validation
     const newErrors: Record<string, string> = {};
     if (rating === 0) {
-      newErrors.rating = 'Please select a rating';
+      newErrors.rating = 'გთხოვთ აირჩიოთ შეფასება';
     }
-    if (comment.length < 50) {
-      newErrors.comment = `Review must be at least 50 characters (${comment.length}/50)`;
+    if (comment.length < 10) {
+      newErrors.comment = `შეფასება უნდა იყოს მინიმუმ 10 სიმბოლო (${comment.length}/10)`;
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -79,7 +79,7 @@ export default function ReviewForm({
     }
 
     const data = {
-      rating,
+      rating: rating * 10, // Convert 1-5 to 10-50 for backend
       title: title || undefined,
       comment,
       pros: pros || undefined,
@@ -98,12 +98,23 @@ export default function ReviewForm({
   const isPending = createReviewMutation.isPending || updateReviewMutation.isPending;
   const error = createReviewMutation.error || updateReviewMutation.error;
 
+  const getRatingText = (r: number) => {
+    switch (r) {
+      case 1: return '1 ვარსკვლავი';
+      case 2: return '2 ვარსკვლავი';
+      case 3: return '3 ვარსკვლავი';
+      case 4: return '4 ვარსკვლავი';
+      case 5: return '5 ვარსკვლავი';
+      default: return 'აირჩიეთ შეფასება';
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Rating */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Your Rating <span className="text-red-500">*</span>
+          თქვენი შეფასება <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -129,7 +140,7 @@ export default function ReviewForm({
             </button>
           ))}
           <span className="ml-2 text-sm text-gray-500">
-            {rating > 0 ? `${rating} star${rating !== 1 ? 's' : ''}` : 'Select rating'}
+            {getRatingText(rating)}
           </span>
         </div>
         {errors.rating && <p className="mt-1 text-sm text-red-600">{errors.rating}</p>}
@@ -138,14 +149,14 @@ export default function ReviewForm({
       {/* Title (Optional) */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          Review Title <span className="text-gray-400">(optional)</span>
+          სათაური <span className="text-gray-400">(არასავალდებულო)</span>
         </label>
         <input
           type="text"
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Summarize your experience"
+          placeholder="შეაჯამეთ თქვენი გამოცდილება"
           maxLength={100}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
@@ -154,18 +165,18 @@ export default function ReviewForm({
       {/* Review Comment */}
       <div>
         <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-          Your Review <span className="text-red-500">*</span>
+          თქვენი შეფასება <span className="text-red-500">*</span>
         </label>
         <textarea
           id="comment"
           value={comment}
           onChange={(e) => {
             setComment(e.target.value);
-            if (e.target.value.length >= 50 && errors.comment) {
+            if (e.target.value.length >= 10 && errors.comment) {
               setErrors((prev) => ({ ...prev, comment: '' }));
             }
           }}
-          placeholder="Share your experience with this course. What did you learn? How was the teaching quality?"
+          placeholder="გაგვიზიარეთ თქვენი გამოცდილება ამ კურსთან დაკავშირებით. რა ისწავლეთ? როგორი იყო სწავლების ხარისხი?"
           rows={4}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
             errors.comment ? 'border-red-300' : 'border-gray-300'
@@ -175,14 +186,14 @@ export default function ReviewForm({
           {errors.comment ? (
             <p className="text-sm text-red-600">{errors.comment}</p>
           ) : (
-            <p className="text-sm text-gray-500">Minimum 50 characters</p>
+            <p className="text-sm text-gray-500">მინიმუმ 10 სიმბოლო</p>
           )}
           <span
             className={`text-sm ${
-              comment.length >= 50 ? 'text-green-600' : 'text-gray-400'
+              comment.length >= 10 ? 'text-green-600' : 'text-gray-400'
             }`}
           >
-            {comment.length}/50
+            {comment.length}/10
           </span>
         </div>
       </div>
@@ -190,14 +201,14 @@ export default function ReviewForm({
       {/* Pros */}
       <div>
         <label htmlFor="pros" className="block text-sm font-medium text-gray-700 mb-2">
-          <span className="text-green-600">Pros</span>{' '}
-          <span className="text-gray-400">(optional)</span>
+          <span className="text-green-600">დადებითი მხარეები</span>{' '}
+          <span className="text-gray-400">(არასავალდებულო)</span>
         </label>
         <textarea
           id="pros"
           value={pros}
           onChange={(e) => setPros(e.target.value)}
-          placeholder="What did you like about this course?"
+          placeholder="რა მოგეწონათ ამ კურსში?"
           rows={2}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
@@ -206,14 +217,14 @@ export default function ReviewForm({
       {/* Cons */}
       <div>
         <label htmlFor="cons" className="block text-sm font-medium text-gray-700 mb-2">
-          <span className="text-red-600">Cons</span>{' '}
-          <span className="text-gray-400">(optional)</span>
+          <span className="text-red-600">უარყოფითი მხარეები</span>{' '}
+          <span className="text-gray-400">(არასავალდებულო)</span>
         </label>
         <textarea
           id="cons"
           value={cons}
           onChange={(e) => setCons(e.target.value)}
-          placeholder="What could be improved?"
+          placeholder="რა შეიძლება გაუმჯობესდეს?"
           rows={2}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
@@ -222,7 +233,7 @@ export default function ReviewForm({
       {/* Would Recommend */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Would you recommend this course?
+          ურჩევდით ამ კურსს სხვებს?
         </label>
         <div className="flex gap-4">
           <button
@@ -249,7 +260,7 @@ export default function ReviewForm({
                 d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
               />
             </svg>
-            Yes
+            დიახ
           </button>
           <button
             type="button"
@@ -275,7 +286,7 @@ export default function ReviewForm({
                 d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
               />
             </svg>
-            No
+            არა
           </button>
         </div>
       </div>
@@ -290,14 +301,14 @@ export default function ReviewForm({
           className="w-4 h-4 text-primary-900 border-gray-300 rounded focus:ring-primary-500"
         />
         <label htmlFor="anonymous" className="ml-2 text-sm text-gray-700">
-          Post review anonymously
+          ანონიმურად გამოქვეყნება
         </label>
       </div>
 
       {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {(error as any).response?.data?.message || 'Failed to submit review. Please try again.'}
+          {(error as any).response?.data?.message || 'შეფასების გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.'}
         </div>
       )}
 
@@ -310,7 +321,7 @@ export default function ReviewForm({
             disabled={isPending}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            Cancel
+            გაუქმება
           </button>
         )}
         <button
@@ -339,12 +350,12 @@ export default function ReviewForm({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              {isEditing ? 'Updating...' : 'Submitting...'}
+              {isEditing ? 'მიმდინარეობს განახლება...' : 'მიმდინარეობს გაგზავნა...'}
             </>
           ) : isEditing ? (
-            'Update Review'
+            'შეფასების განახლება'
           ) : (
-            'Submit Review'
+            'შეფასების გაგზავნა'
           )}
         </button>
       </div>

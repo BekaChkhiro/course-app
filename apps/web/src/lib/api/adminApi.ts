@@ -2,12 +2,6 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
-// Log environment configuration
-console.log('🌍 Admin API Environment Configuration:');
-console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
-console.log('API_URL (used):', API_URL);
-console.log('---');
-
 const adminApi = axios.create({
   baseURL: `${API_URL}/api`,
   withCredentials: true
@@ -189,7 +183,10 @@ export const analyticsApi = {
   getRevenue: (params?: any) => adminApi.get('/analytics/revenue', { params }),
   getStudents: (params?: { period?: number }) =>
     adminApi.get('/analytics/students', { params }),
-  getCourse: (courseId: string) => adminApi.get(`/analytics/course/${courseId}`)
+  getCourse: (courseId: string) => adminApi.get(`/analytics/course/${courseId}`),
+  // Consolidated analytics for unified dashboard
+  getConsolidated: (params?: { period?: number }) =>
+    adminApi.get('/analytics/consolidated', { params })
 };
 
 // Comprehensive Analytics APIs

@@ -189,15 +189,31 @@ export default function AdminMessagesPage() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return 'ახლახანს';
+    if (diffMins < 60) return `${diffMins} წთ წინ`;
+    if (diffHours < 24) return `${diffHours} სთ წინ`;
+    if (diffDays < 7) return `${diffDays} დღის წინ`;
 
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('ka-GE', {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const statusLabels: Record<MessageStatus, string> = {
+    NEW: 'ახალი',
+    READ: 'წაკითხული',
+    IN_PROGRESS: 'მუშავდება',
+    ANSWERED: 'უპასუხა',
+    RESOLVED: 'გადაწყვეტილი',
+    ARCHIVED: 'დაარქივებული',
+  };
+
+  const priorityLabels: Record<MessagePriority, string> = {
+    LOW: 'დაბალი',
+    MEDIUM: 'საშუალო',
+    HIGH: 'მაღალი',
+    URGENT: 'სასწრაფო',
   };
 
   const handleSendReply = () => {
@@ -357,14 +373,14 @@ export default function AdminMessagesPage() {
                             } ${statusColors[message.status].text}`}
                           >
                             <StatusIcon className="w-3 h-3" />
-                            {message.status.replace('_', ' ')}
+                            {statusLabels[message.status]}
                           </span>
                           <span
                             className={`px-1.5 py-0.5 text-xs font-medium rounded ${
                               priorityColors[message.priority].bg
                             } ${priorityColors[message.priority].text}`}
                           >
-                            {message.priority}
+                            {priorityLabels[message.priority]}
                           </span>
                           {message._count && message._count.replies > 0 && (
                             <span className="text-xs text-gray-400">
@@ -425,7 +441,7 @@ export default function AdminMessagesPage() {
                       </h2>
                       <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
                         <span>
-                          From: {currentMessage.user.name} {currentMessage.user.surname}
+                          გამომგზავნი: {currentMessage.user.name} {currentMessage.user.surname}
                         </span>
                         <span>{currentMessage.user.email}</span>
                         {currentMessage.course && (
@@ -469,39 +485,30 @@ export default function AdminMessagesPage() {
                   </div>
                 </div>
 
-                {/* Conversation */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {/* Original Message */}
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0">
-                      {currentMessage.user.avatar ? (
-                        <img
-                          src={currentMessage.user.avatar}
-                          alt=""
-                          className="w-8 h-8 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                          <span className="text-xs font-medium text-primary-900">
-                            {currentMessage.user.name.charAt(0)}
-                            {currentMessage.user.surname.charAt(0)}
-                          </span>
+                {/* Conversation - Chat Style */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                  {/* Original Message - Left (Student) */}
+                  <div className="flex justify-start">
+                    <div className="max-w-[75%]">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                          {currentMessage.user.avatar ? (
+                            <img src={currentMessage.user.avatar} alt="" className="w-full h-full rounded-full" />
+                          ) : (
+                            <span className="text-xs font-medium text-gray-600">
+                              {currentMessage.user.name.charAt(0)}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">
+                        <span className="text-xs font-medium text-gray-700">
                           {currentMessage.user.name} {currentMessage.user.surname}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-xs text-gray-400">
                           {formatDate(currentMessage.createdAt)}
                         </span>
                       </div>
-                      <div className="mt-1 p-3 bg-gray-100 rounded-lg">
-                        <p className="text-gray-700 whitespace-pre-wrap">
-                          {currentMessage.content}
-                        </p>
+                      <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md p-3 shadow-sm">
+                        <p className="text-gray-800 whitespace-pre-wrap">{currentMessage.content}</p>
                         {currentMessage.attachmentUrl && (
                           <a
                             href={currentMessage.attachmentUrl}
@@ -518,70 +525,68 @@ export default function AdminMessagesPage() {
                   </div>
 
                   {/* Replies */}
-                  {currentMessage.replies?.map((reply) => (
-                    <div
-                      key={reply.id}
-                      className={`flex gap-3 ${reply.isInternal ? 'opacity-70' : ''}`}
-                    >
-                      <div className="flex-shrink-0">
-                        {reply.user.avatar ? (
-                          <img
-                            src={reply.user.avatar}
-                            alt=""
-                            className="w-8 h-8 rounded-full"
-                          />
-                        ) : (
+                  {currentMessage.replies?.map((reply) => {
+                    const isAdmin = reply.user.role === 'ADMIN';
+                    const isInternal = reply.isInternal;
+
+                    return (
+                      <div
+                        key={reply.id}
+                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} ${isInternal ? 'opacity-80' : ''}`}
+                      >
+                        <div className={`max-w-[75%] ${isAdmin ? 'order-2' : ''}`}>
+                          <div className={`flex items-center gap-2 mb-1 ${isAdmin ? 'justify-end' : ''}`}>
+                            {!isAdmin && (
+                              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                {reply.user.avatar ? (
+                                  <img src={reply.user.avatar} alt="" className="w-full h-full rounded-full" />
+                                ) : (
+                                  <span className="text-xs font-medium text-gray-600">
+                                    {reply.user.name.charAt(0)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <span className="text-xs font-medium text-gray-700">
+                              {reply.user.name} {reply.user.surname}
+                            </span>
+                            {isInternal && (
+                              <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">
+                                შიდა
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-400">
+                              {formatDate(reply.createdAt)}
+                            </span>
+                            {isAdmin && (
+                              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                {reply.user.avatar ? (
+                                  <img src={reply.user.avatar} alt="" className="w-full h-full rounded-full" />
+                                ) : (
+                                  <span className="text-xs font-medium text-primary-900">
+                                    {reply.user.name.charAt(0)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              reply.user.role === 'ADMIN' ? 'bg-primary-100' : 'bg-gray-100'
+                            className={`p-3 shadow-sm ${
+                              isInternal
+                                ? 'bg-yellow-50 border-2 border-dashed border-yellow-300 rounded-2xl'
+                                : isAdmin
+                                ? 'bg-primary-900 text-white rounded-2xl rounded-tr-md'
+                                : 'bg-white border border-gray-200 rounded-2xl rounded-tl-md'
                             }`}
                           >
-                            <span
-                              className={`text-xs font-medium ${
-                                reply.user.role === 'ADMIN'
-                                  ? 'text-primary-900'
-                                  : 'text-gray-600'
-                              }`}
-                            >
-                              {reply.user.name.charAt(0)}
-                              {reply.user.surname.charAt(0)}
-                            </span>
+                            <p className={`whitespace-pre-wrap ${isAdmin && !isInternal ? 'text-white' : 'text-gray-800'}`}>
+                              {reply.content}
+                            </p>
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">
-                            {reply.user.name} {reply.user.surname}
-                          </span>
-                          {reply.user.role === 'ADMIN' && (
-                            <span className="px-1.5 py-0.5 bg-primary-100 text-primary-800 text-xs rounded">
-                              ადმინი
-                            </span>
-                          )}
-                          {reply.isInternal && (
-                            <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">
-                              შიდა
-                            </span>
-                          )}
-                          <span className="text-sm text-gray-500">
-                            {formatDate(reply.createdAt)}
-                          </span>
-                        </div>
-                        <div
-                          className={`mt-1 p-3 rounded-lg ${
-                            reply.isInternal
-                              ? 'bg-yellow-50 border border-yellow-200'
-                              : reply.user.role === 'ADMIN'
-                              ? 'bg-primary-50'
-                              : 'bg-gray-100'
-                          }`}
-                        >
-                          <p className="text-gray-700 whitespace-pre-wrap">{reply.content}</p>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Reply Box */}

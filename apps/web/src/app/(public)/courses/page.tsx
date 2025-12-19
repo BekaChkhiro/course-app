@@ -52,10 +52,13 @@ function CoursesContent() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   // Fetch categories
-  const { data: categories } = useQuery({
+  const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
     queryFn: publicApi.getCategories,
   });
+
+  // Ensure categories is always an array
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   // Fetch courses
   const { data: coursesData, isLoading } = useQuery({
@@ -164,9 +167,9 @@ function CoursesContent() {
                   </button>
                   {/* Parent categories */}
                   {categories
-                    ?.filter((cat: any) => !cat.parent)
+                    .filter((cat: any) => !cat.parent)
                     .map((parentCat: any) => {
-                      const children = categories?.filter((c: any) => c.parent?.id === parentCat.id) || [];
+                      const children = categories.filter((c: any) => c.parent?.id === parentCat.id);
                       const isParentSelected = selectedCategory === parentCat.slug;
                       const isChildSelected = children.some((c: any) => c.slug === selectedCategory);
                       const isExpanded = expandedCategories.has(parentCat.id) || isParentSelected || isChildSelected;

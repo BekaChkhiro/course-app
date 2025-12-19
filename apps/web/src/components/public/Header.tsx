@@ -190,42 +190,41 @@ export const Header = () => {
                       </div>
                     </div>
 
-                    {/* User Menu Items */}
-                    <div className="py-2">
-                      {userMenuItems.map((item) => (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <span className="text-gray-400">{renderIcon(item.icon)}</span>
-                          {item.name}
-                        </Link>
-                      ))}
-                    </div>
+                    {/* User Menu Items - only for non-admin users */}
+                    {user.role !== 'ADMIN' && (
+                      <div className="py-2">
+                        {userMenuItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="text-gray-400">{renderIcon(item.icon)}</span>
+                            {item.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
 
-                    {/* Admin Menu Items */}
+                    {/* Admin Menu Items - only for admin users */}
                     {user.role === 'ADMIN' && (
-                      <>
-                        <div className="border-t border-gray-100 my-1" />
-                        <div className="py-2">
-                          <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                            ადმინისტრაცია
-                          </p>
-                          {adminMenuItems.map((item) => (
-                            <Link
-                              key={item.href}
-                              href={item.href}
-                              onClick={() => setDropdownOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                              <span className="text-purple-500">{renderIcon(item.icon)}</span>
-                              {item.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </>
+                      <div className="py-2">
+                        <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          ადმინისტრაცია
+                        </p>
+                        {adminMenuItems.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="text-purple-500">{renderIcon(item.icon)}</span>
+                            {item.name}
+                          </Link>
+                        ))}
+                      </div>
                     )}
 
                     {/* Logout */}
@@ -324,8 +323,8 @@ export const Header = () => {
                       </div>
                     </div>
 
-                    {/* User Menu - Mobile */}
-                    {userMenuItems.map((item) => (
+                    {/* User Menu - Mobile - only for non-admin users */}
+                    {user.role !== 'ADMIN' && userMenuItems.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
@@ -337,10 +336,9 @@ export const Header = () => {
                       </Link>
                     ))}
 
-                    {/* Admin Menu - Mobile */}
+                    {/* Admin Menu - Mobile - only for admin users */}
                     {user.role === 'ADMIN' && (
                       <>
-                        <div className="my-2 border-t border-gray-200" />
                         <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                           ადმინისტრაცია
                         </p>

@@ -13,17 +13,11 @@ import {
   LogOut,
   BarChart3,
   ChevronDown,
-  TrendingUp,
-  Users,
-  GraduationCap,
-  Brain,
-  MessageSquare,
-  Activity,
-  FileText,
-  Sparkles,
   HelpCircle,
   Images,
-  UserCircle
+  UserCircle,
+  Star,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -42,24 +36,11 @@ const navigation: NavItem[] = [
   { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
   { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
   { name: 'ლექტორები', href: '/admin/instructors', icon: UserCircle },
+  { name: 'შეფასებები', href: '/admin/reviews', icon: Star },
+  { name: 'შეტყობინებები', href: '/admin/messages', icon: MessageSquare },
   { name: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
   { name: 'სლაიდერი', href: '/admin/sliders', icon: Images },
-  {
-    name: 'ანალიტიკა',
-    href: '/admin/analytics',
-    icon: BarChart3,
-    children: [
-      { name: 'მიმოხილვა', href: '/admin/analytics', icon: BarChart3 },
-      { name: 'შემოსავალი', href: '/admin/analytics/revenue', icon: TrendingUp },
-      { name: 'სტუდენტები', href: '/admin/analytics/students', icon: Users },
-      { name: 'კურსები', href: '/admin/analytics/courses', icon: GraduationCap },
-      { name: 'სწავლა', href: '/admin/analytics/learning', icon: Brain },
-      { name: 'ჩართულობა', href: '/admin/analytics/engagement', icon: MessageSquare },
-      { name: 'რეალტაიმ', href: '/admin/analytics/realtime', icon: Activity },
-      { name: 'რეპორტები', href: '/admin/analytics/reports', icon: FileText },
-      { name: 'პროგნოზები', href: '/admin/analytics/predictive', icon: Sparkles }
-    ]
-  }
+  { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -68,12 +49,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const pathname = usePathname();
 
-  // Auto-expand analytics menu if on analytics page
-  useEffect(() => {
-    if (pathname?.startsWith('/admin/analytics')) {
-      setExpandedMenus(prev => prev.includes('ანალიტიკა') ? prev : [...prev, 'ანალიტიკა']);
-    }
-  }, [pathname]);
 
   const toggleMenu = (name: string) => {
     setExpandedMenus(prev =>
@@ -88,41 +63,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Check authentication on mount
   useEffect(() => {
     const checkAuth = async () => {
-      console.group('🔒 Admin Layout - Auth Check');
-      console.log('Current pathname:', pathname);
-      console.log('Current user from store:', user);
-      console.log('Is authenticated:', isAuthenticated);
-
       const token = localStorage.getItem('accessToken');
-      console.log('Token exists in localStorage:', !!token);
-      if (token) {
-        console.log('Token (first 30 chars):', token.substring(0, 30) + '...');
-      }
-
-      // Log all localStorage keys for debugging
-      console.log('All localStorage keys:', Object.keys(localStorage));
-      console.log('localStorage contents:', {
-        accessToken: !!localStorage.getItem('accessToken'),
-        'auth-storage': localStorage.getItem('auth-storage'),
-      });
 
       if (!token) {
-        // No token, redirect to login
-        console.warn('⚠️ No token found, redirecting to login');
-        console.groupEnd();
         router.push(`/auth/login?redirect=${pathname}`);
         return;
       }
 
       // Fetch user profile if not already loaded
       if (!user) {
-        console.log('📡 Fetching user profile...');
         await fetchProfile();
       }
 
       setIsChecking(false);
-      console.log('✅ Auth check complete');
-      console.groupEnd();
     };
 
     checkAuth();
@@ -131,14 +84,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Check if user has admin role
   useEffect(() => {
     if (!isChecking && user) {
-      console.log('👤 User role check:', user.role);
       if (user.role !== 'ADMIN') {
-        // User is authenticated but not admin, redirect to home or show error
-        console.warn('⚠️ User is not admin, redirecting to home');
         router.push('/');
         return;
       }
-      console.log('✅ User has ADMIN role');
     }
   }, [isChecking, user, router]);
 

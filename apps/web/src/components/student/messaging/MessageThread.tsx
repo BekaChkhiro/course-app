@@ -60,11 +60,28 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
   };
 
   const statusLabels: Record<string, string> = {
-    OPEN: 'Open',
-    IN_PROGRESS: 'In Progress',
-    AWAITING_RESPONSE: 'Awaiting Response',
-    RESOLVED: 'Resolved',
-    CLOSED: 'Closed',
+    OPEN: 'ღია',
+    IN_PROGRESS: 'მუშავდება',
+    AWAITING_RESPONSE: 'პასუხის მოლოდინში',
+    RESOLVED: 'გადაწყვეტილი',
+    CLOSED: 'დახურული',
+  };
+
+  const priorityLabels: Record<string, string> = {
+    LOW: 'დაბალი',
+    MEDIUM: 'საშუალო',
+    HIGH: 'მაღალი',
+    URGENT: 'სასწრაფო',
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
   };
 
   if (isLoading) {
@@ -82,10 +99,10 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
           <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-gray-500">Failed to load message</p>
+          <p className="text-gray-500">შეტყობინების ჩატვირთვა ვერ მოხერხდა</p>
           {onBack && (
             <button onClick={onBack} className="mt-4 text-primary-900 hover:underline">
-              Go back
+              უკან დაბრუნება
             </button>
           )}
         </div>
@@ -117,7 +134,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
                 {statusLabels[message.status] || message.status}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[message.priority] || 'bg-gray-100 text-gray-700'}`}>
-                {message.priority} Priority
+                {priorityLabels[message.priority] || message.priority} პრიორიტეტი
               </span>
               {message.course && (
                 <span className="text-xs text-gray-500">
@@ -130,25 +147,20 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* Original Message */}
-        <div className="flex gap-3">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-            <span className="text-sm font-medium text-primary-900">
-              {message.user?.name?.charAt(0) || 'U'}
-            </span>
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-gray-900">
-                {message.user?.name} {message.user?.surname}
-              </span>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        {/* Original Message - Student's message on right */}
+        <div className="flex justify-end">
+          <div className="max-w-[80%]">
+            <div className="flex items-center gap-2 mb-1 justify-end">
               <span className="text-xs text-gray-500">
-                {new Date(message.createdAt).toLocaleString()}
+                {formatDate(message.createdAt)}
+              </span>
+              <span className="font-medium text-gray-900 text-sm">
+                მე
               </span>
             </div>
-            <div className="bg-primary-50 rounded-lg p-4 text-gray-800">
-              <p className="whitespace-pre-wrap">{message.content}</p>
+            <div className="bg-primary-900 text-white rounded-2xl rounded-tr-md p-3">
+              <p className="whitespace-pre-wrap text-sm">{message.content}</p>
             </div>
           </div>
         </div>
@@ -157,32 +169,35 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
         {message.replies?.map((reply: any) => {
           const isAdmin = reply.user?.role === 'ADMIN';
           return (
-            <div key={reply.id} className={`flex gap-3 ${isAdmin ? '' : 'flex-row-reverse'}`}>
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                isAdmin ? 'bg-green-100' : 'bg-primary-100'
-              }`}>
-                <span className={`text-sm font-medium ${isAdmin ? 'text-green-600' : 'text-primary-900'}`}>
-                  {reply.user?.name?.charAt(0) || '?'}
-                </span>
-              </div>
-              <div className={`flex-1 ${isAdmin ? '' : 'text-right'}`}>
-                <div className={`flex items-center gap-2 mb-1 ${isAdmin ? '' : 'justify-end'}`}>
-                  <span className="font-medium text-gray-900">
-                    {reply.user?.name} {reply.user?.surname}
-                    {isAdmin && (
-                      <span className="ml-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                        Support
+            <div key={reply.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
+              <div className="max-w-[80%]">
+                <div className={`flex items-center gap-2 mb-1 ${isAdmin ? 'justify-start' : 'justify-end'}`}>
+                  {isAdmin ? (
+                    <>
+                      <span className="font-medium text-gray-900 text-sm">
+                        მხარდაჭერა
                       </span>
-                    )}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(reply.createdAt).toLocaleString()}
-                  </span>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(reply.createdAt)}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(reply.createdAt)}
+                      </span>
+                      <span className="font-medium text-gray-900 text-sm">
+                        მე
+                      </span>
+                    </>
+                  )}
                 </div>
-                <div className={`rounded-lg p-4 text-gray-800 inline-block max-w-[80%] ${
-                  isAdmin ? 'bg-green-50 text-left' : 'bg-primary-50 text-left'
+                <div className={`rounded-2xl p-3 ${
+                  isAdmin
+                    ? 'bg-white border border-gray-200 rounded-tl-md text-gray-800'
+                    : 'bg-primary-900 text-white rounded-tr-md'
                 }`}>
-                  <p className="whitespace-pre-wrap">{reply.content}</p>
+                  <p className="whitespace-pre-wrap text-sm">{reply.content}</p>
                 </div>
               </div>
             </div>
@@ -193,20 +208,20 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
 
       {/* Reply Input */}
       {!isResolved ? (
-        <div className="flex-shrink-0 border-t border-gray-200 p-4">
+        <div className="flex-shrink-0 border-t border-gray-200 p-4 bg-white">
           <form onSubmit={handleSubmitReply}>
             <div className="flex gap-3">
               <textarea
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Type your reply..."
-                rows={3}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                placeholder="დაწერეთ პასუხი..."
+                rows={2}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
               />
               <button
                 type="submit"
                 disabled={!replyContent.trim() || replyMutation.isPending}
-                className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                className="px-4 py-2 bg-primary-900 text-white rounded-xl hover:bg-primary-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
               >
                 {replyMutation.isPending ? (
                   <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -222,7 +237,7 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
             </div>
             {replyMutation.error && (
               <p className="mt-2 text-sm text-red-600">
-                Failed to send reply. Please try again.
+                პასუხის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.
               </p>
             )}
           </form>
@@ -230,8 +245,8 @@ export default function MessageThread({ messageId, onBack }: MessageThreadProps)
       ) : (
         <div className="flex-shrink-0 border-t border-gray-200 p-4 bg-gray-50 text-center">
           <p className="text-sm text-gray-500">
-            This conversation has been {message.status === 'RESOLVED' ? 'resolved' : 'closed'}.
-            If you need further assistance, please open a new message.
+            ეს საუბარი {message.status === 'RESOLVED' ? 'გადაწყვეტილია' : 'დახურულია'}.
+            თუ დამატებით დახმარება გჭირდებათ, გთხოვთ გახსნათ ახალი შეტყობინება.
           </p>
         </div>
       )}

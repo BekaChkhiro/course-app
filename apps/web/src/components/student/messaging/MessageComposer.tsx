@@ -44,12 +44,12 @@ export default function MessageComposer({
     // Validation
     const newErrors: Record<string, string> = {};
     if (!subject.trim()) {
-      newErrors.subject = 'Subject is required';
+      newErrors.subject = 'სათაური სავალდებულოა';
     }
     if (!content.trim()) {
-      newErrors.content = 'Message is required';
+      newErrors.content = 'შეტყობინება სავალდებულოა';
     } else if (content.trim().length < 10) {
-      newErrors.content = 'Message must be at least 10 characters';
+      newErrors.content = 'შეტყობინება უნდა იყოს მინიმუმ 10 სიმბოლო';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -66,10 +66,10 @@ export default function MessageComposer({
   };
 
   const priorityOptions = [
-    { value: 'LOW', label: 'Low', description: 'General inquiry' },
-    { value: 'MEDIUM', label: 'Medium', description: 'Standard request' },
-    { value: 'HIGH', label: 'High', description: 'Needs attention soon' },
-    { value: 'URGENT', label: 'Urgent', description: 'Critical issue' },
+    { value: 'LOW', label: 'დაბალი', description: 'ზოგადი შეკითხვა' },
+    { value: 'MEDIUM', label: 'საშუალო', description: 'სტანდარტული მოთხოვნა' },
+    { value: 'HIGH', label: 'მაღალი', description: 'სჭირდება ყურადღება' },
+    { value: 'URGENT', label: 'სასწრაფო', description: 'კრიტიკული პრობლემა' },
   ];
 
   return (
@@ -77,7 +77,7 @@ export default function MessageComposer({
       {/* Subject */}
       <div>
         <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-          Subject <span className="text-red-500">*</span>
+          სათაური <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -89,7 +89,7 @@ export default function MessageComposer({
               setErrors((prev) => ({ ...prev, subject: '' }));
             }
           }}
-          placeholder="Brief description of your question or issue"
+          placeholder="თქვენი შეკითხვის ან პრობლემის მოკლე აღწერა"
           maxLength={200}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
             errors.subject ? 'border-red-300' : 'border-gray-300'
@@ -103,7 +103,7 @@ export default function MessageComposer({
       {/* Related Course (Optional) */}
       <div>
         <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-2">
-          Related Course <span className="text-gray-400">(optional)</span>
+          დაკავშირებული კურსი <span className="text-gray-400">(არასავალდებულო)</span>
         </label>
         <select
           id="course"
@@ -111,7 +111,7 @@ export default function MessageComposer({
           onChange={(e) => setCourseId(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
         >
-          <option value="">No specific course</option>
+          <option value="">კურსის გარეშე</option>
           {coursesData?.data.courses.map((course) => (
             <option key={course.id} value={course.id}>
               {course.title}
@@ -119,14 +119,14 @@ export default function MessageComposer({
           ))}
         </select>
         <p className="mt-1 text-sm text-gray-500">
-          Selecting a course helps us direct your message to the right person
+          კურსის არჩევა დაგვეხმარება თქვენი შეტყობინების სწორად მიწოდებაში
         </p>
       </div>
 
       {/* Priority */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Priority
+          პრიორიტეტი
         </label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {priorityOptions.map((option) => (
@@ -170,7 +170,7 @@ export default function MessageComposer({
       {/* Message Content */}
       <div>
         <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-          Message <span className="text-red-500">*</span>
+          შეტყობინება <span className="text-red-500">*</span>
         </label>
         <textarea
           id="content"
@@ -181,7 +181,7 @@ export default function MessageComposer({
               setErrors((prev) => ({ ...prev, content: '' }));
             }
           }}
-          placeholder="Describe your question, issue, or feedback in detail..."
+          placeholder="დეტალურად აღწერეთ თქვენი შეკითხვა, პრობლემა ან უკუკავშირი..."
           rows={6}
           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
             errors.content ? 'border-red-300' : 'border-gray-300'
@@ -191,7 +191,7 @@ export default function MessageComposer({
           <p className="mt-1 text-sm text-red-600">{errors.content}</p>
         ) : (
           <p className="mt-1 text-sm text-gray-500">
-            Please provide as much detail as possible to help us assist you quickly
+            გთხოვთ მოგვაწოდოთ რაც შეიძლება მეტი დეტალი, რათა სწრაფად დაგეხმაროთ
           </p>
         )}
       </div>
@@ -199,14 +199,14 @@ export default function MessageComposer({
       {/* Error Message */}
       {sendMutation.error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {(sendMutation.error as any).response?.data?.message || 'Failed to send message. Please try again.'}
+          {(sendMutation.error as any).response?.data?.message || 'შეტყობინების გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ თავიდან.'}
         </div>
       )}
 
       {/* Success Message */}
       {sendMutation.isSuccess && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-          Your message has been sent successfully! We'll respond as soon as possible.
+          თქვენი შეტყობინება წარმატებით გაიგზავნა! რაც შეიძლება მალე გიპასუხებთ.
         </div>
       )}
 
@@ -219,7 +219,7 @@ export default function MessageComposer({
             disabled={sendMutation.isPending}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            Cancel
+            გაუქმება
           </button>
         )}
         <button
@@ -233,21 +233,21 @@ export default function MessageComposer({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Sending...
+              იგზავნება...
             </>
           ) : sendMutation.isSuccess ? (
             <>
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Sent!
+              გაგზავნილია!
             </>
           ) : (
             <>
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
-              Send Message
+              გაგზავნა
             </>
           )}
         </button>

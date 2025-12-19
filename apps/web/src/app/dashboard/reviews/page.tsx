@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import StudentLayout from '@/components/student/StudentLayout';
@@ -177,15 +177,78 @@ function ReviewCard({
   );
 }
 
+// Course Selection Card for Add Review Modal
+function CourseSelectCard({
+  course,
+  onSelect,
+  isChecking,
+}: {
+  course: any;
+  onSelect: (courseId: string) => void;
+  isChecking: boolean;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(course.id)}
+      disabled={isChecking}
+      className="w-full flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors text-left disabled:opacity-50"
+    >
+      <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+        {course.thumbnail ? (
+          <img
+            src={course.thumbnail}
+            alt={course.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-primary-900">
+            <svg className="w-6 h-6 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className="font-medium text-gray-900 truncate">{course.title}</h4>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary-900 rounded-full"
+              style={{ width: `${course.progressPercentage || 0}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-500">{course.progressPercentage || 0}%</span>
+        </div>
+      </div>
+      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  );
+}
+
 export default function MyReviewsPage() {
   const queryClient = useQueryClient();
   const [editingReview, setEditingReview] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [showAddReview, setShowAddReview] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [canReviewError, setCanReviewError] = useState<string | null>(null);
+  const [isCheckingCanReview, setIsCheckingCanReview] = useState(false);
 
+  // Get my reviews
   const { data, isLoading, error } = useQuery({
     queryKey: ['myReviews'],
     queryFn: () => studentApiClient.getMyReviews({ limit: 50 }),
     staleTime: 30000,
+  });
+
+  // Get my courses for adding new review
+  const { data: coursesData, isLoading: isLoadingCourses } = useQuery({
+    queryKey: ['myCourses'],
+    queryFn: () => studentApiClient.getMyCourses(),
+    staleTime: 60000,
+    enabled: showAddReview,
   });
 
   const deleteMutation = useMutation({
@@ -197,6 +260,13 @@ export default function MyReviewsPage() {
   });
 
   const reviews = data?.data?.reviews || [];
+  const myCourses = coursesData?.data?.courses || [];
+
+  // Filter out courses that already have reviews
+  const reviewedCourseIds = reviews.map((r: any) => r.courseId);
+  const coursesWithoutReview = myCourses.filter(
+    (course: any) => !reviewedCourseIds.includes(course.id)
+  );
 
   const statsData = reviews.reduce(
     (acc: any, review: any) => {
@@ -209,13 +279,60 @@ export default function MyReviewsPage() {
     { total: 0, published: 0, pending: 0, totalRating: 0 }
   );
 
+  // Handle course selection - check if can review
+  const handleSelectCourse = async (courseId: string) => {
+    setIsCheckingCanReview(true);
+    setCanReviewError(null);
+
+    try {
+      const response = await studentApiClient.canReview(courseId);
+      if (response.success && response.data?.canReview) {
+        const course = myCourses.find((c: any) => c.id === courseId);
+        setSelectedCourse(course);
+      } else {
+        // Show reason why can't review
+        let errorMessage = 'შეფასების დამატება შეუძლებელია';
+        if (response.data?.hasExistingReview) {
+          errorMessage = 'თქვენ უკვე შეაფასეთ ეს კურსი';
+        } else if (response.data?.completionPercentage < 20) {
+          errorMessage = `შეფასების დასამატებლად საჭიროა კურსის მინიმუმ 20% გავლა. ამჟამად გავლილია: ${response.data?.completionPercentage}%`;
+        } else if (response.data?.reason) {
+          errorMessage = response.data.reason;
+        }
+        setCanReviewError(errorMessage);
+      }
+    } catch (err) {
+      setCanReviewError('შეცდომა შემოწმებისას');
+    } finally {
+      setIsCheckingCanReview(false);
+    }
+  };
+
+  // Reset modal state when closing
+  const handleCloseAddReview = () => {
+    setShowAddReview(false);
+    setSelectedCourse(null);
+    setCanReviewError(null);
+  };
+
   return (
     <StudentLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">ჩემი შეფასებები</h1>
-          <p className="text-gray-500 mt-1">მართეთ თქვენი კურსების შეფასებები</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">ჩემი შეფასებები</h1>
+            <p className="text-gray-500 mt-1">მართეთ თქვენი კურსების შეფასებები</p>
+          </div>
+          <button
+            onClick={() => setShowAddReview(true)}
+            className="inline-flex items-center px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            შეფასების დამატება
+          </button>
         </div>
 
         {/* Stats */}
@@ -273,12 +390,15 @@ export default function MyReviewsPage() {
             <p className="text-gray-500 mb-4">
               დაიწყეთ გავლილი კურსების შეფასება, რომ დაეხმაროთ სხვა სტუდენტებს
             </p>
-            <Link
-              href="/dashboard/courses"
+            <button
+              onClick={() => setShowAddReview(true)}
               className="inline-flex items-center px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors"
             >
-              ჩემი კურსების ნახვა
-            </Link>
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              შეფასების დამატება
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -290,6 +410,124 @@ export default function MyReviewsPage() {
                 onDelete={setDeleteConfirm}
               />
             ))}
+          </div>
+        )}
+
+        {/* Add Review Modal */}
+        {showAddReview && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {selectedCourse ? 'შეფასების დაწერა' : 'აირჩიეთ კურსი'}
+                  </h3>
+                  <button
+                    onClick={handleCloseAddReview}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                {selectedCourse && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedCourse.title}
+                  </p>
+                )}
+              </div>
+              <div className="p-6">
+                {!selectedCourse ? (
+                  // Course Selection Step
+                  <div className="space-y-4">
+                    {canReviewError && (
+                      <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg">
+                        {canReviewError}
+                      </div>
+                    )}
+
+                    {isLoadingCourses ? (
+                      <div className="space-y-3">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+                        ))}
+                      </div>
+                    ) : coursesWithoutReview.length === 0 ? (
+                      <div className="text-center py-8">
+                        <svg
+                          className="w-12 h-12 text-gray-300 mx-auto mb-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <p className="text-gray-500">
+                          {myCourses.length === 0
+                            ? 'თქვენ ჯერ არ გაქვთ შეძენილი კურსები'
+                            : 'ყველა კურსი უკვე შეფასებულია'}
+                        </p>
+                        {myCourses.length === 0 && (
+                          <Link
+                            href="/courses"
+                            className="inline-flex items-center mt-4 text-primary-900 hover:text-primary-700"
+                          >
+                            კურსების ნახვა
+                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </Link>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 mb-4">
+                          აირჩიეთ კურსი რომლის შეფასებაც გსურთ. შეფასების დასამატებლად საჭიროა კურსის მინიმუმ 20% გავლა.
+                        </p>
+                        {coursesWithoutReview.map((course: any) => (
+                          <CourseSelectCard
+                            key={course.id}
+                            course={course}
+                            onSelect={handleSelectCourse}
+                            isChecking={isCheckingCanReview}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  // Review Form Step
+                  <div>
+                    <button
+                      onClick={() => {
+                        setSelectedCourse(null);
+                        setCanReviewError(null);
+                      }}
+                      className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      სხვა კურსის არჩევა
+                    </button>
+                    <ReviewForm
+                      courseId={selectedCourse.id}
+                      onSuccess={() => {
+                        handleCloseAddReview();
+                        queryClient.invalidateQueries({ queryKey: ['myReviews'] });
+                      }}
+                      onCancel={handleCloseAddReview}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
