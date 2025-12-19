@@ -90,63 +90,63 @@ export default function ContactPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-primary-900 py-20">
+      <section className="relative bg-primary-900 py-10 sm:py-16 lg:py-20">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white">დაგვიკავშირდი</h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-primary-100">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white">დაგვიკავშირდი</h1>
+          <p className="mt-3 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-primary-100 px-2">
             გვაქვს კითხვა? მოგვწერე და დაგეხმარებით
           </p>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section className="py-20">
+      <section className="py-10 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
             {/* Contact Form */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">მოგვწერე</h2>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">მოგვწერე</h2>
 
               {submitted ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">შეტყობინება გაიგზავნა!</h3>
-                  <p className="mt-2 text-gray-600">მალე დაგიკავშირდებით.</p>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">შეტყობინება გაიგზავნა!</h3>
+                  <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-gray-600">მალე დაგიკავშირდებით.</p>
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="mt-4 text-primary-900 hover:text-primary-800 font-medium"
+                    className="mt-3 sm:mt-4 text-sm sm:text-base text-primary-900 hover:text-primary-800 font-medium"
                   >
                     ახალი შეტყობინება
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       სახელი
                     </label>
                     <input
                       {...register('name', { required: 'სახელი აუცილებელია' })}
                       type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                       placeholder="შენი სახელი"
                     />
                     {errors.name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                      <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.name.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       ელ-ფოსტა
                     </label>
                     <input
@@ -158,21 +158,21 @@ export default function ContactPage() {
                         },
                       })}
                       type="email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                       placeholder="example@email.com"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                      <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.email.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       თემა
                     </label>
                     <select
                       {...register('subject', { required: 'თემა აუცილებელია' })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                     >
                       <option value="">აირჩიე თემა</option>
                       <option value="general">ზოგადი კითხვა</option>
@@ -182,12 +182,12 @@ export default function ContactPage() {
                       <option value="feedback">უკუკავშირი</option>
                     </select>
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-600">{errors.subject.message}</p>
+                      <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.subject.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       შეტყობინება
                     </label>
                     <textarea
@@ -195,19 +195,19 @@ export default function ContactPage() {
                         required: 'შეტყობინება აუცილებელია',
                         minLength: { value: 10, message: 'მინიმუმ 10 სიმბოლო' },
                       })}
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                      rows={4}
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none text-sm sm:text-base"
                       placeholder="დაწერე შეტყობინება..."
                     />
                     {errors.message && (
-                      <p className="mt-1 text-sm text-red-600">{errors.message.message}</p>
+                      <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.message.message}</p>
                     )}
                   </div>
 
                   <button
                     type="submit"
                     disabled={mutation.isPending}
-                    className="w-full bg-accent-600 text-white py-3 rounded-xl font-medium hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="w-full bg-accent-600 text-white py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-medium hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
                   >
                     {mutation.isPending ? (
                       <>
@@ -232,25 +232,25 @@ export default function ContactPage() {
             </div>
 
             {/* Contact Info */}
-            <div className="space-y-8">
+            <div className="space-y-4 sm:space-y-6 lg:space-y-8">
               {/* Contact Cards */}
-              <div className="grid gap-6">
+              <div className="grid gap-3 sm:gap-4 lg:gap-6">
                 {contactInfo.map((item, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 rounded-2xl p-6 flex items-center space-x-4"
+                    className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 flex items-center space-x-3 sm:space-x-4"
                   >
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-900">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center text-primary-900 flex-shrink-0">
                       {item.icon}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{item.title}</h3>
+                      <h3 className="font-medium text-sm sm:text-base text-gray-900">{item.title}</h3>
                       {item.href ? (
-                        <a href={item.href} className="text-primary-900 hover:underline">
+                        <a href={item.href} className="text-sm sm:text-base text-primary-900 hover:underline">
                           {item.value}
                         </a>
                       ) : (
-                        <p className="text-gray-600">{item.value}</p>
+                        <p className="text-sm sm:text-base text-gray-600">{item.value}</p>
                       )}
                     </div>
                   </div>
@@ -258,9 +258,9 @@ export default function ContactPage() {
               </div>
 
               {/* Working Hours */}
-              <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">სამუშაო საათები</h3>
-                <div className="space-y-2 text-sm">
+              <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-3 sm:mb-4">სამუშაო საათები</h3>
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">ორშაბათი - პარასკევი</span>
                     <span className="font-medium text-gray-900">10:00 - 19:00</span>
@@ -277,8 +277,8 @@ export default function ContactPage() {
               </div>
 
               {/* Social Links */}
-              <div className="bg-gray-50 rounded-2xl p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">გამოგვყევი</h3>
+              <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-3 sm:mb-4">გამოგვყევი</h3>
                 <div className="flex space-x-4">
                   <a href="https://www.facebook.com/share/1BshHTH1D8/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-primary-900 hover:bg-primary-200 transition-colors">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -303,23 +303,23 @@ export default function ContactPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
-            <p className="mt-4 text-lg text-gray-600">პასუხები გავრცელებულ კითხვებზე</p>
+          <div className="text-center mb-6 sm:mb-10 lg:mb-12">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
+            <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">პასუხები გავრცელებულ კითხვებზე</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {faqs.map((faq, index) => (
               <details
                 key={index}
-                className="group bg-white rounded-2xl shadow-sm"
+                className="group bg-white rounded-xl sm:rounded-2xl shadow-sm"
               >
-                <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                  <h3 className="font-medium text-gray-900">{faq.question}</h3>
+                <summary className="flex items-center justify-between p-4 sm:p-6 cursor-pointer list-none">
+                  <h3 className="font-medium text-sm sm:text-base text-gray-900 pr-2">{faq.question}</h3>
                   <svg
-                    className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 group-open:rotate-180 transition-transform flex-shrink-0"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -327,8 +327,8 @@ export default function ContactPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </summary>
-                <div className="px-6 pb-6">
-                  <p className="text-gray-600">{faq.answer}</p>
+                <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+                  <p className="text-sm sm:text-base text-gray-600">{faq.answer}</p>
                 </div>
               </details>
             ))}

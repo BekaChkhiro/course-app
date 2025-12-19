@@ -13,18 +13,18 @@ type SortOption = 'popular' | 'newest' | 'price_low' | 'price_high' | 'rating';
 function CoursesLoading() {
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="bg-primary-900 py-16">
+      <div className="bg-primary-900 py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
-            <div className="h-10 bg-primary-400/50 rounded w-64 mx-auto mb-4" />
-            <div className="h-4 bg-primary-400/50 rounded w-96 mx-auto" />
+            <div className="h-8 sm:h-10 bg-primary-400/50 rounded w-48 sm:w-64 mx-auto mb-3 sm:mb-4" />
+            <div className="h-4 bg-primary-400/50 rounded w-64 sm:w-96 mx-auto" />
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl h-80 animate-pulse" />
+            <div key={i} className="bg-white rounded-xl sm:rounded-2xl h-72 sm:h-80 animate-pulse" />
           ))}
         </div>
       </div>
@@ -101,28 +101,28 @@ function CoursesContent() {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
-      <div className="bg-primary-900 py-16">
+      <div className="bg-primary-900 py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white text-center">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white text-center">
             კურსების კატალოგი
           </h1>
-          <p className="mt-4 text-lg text-primary-100 text-center max-w-2xl mx-auto">
+          <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-primary-100 text-center max-w-2xl mx-auto px-2">
             იპოვე შენთვის საუკეთესო კურსი და დაიწყე სწავლა დღესვე
           </p>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="mt-8 max-w-2xl mx-auto">
+          <form onSubmit={handleSearch} className="mt-5 sm:mt-8 max-w-2xl mx-auto">
             <div className="relative">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="მოძებნე კურსი..."
-                className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-300 text-sm sm:text-base"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-600 text-white px-6 py-2 rounded-lg hover:bg-accent-700 transition-colors"
+                className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 bg-accent-600 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-lg hover:bg-accent-700 transition-colors text-sm sm:text-base"
               >
                 ძებნა
               </button>
@@ -131,17 +131,17 @@ function CoursesContent() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar Filters */}
           <aside className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl p-6 shadow-sm sticky top-24">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">ფილტრები</h3>
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm lg:sticky lg:top-24">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">ფილტრები</h3>
                 {(search || selectedCategory || sort !== 'popular') && (
                   <button
                     onClick={clearFilters}
-                    className="text-sm text-primary-900 hover:text-primary-800"
+                    className="text-xs sm:text-sm text-primary-900 hover:text-primary-800"
                   >
                     გასუფთავება
                   </button>
@@ -149,8 +149,8 @@ function CoursesContent() {
               </div>
 
               {/* Categories */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">კატეგორია</h4>
+              <div className="mb-4 sm:mb-6">
+                <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">კატეგორია</h4>
                 <div className="space-y-1">
                   <button
                     onClick={() => {
@@ -251,8 +251,8 @@ function CoursesContent() {
               </div>
 
               {/* Sort (Mobile) */}
-              <div className="lg:hidden mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">სორტირება</h4>
+              <div className="lg:hidden">
+                <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">სორტირება</h4>
                 <select
                   value={sort}
                   onChange={(e) => {
@@ -299,14 +299,14 @@ function CoursesContent() {
 
             {/* Course Grid */}
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl h-80 animate-pulse" />
+                  <div key={i} className="bg-white rounded-xl sm:rounded-2xl h-72 sm:h-80 animate-pulse" />
                 ))}
               </div>
             ) : coursesData?.courses?.length ? (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 items-start">
                   {coursesData.courses.map((course: any) => (
                     <CourseCard key={course.id} course={course} />
                   ))}
@@ -314,12 +314,12 @@ function CoursesContent() {
 
                 {/* Pagination */}
                 {coursesData.totalPages > 1 && (
-                  <div className="mt-12 flex justify-center">
-                    <nav className="flex items-center space-x-2">
+                  <div className="mt-8 sm:mt-12 flex justify-center">
+                    <nav className="flex items-center space-x-1 sm:space-x-2">
                       <button
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                       >
                         წინა
                       </button>
@@ -335,7 +335,7 @@ function CoursesContent() {
                             <button
                               key={pageNum}
                               onClick={() => setPage(pageNum)}
-                              className={`w-10 h-10 rounded-lg ${
+                              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-sm sm:text-base ${
                                 page === pageNum
                                   ? 'bg-accent-600 text-white'
                                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -345,7 +345,7 @@ function CoursesContent() {
                             </button>
                           );
                         } else if (pageNum === page - 2 || pageNum === page + 2) {
-                          return <span key={pageNum} className="text-gray-400">...</span>;
+                          return <span key={pageNum} className="text-gray-400 text-sm">...</span>;
                         }
                         return null;
                       })}
@@ -353,7 +353,7 @@ function CoursesContent() {
                       <button
                         onClick={() => setPage((p) => Math.min(coursesData.totalPages, p + 1))}
                         disabled={page === coursesData.totalPages}
-                        className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                       >
                         შემდეგი
                       </button>
@@ -362,9 +362,9 @@ function CoursesContent() {
                 )}
               </>
             ) : (
-              <div className="text-center py-16 bg-white rounded-2xl">
+              <div className="text-center py-10 sm:py-16 bg-white rounded-xl sm:rounded-2xl">
                 <svg
-                  className="w-16 h-16 mx-auto text-gray-400"
+                  className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -376,11 +376,11 @@ function CoursesContent() {
                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">კურსები ვერ მოიძებნა</h3>
-                <p className="mt-2 text-gray-600">სცადე სხვა საძიებო სიტყვები ან ფილტრები</p>
+                <h3 className="mt-3 sm:mt-4 text-base sm:text-lg font-medium text-gray-900">კურსები ვერ მოიძებნა</h3>
+                <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-gray-600">სცადე სხვა საძიებო სიტყვები ან ფილტრები</p>
                 <button
                   onClick={clearFilters}
-                  className="mt-4 text-primary-900 hover:text-primary-800 font-medium"
+                  className="mt-3 sm:mt-4 text-sm sm:text-base text-primary-900 hover:text-primary-800 font-medium"
                 >
                   ფილტრების გასუფთავება
                 </button>
@@ -403,10 +403,10 @@ const CourseCard = ({ course }: { course: any }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`bg-white overflow-hidden shadow-sm transition-all duration-300 ${isHovered ? 'shadow-xl rounded-t-2xl rounded-b-none' : 'rounded-2xl'}`}>
+      <div className={`bg-white overflow-hidden shadow-sm transition-all duration-300 rounded-xl sm:rounded-2xl ${isHovered ? 'sm:shadow-xl sm:rounded-t-2xl sm:rounded-b-none' : ''}`}>
         {/* Thumbnail */}
         <Link href={`/courses/${course.slug}`} className="block">
-          <div className="relative h-48 bg-gray-200 overflow-hidden">
+          <div className="relative h-40 sm:h-48 bg-gray-200 overflow-hidden">
             {course.thumbnail ? (
               <Image
                 src={course.thumbnail}
@@ -416,13 +416,13 @@ const CourseCard = ({ course }: { course: any }) => {
               />
             ) : (
               <div className="w-full h-full bg-primary-900 flex items-center justify-center">
-                <svg className="w-16 h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-12 h-12 sm:w-16 sm:h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
             )}
             {course.category && (
-              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-gray-700">
+              <span className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/90 backdrop-blur-sm px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium text-gray-700">
                 {course.category.name}
               </span>
             )}
@@ -430,35 +430,43 @@ const CourseCard = ({ course }: { course: any }) => {
         </Link>
 
         {/* Content */}
-        <div className="p-5 flex flex-col">
+        <div className="p-3 sm:p-5 flex flex-col">
           <Link href={`/courses/${course.slug}`}>
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2 min-h-[56px]">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-primary-900 transition-colors line-clamp-2 min-h-[44px] sm:min-h-[56px]">
               {course.title}
             </h3>
           </Link>
-          <p className="mt-2 text-sm text-gray-600 line-clamp-2 min-h-[40px]">
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 line-clamp-2 min-h-[32px] sm:min-h-[40px]">
             {course.shortDescription || '\u00A0'}
           </p>
-          <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="mt-3 sm:mt-4 flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100">
             <div className="flex items-center space-x-1">
-              <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-xs sm:text-sm font-medium text-gray-700">
                 {course.averageRating?.toFixed(1) || '0.0'}
               </span>
-              <span className="text-sm text-gray-500">({course.reviewCount || 0})</span>
+              <span className="text-xs sm:text-sm text-gray-500">({course.reviewCount || 0})</span>
             </div>
-            <div className="text-lg font-bold text-primary-900">
+            <div className="text-base sm:text-lg font-bold text-primary-900">
               {course.price === 0 ? 'უფასო' : `${course.price} ₾`}
             </div>
           </div>
+
+          {/* Mobile Buy Button - always visible on mobile */}
+          <Link
+            href={`/courses/${course.slug}`}
+            className="mt-3 sm:hidden block w-full py-2.5 px-4 bg-accent-600 hover:bg-accent-700 text-white text-center text-sm font-semibold rounded-lg transition-colors"
+          >
+            {course.price === 0 ? 'უფასოდ დაწყება' : `ყიდვა - ${course.price} ₾`}
+          </Link>
         </div>
       </div>
 
-      {/* Hover Dropdown - Absolute positioned */}
+      {/* Hover Dropdown - Desktop only */}
       <div
-        className={`absolute left-0 right-0 top-full z-50 bg-white rounded-b-2xl shadow-xl overflow-hidden transition-all duration-300 ease-out ${
+        className={`hidden sm:block absolute left-0 right-0 top-full z-50 bg-white rounded-b-2xl shadow-xl overflow-hidden transition-all duration-300 ease-out ${
           isHovered ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-2 invisible pointer-events-none'
         }`}
       >

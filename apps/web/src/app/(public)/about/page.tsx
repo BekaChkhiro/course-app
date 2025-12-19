@@ -78,43 +78,43 @@ export default function AboutPage() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="relative bg-primary-900 py-20">
+      <section className="relative bg-primary-900 py-10 sm:py-16 lg:py-20">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white">ჩვენ შესახებ</h1>
-          <p className="mt-6 max-w-2xl mx-auto text-xl text-primary-100">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white">ჩვენ შესახებ</h1>
+          <p className="mt-3 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-primary-100 px-2">
             ჩვენი მისია არის განათლების ხელმისაწვდომობა ყველასთვის
           </p>
         </div>
       </section>
 
       {/* Mission Section */}
-      <section className="py-20">
+      <section className="py-10 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">ჩვენი მისია</h2>
-              <p className="text-lg text-gray-600 mb-4">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">ჩვენი მისია</h2>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-3 sm:mb-4">
                 Kursebi Online შეიქმნა იმ იდეით, რომ ხარისხიანი განათლება უნდა იყოს ხელმისაწვდომი ყველასთვის,
                 მიუხედავად გეოგრაფიული მდებარეობისა თუ ფინანსური შესაძლებლობებისა.
               </p>
-              <p className="text-lg text-gray-600 mb-4">
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-3 sm:mb-4">
                 ჩვენ ვთანამშრომლობთ საუკეთესო ინსტრუქტორებთან და ინდუსტრიის ექსპერტებთან,
                 რათა შევქმნათ კურსები, რომლებიც მართლაც ემსახურება სტუდენტების საჭიროებებს
                 და ეხმარება მათ კარიერული მიზნების მიღწევაში.
               </p>
-              <p className="text-lg text-gray-600">
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600">
                 ჩვენი პლატფორმა აერთიანებს თანამედროვე ტექნოლოგიებს და ინოვაციურ სასწავლო მეთოდებს,
                 რაც სწავლის პროცესს ხდის მაქსიმალურად ეფექტურს და საინტერესოს.
               </p>
             </div>
-            <div className="relative h-96 bg-gray-50 rounded-3xl overflow-hidden">
+            <div className="relative h-64 sm:h-80 lg:h-96 bg-gray-50 rounded-2xl sm:rounded-3xl overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">
-                <svg className="w-48 h-48 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
@@ -124,13 +124,13 @@ export default function AboutPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-primary-900">
+      <section className="py-10 sm:py-12 lg:py-16 bg-primary-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-white">{stat.value}</div>
-                <div className="mt-2 text-primary-100">{stat.label}</div>
+                <div className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white">{stat.value}</div>
+                <div className="mt-1 sm:mt-2 text-xs sm:text-sm lg:text-base text-primary-100">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -138,21 +138,21 @@ export default function AboutPage() {
       </section>
 
       {/* Values Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">ჩვენი ღირებულებები</h2>
-            <p className="mt-4 text-lg text-gray-600">რა პრინციპები გვამოძრავებს</p>
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">ჩვენი ღირებულებები</h2>
+            <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">რა პრინციპები გვამოძრავებს</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
             {values.map((value, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 shadow-sm text-center">
-                <div className="w-16 h-16 mx-auto bg-primary-100 rounded-xl flex items-center justify-center text-primary-900">
-                  {value.icon}
+              <div key={index} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm text-center">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center text-primary-900">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8">{value.icon}</div>
                 </div>
-                <h3 className="mt-4 text-xl font-semibold text-gray-900">{value.title}</h3>
-                <p className="mt-2 text-gray-600">{value.description}</p>
+                <h3 className="mt-3 sm:mt-4 text-sm sm:text-lg lg:text-xl font-semibold text-gray-900">{value.title}</h3>
+                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm lg:text-base text-gray-600">{value.description}</p>
               </div>
             ))}
           </div>
@@ -160,24 +160,24 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-20">
+      <section className="py-10 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">ჩვენი გუნდი</h2>
-            <p className="mt-4 text-lg text-gray-600">პროფესიონალები, რომლებიც ზრუნავენ შენს წარმატებაზე</p>
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">ჩვენი გუნდი</h2>
+            <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">პროფესიონალები, რომლებიც ზრუნავენ შენს წარმატებაზე</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {team.map((member, index) => (
               <div key={index} className="text-center">
-                <div className="w-32 h-32 mx-auto bg-primary-900 rounded-full flex items-center justify-center">
-                  <span className="text-4xl font-bold text-white">
+                <div className="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto bg-primary-900 rounded-full flex items-center justify-center">
+                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
                     {member.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
-                <h3 className="mt-4 text-xl font-semibold text-gray-900">{member.name}</h3>
-                <p className="text-primary-900 font-medium">{member.role}</p>
-                <p className="mt-2 text-sm text-gray-600">{member.bio}</p>
+                <h3 className="mt-3 sm:mt-4 text-sm sm:text-lg lg:text-xl font-semibold text-gray-900">{member.name}</h3>
+                <p className="text-xs sm:text-sm lg:text-base text-primary-900 font-medium">{member.role}</p>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 hidden sm:block">{member.bio}</p>
               </div>
             ))}
           </div>
@@ -185,13 +185,13 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gray-900">
+      <section className="py-10 sm:py-16 lg:py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white">გსურს შეუერთდე ჩვენს გუნდს?</h2>
-          <p className="mt-4 text-lg text-gray-300">ვეძებთ ნიჭიერ ადამიანებს, რომლებსაც სწამთ განათლების ძალა</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">გსურს შეუერთდე ჩვენს გუნდს?</h2>
+          <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-300 px-2">ვეძებთ ნიჭიერ ადამიანებს, რომლებსაც სწამთ განათლების ძალა</p>
           <Link
             href="/contact"
-            className="mt-8 inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-gray-900 bg-white rounded-xl hover:bg-gray-100 transition-all"
+            className="mt-5 sm:mt-8 inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-medium text-gray-900 bg-white rounded-lg sm:rounded-xl hover:bg-gray-100 transition-all"
           >
             დაგვიკავშირდი
           </Link>
