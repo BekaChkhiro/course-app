@@ -400,4 +400,40 @@ export const sliderApi = {
   toggle: (id: string) => adminApi.patch(`/sliders/${id}/toggle`)
 };
 
+// Instructor APIs (Admin)
+export const instructorApi = {
+  getAll: () => adminApi.get('/instructors'),
+  getById: (id: string) => adminApi.get(`/instructors/${id}`),
+  create: (data: {
+    firstName: string;
+    lastName: string;
+    slug: string;
+    profession: string;
+    bio?: string;
+    avatar?: string;
+    email?: string;
+    facebook?: string;
+    linkedin?: string;
+    order?: number;
+    isActive?: boolean;
+  }) => adminApi.post('/instructors', data),
+  update: (id: string, data: {
+    firstName?: string;
+    lastName?: string;
+    slug?: string;
+    profession?: string;
+    bio?: string;
+    avatar?: string;
+    email?: string;
+    facebook?: string;
+    linkedin?: string;
+    order?: number;
+    isActive?: boolean;
+  }) => adminApi.put(`/instructors/${id}`, data),
+  delete: (id: string) => adminApi.delete(`/instructors/${id}`),
+  reorder: (instructors: { id: string; order: number }[]) =>
+    adminApi.post('/instructors/reorder', { instructors }),
+  toggle: (id: string) => adminApi.patch(`/instructors/${id}/toggle`)
+};
+
 export default adminApi;

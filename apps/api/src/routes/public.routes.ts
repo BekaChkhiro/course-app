@@ -192,6 +192,20 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         author: {
           select: { id: true, name: true, surname: true, avatar: true, bio: true },
         },
+        instructor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            slug: true,
+            profession: true,
+            bio: true,
+            avatar: true,
+            email: true,
+            facebook: true,
+            linkedin: true,
+          },
+        },
         reviews: {
           where: { status: 'APPROVED' },
           select: { rating: true },
@@ -267,6 +281,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         price: Number(course.price),
         category: course.category,
         author: course.author,
+        instructor: course.instructor,
         averageRating,
         reviewCount: course._count.reviews,
         studentCount: course._count.purchases,
@@ -580,7 +595,7 @@ router.post('/course-booking', async (req: Request, res: Response) => {
     const adminEmail = process.env.BOOKING_EMAIL || process.env.ADMIN_EMAIL || 'info@kursebi.online';
 
     try {
-      await EmailService.sendCourseBookingNotification(adminEmail, {
+      const bookingData = {
         courseId,
         courseTitle,
         firstName: firstName.trim(),
@@ -591,7 +606,25 @@ router.post('/course-booking', async (req: Request, res: Response) => {
         preferredTimeFrom: preferredTimeFrom || '10:00',
         preferredTimeTo: preferredTimeTo || '18:00',
         comment: comment?.trim() || '',
-      });
+      };
+
+      // Send notification to admin
+      await EmailService.sendCourseBookingNotification(adminEmail, bookingData);
+
+      // Send confirmation to customer
+      try {
+        await EmailService.sendCourseBookingConfirmation(bookingData.email, {
+          firstName: bookingData.firstName,
+          lastName: bookingData.lastName,
+          courseTitle: bookingData.courseTitle,
+          preferredDays: bookingData.preferredDays,
+          preferredTimeFrom: bookingData.preferredTimeFrom,
+          preferredTimeTo: bookingData.preferredTimeTo,
+        });
+      } catch (confirmationError) {
+        // Log but don't fail if customer confirmation fails
+        console.error('Failed to send customer confirmation email:', confirmationError);
+      }
 
       console.log('📅 Course booking submitted:', {
         courseTitle,

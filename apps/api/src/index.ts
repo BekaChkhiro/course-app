@@ -27,6 +27,7 @@ import purchaseRoutes from './routes/purchase.routes'
 import attachmentRoutes from './routes/attachment.routes'
 import faqRoutes from './routes/faqRoutes'
 import sliderRoutes from './routes/sliderRoutes'
+import instructorRoutes from './routes/instructorRoutes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -139,6 +140,9 @@ app.use('/api/faqs', faqRoutes)
 
 // Slider routes
 app.use('/api/sliders', sliderRoutes)
+
+// Instructor routes
+app.use('/api/instructors', instructorRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

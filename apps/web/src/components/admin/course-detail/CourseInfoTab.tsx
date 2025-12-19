@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, BookOpen, DollarSign, Image, Search } from 'lucide-react';
-import { courseApi, categoryApi, uploadApi } from '@/lib/api/adminApi';
+import { Save, BookOpen, DollarSign, Image, Search, UserCircle } from 'lucide-react';
+import { courseApi, categoryApi, uploadApi, instructorApi } from '@/lib/api/adminApi';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import FileUpload from '@/components/ui/FileUpload';
@@ -50,6 +50,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
     price: course.price,
     thumbnail: course.thumbnail || '',
     categoryId: course.categoryId,
+    instructorId: course.instructorId || '',
     status: course.status,
     metaTitle: course.metaTitle || '',
     metaDescription: course.metaDescription || '',
@@ -61,6 +62,11 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
   const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoryApi.getAll().then(res => res.data)
+  });
+
+  const { data: instructorsData } = useQuery({
+    queryKey: ['instructors'],
+    queryFn: () => instructorApi.getAll().then(res => res.data)
   });
 
   const updateMutation = useMutation({
@@ -81,6 +87,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
   };
 
   const categories = categoriesData?.categories || [];
+  const instructors = instructorsData?.instructors || [];
 
   const statusOptions = [
     { value: 'DRAFT', label: 'Draft', color: 'bg-gray-100 text-gray-700' },
@@ -220,6 +227,36 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
               ))}
             </div>
           </div>
+        </div>
+      </Section>
+
+      {/* Instructor Section */}
+      <Section
+        icon={<UserCircle className="w-5 h-5" />}
+        title="ლექტორი"
+        description="კურსის ლექტორის არჩევა"
+      >
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            ლექტორი
+          </label>
+          <select
+            value={formData.instructorId}
+            onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors bg-white"
+          >
+            <option value="">ლექტორის გარეშე</option>
+            {instructors
+              .filter((inst: any) => inst.isActive)
+              .map((instructor: any) => (
+                <option key={instructor.id} value={instructor.id}>
+                  {instructor.firstName} {instructor.lastName} - {instructor.profession}
+                </option>
+              ))}
+          </select>
+          <p className="mt-1.5 text-xs text-gray-500">
+            ლექტორი გამოჩნდება კურსის გვერდზე
+          </p>
         </div>
       </Section>
 

@@ -157,6 +157,7 @@ model Course {
   status      CourseStatus @default(DRAFT)
   categoryId  String
   authorId    String
+  instructorId String?
 
   // SEO metadata
   metaTitle       String?
@@ -169,6 +170,7 @@ model Course {
   // Relations
   category        Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   author          User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  instructor      Instructor?     @relation(fields: [instructorId], references: [id], onDelete: SetNull)
   versions        CourseVersion[]
   purchases       Purchase[]
   reviews         Review[]
@@ -178,6 +180,7 @@ model Course {
   @@index([slug])
   @@index([categoryId])
   @@index([authorId])
+  @@index([instructorId])
   @@index([status])
   @@map("courses")
 }
@@ -1643,4 +1646,33 @@ model Slider {
   @@index([order])
   @@index([isActive])
   @@map("sliders")
+}
+
+// ==========================================
+// INSTRUCTOR SYSTEM
+// ==========================================
+
+model Instructor {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  slug        String   @unique
+  profession  String
+  bio         String?  @db.Text
+  avatar      String?
+  email       String?
+  facebook    String?
+  linkedin    String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  courses     Course[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([order])
+  @@map("instructors")
 }

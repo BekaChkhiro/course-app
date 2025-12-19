@@ -79,6 +79,7 @@ export const getCourseById = async (req: Request, res: Response) => {
       include: {
         category: true,
         author: { select: { id: true, name: true, surname: true, email: true, avatar: true } },
+        instructor: { select: { id: true, firstName: true, lastName: true, slug: true, profession: true, bio: true, avatar: true, email: true, facebook: true, linkedin: true } },
         versions: {
           include: {
             chapters: {
@@ -201,6 +202,7 @@ export const updateCourse = async (req: Request, res: Response) => {
       thumbnail,
       price,
       categoryId,
+      instructorId,
       metaTitle,
       metaDescription,
       metaKeywords,
@@ -261,6 +263,7 @@ export const updateCourse = async (req: Request, res: Response) => {
         ...(thumbnail !== undefined && { thumbnail }),
         ...(price !== undefined && { price }),
         ...(categoryId && { categoryId }),
+        ...(instructorId !== undefined && { instructorId: instructorId || null }),
         ...(metaTitle !== undefined && { metaTitle }),
         ...(metaDescription !== undefined && { metaDescription }),
         ...(metaKeywords !== undefined && { metaKeywords }),
@@ -269,6 +272,7 @@ export const updateCourse = async (req: Request, res: Response) => {
       include: {
         category: true,
         author: { select: { id: true, name: true, surname: true, email: true } },
+        instructor: { select: { id: true, firstName: true, lastName: true, profession: true, avatar: true } },
         _count: { select: { purchases: true, reviews: true, versions: true } }
       }
     });

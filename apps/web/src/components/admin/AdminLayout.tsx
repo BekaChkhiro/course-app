@@ -22,7 +22,8 @@ import {
   FileText,
   Sparkles,
   HelpCircle,
-  Images
+  Images,
+  UserCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -40,6 +41,7 @@ const navigation: NavItem[] = [
   { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
   { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
   { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
+  { name: 'ლექტორები', href: '/admin/instructors', icon: UserCircle },
   { name: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
   { name: 'სლაიდერი', href: '/admin/sliders', icon: Images },
   {

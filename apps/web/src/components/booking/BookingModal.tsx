@@ -160,7 +160,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-accent-500 to-accent-600 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +169,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">ინდივიდუალური კურსი</h3>
-              <p className="text-primary-100 text-sm truncate max-w-[200px]">{courseTitle}</p>
+              <p className="text-accent-100 text-sm truncate max-w-[200px]">{courseTitle}</p>
             </div>
           </div>
           <button
@@ -198,7 +198,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
               </p>
               <button
                 onClick={handleClose}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="px-6 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition-colors"
               >
                 დახურვა
               </button>
@@ -215,7 +215,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors ${
                       errors.firstName ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="გიორგი"
@@ -232,7 +232,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors ${
                       errors.lastName ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="გიორგაძე"
@@ -252,7 +252,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors ${
                     errors.phone ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="555 123 456"
@@ -271,7 +271,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors ${
                     errors.email ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="example@email.com"
@@ -294,8 +294,8 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                       onClick={() => handleDayToggle(day.id)}
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         formData.preferredDays.includes(day.id)
-                          ? 'bg-primary-600 text-white border-primary-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:border-primary-500'
+                          ? 'bg-accent-500 text-white border-accent-500'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-accent-400'
                       }`}
                     >
                       {day.label}
@@ -316,7 +316,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                   <select
                     value={formData.preferredTimeFrom}
                     onChange={(e) => setFormData(prev => ({ ...prev, preferredTimeFrom: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                   >
                     {TIME_OPTIONS.map((time) => (
                       <option key={time} value={time}>{time}</option>
@@ -326,7 +326,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                   <select
                     value={formData.preferredTimeTo}
                     onChange={(e) => setFormData(prev => ({ ...prev, preferredTimeTo: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                   >
                     {TIME_OPTIONS.map((time) => (
                       <option key={time} value={time}>{time}</option>
@@ -347,7 +347,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
                   value={formData.comment}
                   onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors resize-none"
                   placeholder="დაწერეთ თუ გაქვთ სპეციფიკური მოთხოვნები..."
                 />
               </div>
@@ -363,7 +363,7 @@ export default function BookingModal({ courseId, courseTitle, isOpen, onClose }:
               <button
                 type="submit"
                 disabled={bookingMutation.isPending}
-                className="w-full bg-primary-600 text-white py-3 rounded-xl font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className="w-full bg-accent-500 text-white py-3 rounded-xl font-medium hover:bg-accent-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 {bookingMutation.isPending ? (
                   <>

@@ -1127,4 +1127,147 @@ ${bookingData.comment ? `კომენტარი:\n━━━━━━━━�
       },
     });
   }
+
+  /**
+   * Send booking confirmation to customer
+   */
+  static async sendCourseBookingConfirmation(
+    customerEmail: string,
+    bookingData: {
+      firstName: string;
+      lastName: string;
+      courseTitle: string;
+      preferredDays: string[];
+      preferredTimeFrom: string;
+      preferredTimeTo: string;
+    }
+  ): Promise<boolean> {
+    const dayLabels: Record<string, string> = {
+      monday: 'ორშაბათი',
+      tuesday: 'სამშაბათი',
+      wednesday: 'ოთხშაბათი',
+      thursday: 'ხუთშაბათი',
+      friday: 'პარასკევი',
+      saturday: 'შაბათი',
+      sunday: 'კვირა',
+    };
+
+    const formattedDays = bookingData.preferredDays
+      .map(day => dayLabels[day] || day)
+      .join(', ');
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .header { background: linear-gradient(135deg, #ff4d40 0%, #ed3124 100%); color: white; padding: 25px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
+            .header h2 { margin: 0; font-size: 24px; }
+            .header p { margin: 10px 0 0 0; opacity: 0.9; }
+            .success-icon { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; }
+            .section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #E5E7EB; }
+            .section-title { font-size: 14px; font-weight: bold; color: #6B7280; text-transform: uppercase; margin-bottom: 10px; }
+            .info-row { margin-bottom: 8px; }
+            .info-label { font-weight: bold; color: #374151; }
+            .info-value { color: #1F2937; }
+            .highlight { background: #FFF5F4; padding: 15px; border-radius: 8px; border-left: 4px solid #ff4d40; }
+            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+            .contact-info { background: #EFF6FF; padding: 15px; border-radius: 8px; margin-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="success-icon">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+              </div>
+              <h2>განაცხადი მიღებულია!</h2>
+              <p>მადლობა დაინტერესებისთვის</p>
+            </div>
+
+            <p>გამარჯობა <strong>${bookingData.firstName}</strong>,</p>
+
+            <p>თქვენი განაცხადი ინდივიდუალური კურსის შესახებ წარმატებით მიღებულია. ჩვენი გუნდი მალე დაგიკავშირდებათ.</p>
+
+            <div class="section">
+              <div class="section-title">📚 კურსი</div>
+              <div class="highlight">
+                <strong>${bookingData.courseTitle}</strong>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">🕐 თქვენი სასურველი დრო</div>
+              <div class="info-row">
+                <span class="info-label">დღეები:</span>
+                <span class="info-value">${formattedDays}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">საათები:</span>
+                <span class="info-value">${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}</span>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">📋 შემდეგი ნაბიჯები</div>
+              <ul style="margin: 0; padding-left: 20px; color: #4B5563;">
+                <li>ჩვენი კონსულტანტი დაგიკავშირდებათ 24 საათის განმავლობაში</li>
+                <li>შევათანხმებთ ზუსტ განრიგს და დეტალებს</li>
+                <li>მიიღებთ ინფორმაციას გადახდის შესახებ</li>
+              </ul>
+            </div>
+
+            <div class="contact-info">
+              <strong>გაქვთ კითხვები?</strong><br>
+              დაგვიკავშირდით: <a href="mailto:info@kursebi.online">info@kursebi.online</a>
+            </div>
+
+            <div class="footer">
+              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
+              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+გამარჯობა ${bookingData.firstName},
+
+თქვენი განაცხადი ინდივიდუალური კურსის შესახებ წარმატებით მიღებულია!
+
+კურსი: ${bookingData.courseTitle}
+
+თქვენი სასურველი დრო:
+- დღეები: ${formattedDays}
+- საათები: ${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}
+
+შემდეგი ნაბიჯები:
+1. ჩვენი კონსულტანტი დაგიკავშირდებათ 24 საათის განმავლობაში
+2. შევათანხმებთ ზუსტ განრიგს და დეტალებს
+3. მიიღებთ ინფორმაციას გადახდის შესახებ
+
+გაქვთ კითხვები? დაგვიკავშირდით: info@kursebi.online
+
+პატივისცემით,
+Kursebi.online გუნდი
+    `;
+
+    return this.sendEmail({
+      to: customerEmail,
+      subject: `✅ განაცხადი მიღებულია - ${bookingData.courseTitle}`,
+      html,
+      text,
+      templateType: 'course_booking_confirmation',
+      metadata: {
+        courseTitle: bookingData.courseTitle,
+        customerName: `${bookingData.firstName} ${bookingData.lastName}`,
+      },
+    });
+  }
 }

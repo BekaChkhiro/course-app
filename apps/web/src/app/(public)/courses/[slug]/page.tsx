@@ -274,7 +274,7 @@ export default function CoursePage() {
               {/* Individual Booking Button */}
               <button
                 onClick={() => setIsBookingModalOpen(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-primary-600 text-primary-600 py-3 rounded-xl font-medium hover:bg-primary-50 transition-colors"
+                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-accent-500 text-accent-500 py-3 rounded-xl font-medium hover:bg-accent-50 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -353,7 +353,7 @@ export default function CoursePage() {
               {/* Individual Booking Button */}
               <button
                 onClick={() => setIsBookingModalOpen(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-primary-600 text-primary-600 py-3 rounded-xl font-medium hover:bg-primary-50 transition-colors shadow-lg"
+                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-accent-500 text-accent-500 py-3 rounded-xl font-medium hover:bg-accent-50 transition-colors shadow-lg"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

@@ -195,4 +195,36 @@ export const publicApi = {
     }
     return data;
   },
+
+  // Get all active instructors
+  async getInstructors() {
+    const response = await fetch(`${API_URL}/api/instructors/public`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch instructors');
+    }
+    return data.data || [];
+  },
+
+  // Get single instructor by slug
+  async getInstructor(slug: string) {
+    const response = await fetch(`${API_URL}/api/instructors/public/${slug}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Instructor not found');
+    }
+    return data.data;
+  },
 };

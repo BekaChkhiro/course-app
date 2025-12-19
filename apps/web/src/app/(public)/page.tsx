@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { publicApi } from '@/lib/api/publicApi';
 import HeroSlider from '@/components/public/HeroSlider';
+import InstructorsSection from '@/components/public/InstructorsSection';
 
 // Hero Section
 const HeroSection = () => {
@@ -491,6 +492,7 @@ export default function HomePage() {
       <FeaturesSection />
       <PopularCoursesSection />
       <CategoriesSection />
+      <InstructorsSection />
       <FAQSection />
       <CTASection />
     </>
