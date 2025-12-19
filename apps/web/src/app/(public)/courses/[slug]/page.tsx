@@ -9,6 +9,7 @@ import { publicApi } from '@/lib/api/publicApi';
 import { studentApiClient } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
 import BuyButton from '@/components/payment/BuyButton';
+import BookingModal from '@/components/booking/BookingModal';
 
 export default function CoursePage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function CoursePage() {
   const { isAuthenticated } = useAuthStore();
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const { data: course, isLoading, error } = useQuery({
     queryKey: ['course', slug],
@@ -267,8 +269,18 @@ export default function CoursePage() {
             </div>
 
             {/* Mobile Purchase Card - visible only on mobile */}
-            <div className="lg:hidden mt-6">
+            <div className="lg:hidden mt-6 space-y-4">
               <PurchaseCard />
+              {/* Individual Booking Button */}
+              <button
+                onClick={() => setIsBookingModalOpen(true)}
+                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-primary-600 text-primary-600 py-3 rounded-xl font-medium hover:bg-primary-50 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>ინდივიდუალური კურსის დაჯავშნა</span>
+              </button>
             </div>
 
             {/* Content Section */}
@@ -336,12 +348,30 @@ export default function CoursePage() {
 
           {/* Right Column - Desktop Purchase Card (Sticky) */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="lg:sticky lg:top-[70px] lg:bottom-[70px] pt-0 lg:pt-[34px]">
+            <div className="lg:sticky lg:top-[70px] lg:bottom-[70px] pt-0 lg:pt-[34px] space-y-4">
               <PurchaseCard />
+              {/* Individual Booking Button */}
+              <button
+                onClick={() => setIsBookingModalOpen(true)}
+                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-primary-600 text-primary-600 py-3 rounded-xl font-medium hover:bg-primary-50 transition-colors shadow-lg"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>ინდივიდუალური კურსის დაჯავშნა</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <BookingModal
+        courseId={course.id}
+        courseTitle={course.title}
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+      />
     </div>
   );
 }

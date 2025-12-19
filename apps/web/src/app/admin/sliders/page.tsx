@@ -307,7 +307,7 @@ export default function SlidersPage() {
         <div className="bg-accent-50 border border-accent-200 rounded-lg p-4 text-sm text-accent-700">
           <strong>მინიშნება:</strong> გადაათრიეთ სლაიდები თანმიმდევრობის შესაცვლელად.
           მხოლოდ აქტიური სლაიდები გამოჩნდება მთავარ გვერდზე.
-          რეკომენდებული სურათის ზომა: <strong>1300x650</strong> პიქსელი.
+          რეკომენდებული სურათის ზომა: <strong>1800x600</strong> პიქსელი.
         </div>
 
         {/* Slider List */}
@@ -522,7 +522,7 @@ function SliderModal({
             preview={true}
           />
           <p className="mt-1 text-xs text-gray-500">
-            რეკომენდებული ზომა: 1300x650 პიქსელი. მაქს. 10MB.
+            რეკომენდებული ზომა: 1800x600 პიქსელი. მაქს. 10MB.
           </p>
         </div>
 

@@ -964,4 +964,167 @@ export class EmailService {
       metadata: { submissionId, authorName, courseTitle },
     });
   }
+
+  // ==========================================
+  // COURSE BOOKING EMAILS
+  // ==========================================
+
+  /**
+   * Send course booking notification to admin
+   */
+  static async sendCourseBookingNotification(
+    adminEmail: string,
+    bookingData: {
+      courseId: string;
+      courseTitle: string;
+      firstName: string;
+      lastName: string;
+      phone: string;
+      email: string;
+      preferredDays: string[];
+      preferredTimeFrom: string;
+      preferredTimeTo: string;
+      comment: string;
+    }
+  ): Promise<boolean> {
+    const dayLabels: Record<string, string> = {
+      monday: 'ორშაბათი',
+      tuesday: 'სამშაბათი',
+      wednesday: 'ოთხშაბათი',
+      thursday: 'ხუთშაბათი',
+      friday: 'პარასკევი',
+      saturday: 'შაბათი',
+      sunday: 'კვირა',
+    };
+
+    const formattedDays = bookingData.preferredDays
+      .map(day => dayLabels[day] || day)
+      .join(', ');
+
+    const submissionDate = new Date().toLocaleString('ka-GE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .header { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+            .header h2 { margin: 0; font-size: 24px; }
+            .header p { margin: 5px 0 0 0; opacity: 0.9; }
+            .section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #E5E7EB; }
+            .section-title { font-size: 14px; font-weight: bold; color: #6B7280; text-transform: uppercase; margin-bottom: 10px; border-bottom: 2px solid #4F46E5; padding-bottom: 5px; display: inline-block; }
+            .info-row { display: flex; margin-bottom: 8px; }
+            .info-label { font-weight: bold; color: #374151; min-width: 140px; }
+            .info-value { color: #1F2937; }
+            .highlight { background: #EEF2FF; padding: 15px; border-radius: 8px; border-left: 4px solid #4F46E5; }
+            .comment-box { background: #F9FAFB; padding: 15px; border-radius: 8px; font-style: italic; color: #4B5563; }
+            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+            .cta-button { display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>📅 ახალი ინდივიდუალური ჯავშნა</h2>
+              <p>${bookingData.courseTitle}</p>
+            </div>
+
+            <div class="section">
+              <div class="section-title">👤 მომხმარებლის ინფორმაცია</div>
+              <div class="info-row">
+                <span class="info-label">სახელი, გვარი:</span>
+                <span class="info-value">${bookingData.firstName} ${bookingData.lastName}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">ტელეფონი:</span>
+                <span class="info-value"><a href="tel:${bookingData.phone}">${bookingData.phone}</a></span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">ელ-ფოსტა:</span>
+                <span class="info-value"><a href="mailto:${bookingData.email}">${bookingData.email}</a></span>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">🕐 სასურველი დრო</div>
+              <div class="highlight">
+                <div class="info-row">
+                  <span class="info-label">დღეები:</span>
+                  <span class="info-value">${formattedDays}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">საათები:</span>
+                  <span class="info-value">${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}</span>
+                </div>
+              </div>
+            </div>
+
+            ${bookingData.comment ? `
+            <div class="section">
+              <div class="section-title">💬 კომენტარი</div>
+              <div class="comment-box">
+                ${bookingData.comment}
+              </div>
+            </div>
+            ` : ''}
+
+            <div class="section" style="background: #FEF3C7; border-color: #F59E0B;">
+              <p style="margin: 0; color: #92400E;">
+                <strong>⚡ მოქმედება საჭიროა:</strong> გთხოვთ დაუკავშირდეთ მომხმარებელს რაც შეიძლება სწრაფად.
+              </p>
+            </div>
+
+            <div class="footer">
+              <p>გაგზავნის თარიღი: ${submissionDate}</p>
+              <p>&copy; ${new Date().getFullYear()} Kursebi.online</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+ახალი ინდივიდუალური ჯავშნა
+
+კურსი: ${bookingData.courseTitle}
+
+მომხმარებლის ინფორმაცია:
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+სახელი: ${bookingData.firstName} ${bookingData.lastName}
+ტელეფონი: ${bookingData.phone}
+ელ-ფოსტა: ${bookingData.email}
+
+სასურველი დრო:
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+დღეები: ${formattedDays}
+საათები: ${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}
+
+${bookingData.comment ? `კომენტარი:\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n${bookingData.comment}` : ''}
+
+გაგზავნის თარიღი: ${submissionDate}
+    `;
+
+    return this.sendEmail({
+      to: adminEmail,
+      subject: `📅 ახალი ჯავშნა: ${bookingData.courseTitle}`,
+      html,
+      text,
+      templateType: 'course_booking',
+      metadata: {
+        courseId: bookingData.courseId,
+        courseTitle: bookingData.courseTitle,
+        customerEmail: bookingData.email,
+        customerPhone: bookingData.phone,
+      },
+    });
+  }
 }

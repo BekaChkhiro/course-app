@@ -167,4 +167,32 @@ export const publicApi = {
     const data = await response.json();
     return data.sliders || [];
   },
+
+  // Submit course booking request
+  async submitCourseBooking(formData: {
+    courseId: string;
+    courseTitle: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    preferredDays: string[];
+    preferredTimeFrom: string;
+    preferredTimeTo: string;
+    comment: string;
+  }) {
+    const response = await fetch(`${API_URL}/api/public/course-booking`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to submit booking');
+    }
+    return data;
+  },
 };

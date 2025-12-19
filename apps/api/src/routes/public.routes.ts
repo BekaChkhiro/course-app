@@ -483,6 +483,144 @@ router.post('/contact', async (req: Request, res: Response) => {
 });
 
 // ==========================================
+// COURSE BOOKING (Individual Course Booking)
+// ==========================================
+
+// Simple in-memory rate limiting
+const bookingRateLimiter = new Map<string, number>();
+
+router.post('/course-booking', async (req: Request, res: Response) => {
+  try {
+    const {
+      courseId,
+      courseTitle,
+      firstName,
+      lastName,
+      phone,
+      email,
+      preferredDays,
+      preferredTimeFrom,
+      preferredTimeTo,
+      comment,
+    } = req.body;
+
+    // Rate limiting - 1 request per 30 seconds per IP
+    const clientIP = req.ip || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    const lastRequest = bookingRateLimiter.get(clientIP);
+
+    if (lastRequest && now - lastRequest < 30000) {
+      return res.status(429).json({
+        success: false,
+        message: 'გთხოვთ დაელოდოთ 30 წამს შემდეგ მოთხოვნამდე',
+      });
+    }
+    bookingRateLimiter.set(clientIP, now);
+
+    // Clean up old entries periodically
+    if (bookingRateLimiter.size > 1000) {
+      const cutoff = now - 60000;
+      for (const [ip, time] of bookingRateLimiter.entries()) {
+        if (time < cutoff) bookingRateLimiter.delete(ip);
+      }
+    }
+
+    // Validate required fields
+    if (!courseId || !courseTitle || !firstName || !lastName || !phone || !email || !preferredDays) {
+      return res.status(400).json({
+        success: false,
+        message: 'ყველა სავალდებულო ველი უნდა შეავსოთ',
+      });
+    }
+
+    // Validate first name
+    if (firstName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'სახელი უნდა შეიცავდეს მინიმუმ 2 სიმბოლოს',
+      });
+    }
+
+    // Validate last name
+    if (lastName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'გვარი უნდა შეიცავდეს მინიმუმ 2 სიმბოლოს',
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'არასწორი ელ-ფოსტის ფორმატი',
+      });
+    }
+
+    // Validate phone format (Georgian format)
+    const phoneClean = phone.replace(/\s/g, '');
+    const phoneRegex = /^(\+995|995|0)?5\d{8}$/;
+    if (!phoneRegex.test(phoneClean)) {
+      return res.status(400).json({
+        success: false,
+        message: 'არასწორი ტელეფონის ნომრის ფორმატი',
+      });
+    }
+
+    // Validate preferred days
+    if (!Array.isArray(preferredDays) || preferredDays.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'აირჩიეთ მინიმუმ ერთი სასურველი დღე',
+      });
+    }
+
+    // Send email to admin
+    const adminEmail = process.env.BOOKING_EMAIL || process.env.ADMIN_EMAIL || 'info@kursebi.online';
+
+    try {
+      await EmailService.sendCourseBookingNotification(adminEmail, {
+        courseId,
+        courseTitle,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phoneClean,
+        email: email.trim().toLowerCase(),
+        preferredDays,
+        preferredTimeFrom: preferredTimeFrom || '10:00',
+        preferredTimeTo: preferredTimeTo || '18:00',
+        comment: comment?.trim() || '',
+      });
+
+      console.log('📅 Course booking submitted:', {
+        courseTitle,
+        customer: `${firstName} ${lastName}`,
+        email,
+        phone: phoneClean,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'თქვენი განაცხადი წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.',
+      });
+    } catch (emailError) {
+      console.error('Failed to send booking email:', emailError);
+      res.status(500).json({
+        success: false,
+        message: 'მეილის გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ მოგვიანებით.',
+      });
+    }
+  } catch (error: any) {
+    console.error('Error submitting course booking:', error);
+    res.status(500).json({
+      success: false,
+      message: 'განაცხადის გაგზავნა ვერ მოხერხდა',
+    });
+  }
+});
+
+// ==========================================
 // COURSE SUBMISSION (Become an Instructor)
 // ==========================================
 
