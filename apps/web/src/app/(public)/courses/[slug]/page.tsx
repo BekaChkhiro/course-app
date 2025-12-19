@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Mail, Facebook, Linkedin, User } from 'lucide-react';
 import { publicApi } from '@/lib/api/publicApi';
 import { studentApiClient } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
@@ -290,6 +291,93 @@ export default function CoursePage() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">კურსის აღწერა</h2>
                 <div className="prose max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: course.description || '' }} />
               </section>
+
+              {/* Instructor Section */}
+              {course.instructor && (
+                <section className="bg-white rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">ლექტორი</h2>
+                  <div className="flex flex-col sm:flex-row gap-6">
+                    {/* Instructor Avatar */}
+                    <Link
+                      href={`/instructors/${course.instructor.slug}`}
+                      className="flex-shrink-0"
+                    >
+                      <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-100 mx-auto sm:mx-0 ring-4 ring-primary-100 hover:ring-primary-200 transition-all">
+                        {course.instructor.avatar ? (
+                          <Image
+                            src={course.instructor.avatar}
+                            alt={`${course.instructor.firstName} ${course.instructor.lastName}`}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-primary-100">
+                            <User className="w-16 h-16 text-primary-300" />
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+
+                    {/* Instructor Info */}
+                    <div className="flex-1 text-center sm:text-left">
+                      <Link
+                        href={`/instructors/${course.instructor.slug}`}
+                        className="group"
+                      >
+                        <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary-900 transition-colors">
+                          {course.instructor.firstName} {course.instructor.lastName}
+                        </h3>
+                      </Link>
+                      <p className="mt-1 text-primary-600 font-medium">{course.instructor.profession}</p>
+
+                      {course.instructor.bio && (
+                        <p className="mt-3 text-gray-600 line-clamp-3">{course.instructor.bio}</p>
+                      )}
+
+                      {/* Social Links */}
+                      <div className="mt-4 flex items-center justify-center sm:justify-start gap-3">
+                        {course.instructor.email && (
+                          <a
+                            href={`mailto:${course.instructor.email}`}
+                            className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors"
+                            title="ელ-ფოსტა"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </a>
+                        )}
+                        {course.instructor.facebook && (
+                          <a
+                            href={course.instructor.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors"
+                            title="Facebook"
+                          >
+                            <Facebook className="w-4 h-4" />
+                          </a>
+                        )}
+                        {course.instructor.linkedin && (
+                          <a
+                            href={course.instructor.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg text-blue-700 transition-colors"
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="w-4 h-4" />
+                          </a>
+                        )}
+                        <Link
+                          href={`/instructors/${course.instructor.slug}`}
+                          className="ml-auto text-sm text-primary-600 hover:text-primary-800 font-medium"
+                        >
+                          სრულად ნახვა →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {/* What You'll Learn */}
               {course.learningOutcomes && course.learningOutcomes.length > 0 && (
