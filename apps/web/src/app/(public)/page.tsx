@@ -66,94 +66,6 @@ const HeroSection = () => {
   );
 };
 
-// Features Section
-const FeaturesSection = () => {
-  const features = [
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-      ),
-      title: 'ვიდეო გაკვეთილები',
-      description: 'მაღალი ხარისხის ვიდეო კონტენტი, რომელიც ხელმისაწვდომია ნებისმიერ დროს და ადგილზე.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      title: 'ტესტები და დავალებები',
-      description: 'შეამოწმე შენი ცოდნა ინტერაქტიული ტესტებით და პრაქტიკული დავალებებით.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-        </svg>
-      ),
-      title: 'სერტიფიკატი',
-      description: 'მიიღე სერტიფიკატი კურსის დასრულების შემდეგ და გაიზარდე კარიერაში.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      title: 'საკუთარი ტემპი',
-      description: 'ისწავლე შენი ტემპით, როცა გინდა და სადაც გინდა, შეუზღუდავი წვდომით.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-      title: 'საზოგადოება',
-      description: 'შეუერთდი მოტივირებულ სტუდენტებს და დისკუსიების საშუალებით გააღრმავე ცოდნა.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-      title: 'მხარდაჭერა',
-      description: '24/7 მხარდაჭერა შენი კითხვებისთვის და პრობლემების გადაჭრისთვის.',
-    },
-  ];
-
-  return (
-    <section className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">რატომ უნდა აირჩიო ჩვენ</h2>
-          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            ჩვენი პლატფორმა გთავაზობთ საუკეთესო გამოცდილებას ონლაინ სწავლისთვის
-          </p>
-        </div>
-
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-900">
-                {feature.icon}
-              </div>
-              <h3 className="mt-4 text-xl font-semibold text-gray-900">{feature.title}</h3>
-              <p className="mt-2 text-gray-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
 // Popular Courses Section
 const PopularCoursesSection = () => {
   const { data: courses, isLoading } = useQuery({
@@ -310,51 +222,6 @@ const CourseCard = ({ course }: { course: any }) => {
   );
 };
 
-// Categories Section
-const CategoriesSection = () => {
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ['categories'],
-    queryFn: publicApi.getCategories,
-  });
-
-  return (
-    <section className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">კატეგორიები</h2>
-          <p className="mt-4 text-lg text-gray-600">აირჩიე შენთვის საინტერესო სფერო</p>
-        </div>
-
-        {isLoading ? (
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-gray-200 rounded-xl h-32 animate-pulse" />
-            ))}
-          </div>
-        ) : categories?.length ? (
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {categories.slice(0, 8).map((category: any) => (
-              <Link
-                key={category.id}
-                href={`/courses?category=${category.slug}`}
-                className="group bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
-              >
-                <div className="w-14 h-14 mx-auto bg-primary-100 rounded-xl flex items-center justify-center text-primary-900 group-hover:bg-accent-700 group-hover:text-white transition-colors">
-                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <h3 className="mt-4 font-semibold text-gray-900">{category.name}</h3>
-                <p className="mt-1 text-sm text-gray-500">{category._count?.courses || 0} კურსი</p>
-              </Link>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </section>
-  );
-};
-
 // FAQ Section
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -430,38 +297,6 @@ const FAQSection = () => {
   );
 };
 
-// CTA Section
-const CTASection = () => {
-  return (
-    <section className="py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-primary-900 rounded-3xl p-8 sm:p-12 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white">
-            მზად ხარ სწავლის დასაწყებად?
-          </h2>
-          <p className="mt-4 text-lg text-primary-100 max-w-2xl mx-auto">
-            შეუერთდი ათასობით სტუდენტს, რომლებმაც უკვე შეცვალეს თავიანთი კარიერა ჩვენი კურსების დახმარებით.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              href="/auth/register"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-primary-900 bg-white rounded-xl hover:bg-primary-50 transition-all"
-            >
-              დაიწყე უფასოდ
-            </Link>
-            <Link
-              href="/courses"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-medium text-white border-2 border-white rounded-xl hover:bg-white/10 transition-all"
-            >
-              კურსების ნახვა
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
 // Slider Skeleton for loading state
 const SliderSkeleton = () => (
   <section className="w-full py-6">
@@ -489,12 +324,9 @@ export default function HomePage() {
       ) : (
         <HeroSection />
       )}
-      <FeaturesSection />
       <PopularCoursesSection />
-      <CategoriesSection />
       <InstructorsSection />
       <FAQSection />
-      <CTASection />
     </>
   );
 }
