@@ -361,6 +361,145 @@ export class AuthController {
   }
 
   /**
+   * Resend verification email
+   * POST /api/auth/resend-verification
+   */
+  static async resendVerification(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.userId!;
+
+      // Get user
+      const user = await db.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Check if already verified
+      if (user.emailVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already verified',
+        });
+      }
+
+      // Generate new verification token
+      const verificationToken = TokenService.generateVerificationToken();
+
+      // Update user with new token
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          verificationToken,
+        },
+      });
+
+      // Send verification email
+      try {
+        await EmailService.sendVerificationEmail(
+          user.email,
+          user.name,
+          verificationToken
+        );
+      } catch (error) {
+        console.error('Failed to send verification email:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send verification email',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Verification email sent successfully',
+      });
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to resend verification email',
+      });
+    }
+  }
+
+  /**
+   * Resend verification email by email address (for registration flow)
+   * POST /api/auth/resend-verification-email
+   */
+  static async resendVerificationByEmail(req: AuthRequest, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is required',
+        });
+      }
+
+      // Find user by email
+      const user = await db.user.findUnique({
+        where: { email },
+      });
+
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return res.status(200).json({
+          success: true,
+          message: 'If an account exists with this email, a verification link has been sent.',
+        });
+      }
+
+      // Check if already verified
+      if (user.emailVerified) {
+        return res.status(200).json({
+          success: true,
+          message: 'If an account exists with this email, a verification link has been sent.',
+        });
+      }
+
+      // Generate new verification token
+      const verificationToken = TokenService.generateVerificationToken();
+
+      // Update user with new token
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          verificationToken,
+        },
+      });
+
+      // Send verification email
+      try {
+        await EmailService.sendVerificationEmail(
+          user.email,
+          user.name,
+          verificationToken
+        );
+      } catch (error) {
+        console.error('Failed to send verification email:', error);
+        // Don't reveal that email failed
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'If an account exists with this email, a verification link has been sent.',
+      });
+    } catch (error) {
+      console.error('Resend verification by email error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process request',
+      });
+    }
+  }
+
+  /**
    * Request password reset
    * POST /api/auth/forgot-password
    */

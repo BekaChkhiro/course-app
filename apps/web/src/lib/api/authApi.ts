@@ -170,6 +170,18 @@ export const authApi = {
     return response.data;
   },
 
+  // Resend verification email (requires auth)
+  resendVerification: async () => {
+    const response = await apiClient.post('/auth/resend-verification');
+    return response.data;
+  },
+
+  // Resend verification email by email (public, for registration flow)
+  resendVerificationByEmail: async (email: string) => {
+    const response = await apiClient.post('/auth/resend-verification-email', { email });
+    return response.data;
+  },
+
   // Request password reset
   forgotPassword: async (email: string) => {
     const response = await apiClient.post('/auth/forgot-password', { email });

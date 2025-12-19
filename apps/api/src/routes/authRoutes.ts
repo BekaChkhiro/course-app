@@ -53,6 +53,21 @@ router.post(
   AuthController.verifyEmail
 );
 
+// POST /api/auth/resend-verification - Resend verification email (requires auth)
+router.post(
+  '/resend-verification',
+  requireAuth,
+  emailVerificationLimiter,
+  AuthController.resendVerification
+);
+
+// POST /api/auth/resend-verification-email - Resend verification email by email (public, for registration flow)
+router.post(
+  '/resend-verification-email',
+  emailVerificationLimiter,
+  AuthController.resendVerificationByEmail
+);
+
 // POST /api/auth/forgot-password - Request password reset
 router.post(
   '/forgot-password',
