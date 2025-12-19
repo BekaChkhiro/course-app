@@ -16,7 +16,7 @@ export const Footer = () => {
       { name: 'კარიერა', href: '/careers' },
     ],
     legal: [
-      { name: 'კონფიდენციალურობა', href: '/privacy' },
+      { name: 'კონფიდენციალურობა', href: '/privacy-policy' },
       { name: 'წესები და პირობები', href: '/terms' },
     ],
     social: [
