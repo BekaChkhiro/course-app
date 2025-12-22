@@ -19,7 +19,12 @@ import {
   Star,
   MessageSquare,
   Film,
-  Settings
+  Settings,
+  Users,
+  FileText,
+  UsersRound,
+  Globe,
+  Cog
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -30,21 +35,56 @@ interface NavItem {
   name: string;
   href: string;
   icon: any;
-  children?: { name: string; href: string; icon: any }[];
 }
 
-const navigation: NavItem[] = [
+interface NavCategory {
+  name: string;
+  icon: any;
+  items: NavItem[];
+}
+
+// Standalone items (no category)
+const standaloneItems: NavItem[] = [
   { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
-  { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
-  { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
-  { name: 'მედია', href: '/admin/media', icon: Film },
-  { name: 'ლექტორები', href: '/admin/instructors', icon: UserCircle },
-  { name: 'შეფასებები', href: '/admin/reviews', icon: Star },
-  { name: 'შეტყობინებები', href: '/admin/messages', icon: MessageSquare },
-  { name: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
-  { name: 'სლაიდერი', href: '/admin/sliders', icon: Images },
-  { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 },
-  { name: 'პარამეტრები', href: '/admin/settings', icon: Settings }
+];
+
+// Categorized navigation
+const navigationCategories: NavCategory[] = [
+  {
+    name: 'კონტენტი',
+    icon: FileText,
+    items: [
+      { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
+      { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
+      { name: 'მედია', href: '/admin/media', icon: Film },
+      { name: 'ლექტორები', href: '/admin/instructors', icon: UserCircle },
+    ],
+  },
+  {
+    name: 'მომხმარებლები',
+    icon: UsersRound,
+    items: [
+      { name: 'სტუდენტები', href: '/admin/students', icon: Users },
+      { name: 'შეფასებები', href: '/admin/reviews', icon: Star },
+      { name: 'შეტყობინებები', href: '/admin/messages', icon: MessageSquare },
+    ],
+  },
+  {
+    name: 'საიტი',
+    icon: Globe,
+    items: [
+      { name: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
+      { name: 'სლაიდერი', href: '/admin/sliders', icon: Images },
+    ],
+  },
+  {
+    name: 'სისტემა',
+    icon: Cog,
+    items: [
+      { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 },
+      { name: 'პარამეტრები', href: '/admin/settings', icon: Settings },
+    ],
+  },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -52,16 +92,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isChecking, setIsChecking] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const pathname = usePathname();
+  const router = useRouter();
 
+  // Auto-expand category containing active item
+  useEffect(() => {
+    const activeCategory = navigationCategories.find((category) =>
+      category.items.some(
+        (item) => pathname === item.href || pathname?.startsWith(item.href + '/')
+      )
+    );
+    if (activeCategory && !expandedMenus.includes(activeCategory.name)) {
+      setExpandedMenus((prev) => [...prev, activeCategory.name]);
+    }
+  }, [pathname]);
 
   const toggleMenu = (name: string) => {
-    setExpandedMenus(prev =>
-      prev.includes(name)
-        ? prev.filter(n => n !== name)
-        : [...prev, name]
+    setExpandedMenus((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
     );
   };
-  const router = useRouter();
   const { user, isAuthenticated, fetchProfile, logout } = useAuthStore();
 
   // Check authentication on mount
@@ -152,67 +201,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
-            // Fix active state: Dashboard only active on exact match, others on prefix match
+          {/* Standalone items (Dashboard) */}
+          {standaloneItems.map((item) => {
             const isActive = item.href === '/admin'
               ? pathname === '/admin'
               : pathname === item.href || pathname?.startsWith(item.href + '/');
             const Icon = item.icon;
-            const hasChildren = item.children && item.children.length > 0;
-            const isExpanded = expandedMenus.includes(item.name);
-
-            if (hasChildren) {
-              return (
-                <div key={item.name}>
-                  <button
-                    onClick={() => toggleMenu(item.name)}
-                    className={cn(
-                      'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-primary-50 text-primary-900'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5" />
-                      {item.name}
-                    </div>
-                    <ChevronDown
-                      className={cn(
-                        'w-4 h-4 transition-transform',
-                        isExpanded ? 'rotate-180' : ''
-                      )}
-                    />
-                  </button>
-                  {isExpanded && (
-                    <div className="ml-4 mt-1 space-y-1 border-l border-gray-200 pl-3">
-                      {item.children!.map((child) => {
-                        const childIsActive = child.href === '/admin/analytics'
-                          ? pathname === '/admin/analytics'
-                          : pathname === child.href;
-                        const ChildIcon = child.icon;
-                        return (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            onClick={() => setSidebarOpen(false)}
-                            className={cn(
-                              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
-                              childIsActive
-                                ? 'bg-primary-50 text-primary-900 font-medium'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            )}
-                          >
-                            <ChildIcon className="w-4 h-4" />
-                            {child.name}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            }
 
             return (
               <Link
@@ -229,6 +223,71 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Icon className="w-5 h-5" />
                 {item.name}
               </Link>
+            );
+          })}
+
+          {/* Categorized navigation */}
+          {navigationCategories.map((category) => {
+            const CategoryIcon = category.icon;
+            const isExpanded = expandedMenus.includes(category.name);
+            // Check if any item in category is active
+            const hasActiveItem = category.items.some(
+              (item) => pathname === item.href || pathname?.startsWith(item.href + '/')
+            );
+
+            return (
+              <div key={category.name} className="pt-2">
+                <button
+                  onClick={() => toggleMenu(category.name)}
+                  className={cn(
+                    'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    hasActiveItem
+                      ? 'bg-primary-50 text-primary-900'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <CategoryIcon className="w-5 h-5" />
+                    {category.name}
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      'w-4 h-4 transition-transform duration-200',
+                      isExpanded ? 'rotate-180' : ''
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    'overflow-hidden transition-all duration-200',
+                    isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  )}
+                >
+                  <div className="ml-4 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
+                    {category.items.map((item) => {
+                      const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                      const Icon = item.icon;
+
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
+                            isActive
+                              ? 'bg-primary-100 text-primary-900 font-medium'
+                              : 'text-gray-600 hover:bg-gray-100'
+                          )}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {item.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </nav>

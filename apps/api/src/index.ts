@@ -29,6 +29,7 @@ import faqRoutes from './routes/faqRoutes'
 import sliderRoutes from './routes/sliderRoutes'
 import instructorRoutes from './routes/instructorRoutes'
 import mediaRoutes from './routes/media.routes'
+import adminStudentsRoutes from './routes/adminStudents.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -126,6 +127,9 @@ app.use('/api', messagingRoutes)
 
 // Comprehensive Analytics routes (admin only)
 app.use('/api/admin/analytics', comprehensiveAnalyticsRoutes)
+
+// Admin Students Management routes
+app.use('/api/admin/students', adminStudentsRoutes)
 
 // Public routes (no authentication required)
 app.use('/api/public', publicRoutes)

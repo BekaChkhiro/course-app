@@ -1270,4 +1270,110 @@ Kursebi.online გუნდი
       },
     });
   }
+
+  /**
+   * Send admin email to student
+   */
+  static async sendAdminEmailToStudent(
+    email: string,
+    name: string,
+    subject: string,
+    content: string,
+    userId: string
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .content { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>${subject}</h2>
+            </div>
+            <p>გამარჯობა ${name},</p>
+            <div class="content">
+              ${content.replace(/\n/g, '<br>')}
+            </div>
+            <div class="footer">
+              <p>ეს შეტყობინება გამოგზავნილია Kursebi.online ადმინისტრაციის მიერ.</p>
+              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `${subject} - Kursebi.online`,
+      html,
+      templateType: 'admin_email',
+      userId,
+      metadata: { subject },
+    });
+  }
+
+  /**
+   * Send refund notification to student
+   */
+  static async sendRefundNotification(
+    email: string,
+    name: string,
+    courseTitle: string,
+    amount: number,
+    userId: string
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .refund-box { background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981; }
+            .refund-amount { font-size: 24px; font-weight: bold; color: #059669; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>💰 თანხა დაბრუნებულია</h2>
+            </div>
+            <p>გამარჯობა ${name},</p>
+            <div class="refund-box">
+              <p>კურსის <strong>"${courseTitle}"</strong> შეძენის თანხა დაბრუნდა.</p>
+              <p class="refund-amount">${amount.toFixed(2)} ₾</p>
+            </div>
+            <p>თანხა თქვენს ანგარიშზე დაბრუნდება 5-10 სამუშაო დღის განმავლობაში, ბანკის მიხედვით.</p>
+            <p>თუ გაქვთ კითხვები, მოგვწერეთ: <a href="mailto:info@kursebi.online">info@kursebi.online</a></p>
+            <div class="footer">
+              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
+              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `თანხა დაბრუნებულია - ${courseTitle}`,
+      html,
+      templateType: 'refund_notification',
+      userId,
+      metadata: { courseTitle, amount },
+    });
+  }
 }

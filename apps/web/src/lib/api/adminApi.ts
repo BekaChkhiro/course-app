@@ -433,4 +433,39 @@ export const instructorApi = {
   toggle: (id: string) => adminApi.patch(`/instructors/${id}/toggle`)
 };
 
+// Students APIs (Admin)
+export const studentsApi = {
+  getAll: (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: 'active' | 'blocked' | 'deleted' | 'all';
+    sortBy?: 'newest' | 'oldest' | 'name' | 'email';
+  }) => adminApi.get('/admin/students', { params }),
+
+  getById: (studentId: string) => adminApi.get(`/admin/students/${studentId}`),
+
+  toggleActive: (studentId: string, reason?: string) =>
+    adminApi.post(`/admin/students/${studentId}/toggle-active`, { reason }),
+
+  delete: (studentId: string) => adminApi.delete(`/admin/students/${studentId}`),
+
+  restore: (studentId: string) =>
+    adminApi.post(`/admin/students/${studentId}/restore`),
+
+  sendEmail: (studentId: string, subject: string, content: string) =>
+    adminApi.post(`/admin/students/${studentId}/send-email`, { subject, content }),
+
+  refundPurchase: (studentId: string, purchaseId: string, reason?: string) =>
+    adminApi.post(`/admin/students/${studentId}/purchases/${purchaseId}/refund`, { reason }),
+
+  revokeDevice: (studentId: string, sessionId: string) =>
+    adminApi.delete(`/admin/students/${studentId}/devices/${sessionId}`),
+
+  resendVerification: (studentId: string) =>
+    adminApi.post(`/admin/students/${studentId}/resend-verification`),
+
+  getAnalytics: () => adminApi.get('/admin/students/analytics/overview'),
+};
+
 export default adminApi;

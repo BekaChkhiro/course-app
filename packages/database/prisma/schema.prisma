@@ -89,6 +89,7 @@ model User {
   avatar                String?
   bio                   String?
   isActive              Boolean   @default(true)
+  deletedAt             DateTime? // Soft delete timestamp
   emailVerified         Boolean   @default(false)
   verificationToken     String?   @unique
   resetPasswordToken    String?   @unique
@@ -123,6 +124,7 @@ model User {
   @@index([phone])
   @@index([verificationToken])
   @@index([resetPasswordToken])
+  @@index([deletedAt])
   @@map("users")
 }
 
