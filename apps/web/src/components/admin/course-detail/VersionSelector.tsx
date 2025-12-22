@@ -28,8 +28,8 @@ export default function VersionSelector({
 
   if (versions.length === 0) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <p className="text-yellow-800 text-sm">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+        <p className="text-yellow-800 text-xs sm:text-sm">
           ვერსიები არ არის. გადადით &quot;ვერსიები&quot; ტაბზე პირველი ვერსიის შესაქმნელად.
         </p>
       </div>
@@ -37,16 +37,16 @@ export default function VersionSelector({
   }
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border">
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
         <span className="font-medium">ვერსია:</span>
       </div>
 
-      <div className="relative flex-1 max-w-xs">
+      <div className="relative flex-1 sm:max-w-xs">
         <select
           value={selectedVersionId}
           onChange={(e) => onVersionChange(e.target.value)}
-          className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:ring-2 focus:ring-accent-600 focus:border-accent-600 cursor-pointer"
+          className="w-full appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-10 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 cursor-pointer"
         >
           {versions.map((version) => (
             <option key={version.id} value={version.id}>
@@ -65,7 +65,7 @@ export default function VersionSelector({
           {/* Status badge */}
           <span
             className={`
-              inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full
+              inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-medium rounded-full
               ${selectedVersion.status === 'PUBLISHED'
                 ? 'bg-green-100 text-green-700'
                 : 'bg-yellow-100 text-yellow-700'
@@ -75,21 +75,21 @@ export default function VersionSelector({
             {selectedVersion.status === 'PUBLISHED' ? (
               <>
                 <Globe className="w-3 h-3" />
-                Published
+                <span className="hidden xs:inline">Published</span>
               </>
             ) : (
               <>
                 <FileEdit className="w-3 h-3" />
-                Draft
+                <span className="hidden xs:inline">Draft</span>
               </>
             )}
           </span>
 
           {/* Active badge */}
           {selectedVersion.isActive && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-accent-100 text-accent-600">
+            <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-medium rounded-full bg-accent-100 text-accent-600">
               <Star className="w-3 h-3" />
-              აქტიური
+              <span className="hidden xs:inline">აქტიური</span>
             </span>
           )}
         </div>

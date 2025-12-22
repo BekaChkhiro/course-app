@@ -17,7 +17,9 @@ import {
   Images,
   UserCircle,
   Star,
-  MessageSquare
+  MessageSquare,
+  Film,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -35,12 +37,14 @@ const navigation: NavItem[] = [
   { name: 'მთავარი', href: '/admin', icon: LayoutDashboard },
   { name: 'კურსები', href: '/admin/courses', icon: BookOpen },
   { name: 'კატეგორიები', href: '/admin/categories', icon: FolderTree },
+  { name: 'მედია', href: '/admin/media', icon: Film },
   { name: 'ლექტორები', href: '/admin/instructors', icon: UserCircle },
   { name: 'შეფასებები', href: '/admin/reviews', icon: Star },
   { name: 'შეტყობინებები', href: '/admin/messages', icon: MessageSquare },
   { name: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
   { name: 'სლაიდერი', href: '/admin/sliders', icon: Images },
-  { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 }
+  { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 },
+  { name: 'პარამეტრები', href: '/admin/settings', icon: Settings }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

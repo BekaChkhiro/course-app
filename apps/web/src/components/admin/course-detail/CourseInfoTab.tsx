@@ -24,18 +24,18 @@ interface SectionProps {
 function Section({ icon, title, description, children }: SectionProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-accent-100 rounded-lg text-accent-600">
+      <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="p-1.5 sm:p-2 bg-accent-100 rounded-lg text-accent-600 flex-shrink-0">
             {icon}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-500">{description}</p>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{title}</h3>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">{description}</p>
           </div>
         </div>
       </div>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {children}
       </div>
     </div>
@@ -208,14 +208,14 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               სტატუსი <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 sm:gap-2">
               {statusOptions.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, status: option.value })}
                   className={`
-                    flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+                    flex-1 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all
                     ${formData.status === option.value
                       ? `${option.color} ring-2 ring-offset-1 ring-accent-600`
                       : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -346,18 +346,18 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
       </Section>
 
       {/* Sticky Submit Button */}
-      <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent pt-6 pb-2 -mx-6 px-6 -mb-6">
-        <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <p className="text-sm text-gray-500">
+      <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent pt-4 sm:pt-6 pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6 -mb-4 sm:-mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
             ცვლილებები შეინახება ყველა ველისთვის ერთდროულად
           </p>
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 transition-colors font-medium shadow-sm"
+            className="inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 transition-colors font-medium shadow-sm text-sm sm:text-base w-full sm:w-auto"
           >
             <Save className="w-4 h-4" />
-            {updateMutation.isPending ? 'შენახვა...' : 'ცვლილებების შენახვა'}
+            {updateMutation.isPending ? 'შენახვა...' : 'შენახვა'}
           </button>
         </div>
       </div>

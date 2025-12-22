@@ -82,105 +82,202 @@ function SortableInstructorItem({
       style={style}
       className={`${isDragging ? 'opacity-50' : ''}`}
     >
-      <div className={`flex items-center gap-4 p-4 bg-white border rounded-lg mb-3 hover:shadow-sm transition-shadow ${!instructor.isActive ? 'opacity-60' : ''}`}>
-        {/* Drag Handle */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
-        >
-          <GripVertical className="w-5 h-5 text-gray-400" />
-        </button>
+      <div className={`p-3 sm:p-4 bg-white border rounded-lg mb-2 sm:mb-3 hover:shadow-sm transition-shadow ${!instructor.isActive ? 'opacity-60' : ''}`}>
+        {/* Mobile Layout */}
+        <div className="flex items-start gap-3 sm:hidden">
+          {/* Drag Handle */}
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing flex-shrink-0 mt-1"
+          >
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </button>
 
-        {/* Avatar */}
-        <div className="relative w-16 h-16 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
-          {instructor.avatar ? (
-            <Image
-              src={instructor.avatar}
-              alt={`${instructor.firstName} ${instructor.lastName}`}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-primary-100">
-              <User className="w-8 h-8 text-primary-600" />
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base font-semibold text-gray-900">
-              {instructor.firstName} {instructor.lastName}
-            </span>
-            <span className="text-xs text-gray-400">({instructor.slug})</span>
+          {/* Avatar */}
+          <div className="relative w-12 h-12 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
+            {instructor.avatar ? (
+              <Image
+                src={instructor.avatar}
+                alt={`${instructor.firstName} ${instructor.lastName}`}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-primary-100">
+                <User className="w-6 h-6 text-primary-600" />
+              </div>
+            )}
           </div>
-          <p className="text-sm text-primary-600 font-medium">{instructor.profession}</p>
-          {instructor.bio && (
-            <p className="text-sm text-gray-500 line-clamp-1 mt-1">{instructor.bio}</p>
-          )}
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-sm font-semibold text-gray-900 truncate">
+                {instructor.firstName} {instructor.lastName}
+              </span>
+              <span className={`px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0 ${
+                instructor.isActive
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                {instructor.isActive ? 'აქტ.' : 'არა'}
+              </span>
+            </div>
+            <p className="text-xs text-primary-600 font-medium truncate">{instructor.profession}</p>
+
+            {/* Meta row */}
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-primary-50 rounded text-xs">
+                <BookOpen className="w-3 h-3 text-primary-600" />
+                <span className="font-medium text-primary-700">{instructor._count.courses}</span>
+              </div>
+
+              {/* Social Icons */}
+              <div className="flex items-center gap-1">
+                {instructor.email && (
+                  <span className="p-1 bg-gray-100 rounded text-gray-600">
+                    <Mail className="w-3 h-3" />
+                  </span>
+                )}
+                {instructor.facebook && (
+                  <span className="p-1 bg-blue-50 rounded text-blue-600">
+                    <Facebook className="w-3 h-3" />
+                  </span>
+                )}
+                {instructor.linkedin && (
+                  <span className="p-1 bg-blue-100 rounded text-blue-700">
+                    <Linkedin className="w-3 h-3" />
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-1 flex-shrink-0">
+            <button
+              onClick={() => onToggle(instructor)}
+              className={`p-1.5 hover:bg-gray-100 rounded ${instructor.isActive ? 'text-green-600' : 'text-gray-400'}`}
+            >
+              {instructor.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onEdit(instructor)}
+              className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(instructor)}
+              className="p-1.5 hover:bg-red-50 rounded text-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Social Links */}
-        <div className="flex items-center gap-2">
-          {instructor.email && (
-            <span className="p-1.5 bg-gray-100 rounded text-gray-600" title={instructor.email}>
-              <Mail className="w-4 h-4" />
-            </span>
-          )}
-          {instructor.facebook && (
-            <span className="p-1.5 bg-blue-50 rounded text-blue-600" title="Facebook">
-              <Facebook className="w-4 h-4" />
-            </span>
-          )}
-          {instructor.linkedin && (
-            <span className="p-1.5 bg-blue-100 rounded text-blue-700" title="LinkedIn">
-              <Linkedin className="w-4 h-4" />
-            </span>
-          )}
-        </div>
-
-        {/* Course Count */}
-        <div className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 rounded-lg">
-          <BookOpen className="w-4 h-4 text-primary-600" />
-          <span className="text-sm font-medium text-primary-700">{instructor._count.courses}</span>
-        </div>
-
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            instructor.isActive
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600'
-          }`}>
-            {instructor.isActive ? 'აქტიური' : 'არააქტიური'}
-          </span>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-1">
+        {/* Desktop Layout */}
+        <div className="hidden sm:flex items-center gap-4">
+          {/* Drag Handle */}
           <button
-            onClick={() => onToggle(instructor)}
-            className={`p-2 hover:bg-gray-100 rounded ${instructor.isActive ? 'text-green-600' : 'text-gray-400'}`}
-            title={instructor.isActive ? 'გამორთვა' : 'ჩართვა'}
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
           >
-            {instructor.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            <GripVertical className="w-5 h-5 text-gray-400" />
           </button>
-          <button
-            onClick={() => onEdit(instructor)}
-            className="p-2 hover:bg-gray-100 rounded text-gray-600"
-            title="რედაქტირება"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDelete(instructor)}
-            className="p-2 hover:bg-red-50 rounded text-red-600"
-            title="წაშლა"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+
+          {/* Avatar */}
+          <div className="relative w-16 h-16 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
+            {instructor.avatar ? (
+              <Image
+                src={instructor.avatar}
+                alt={`${instructor.firstName} ${instructor.lastName}`}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-primary-100">
+                <User className="w-8 h-8 text-primary-600" />
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base font-semibold text-gray-900">
+                {instructor.firstName} {instructor.lastName}
+              </span>
+              <span className="text-xs text-gray-400">({instructor.slug})</span>
+            </div>
+            <p className="text-sm text-primary-600 font-medium">{instructor.profession}</p>
+            {instructor.bio && (
+              <p className="text-sm text-gray-500 line-clamp-1 mt-1">{instructor.bio}</p>
+            )}
+          </div>
+
+          {/* Social Links */}
+          <div className="flex items-center gap-2">
+            {instructor.email && (
+              <span className="p-1.5 bg-gray-100 rounded text-gray-600" title={instructor.email}>
+                <Mail className="w-4 h-4" />
+              </span>
+            )}
+            {instructor.facebook && (
+              <span className="p-1.5 bg-blue-50 rounded text-blue-600" title="Facebook">
+                <Facebook className="w-4 h-4" />
+              </span>
+            )}
+            {instructor.linkedin && (
+              <span className="p-1.5 bg-blue-100 rounded text-blue-700" title="LinkedIn">
+                <Linkedin className="w-4 h-4" />
+              </span>
+            )}
+          </div>
+
+          {/* Course Count */}
+          <div className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 rounded-lg">
+            <BookOpen className="w-4 h-4 text-primary-600" />
+            <span className="text-sm font-medium text-primary-700">{instructor._count.courses}</span>
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded text-xs font-medium ${
+              instructor.isActive
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              {instructor.isActive ? 'აქტიური' : 'არააქტიური'}
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onToggle(instructor)}
+              className={`p-2 hover:bg-gray-100 rounded ${instructor.isActive ? 'text-green-600' : 'text-gray-400'}`}
+              title={instructor.isActive ? 'გამორთვა' : 'ჩართვა'}
+            >
+              {instructor.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onEdit(instructor)}
+              className="p-2 hover:bg-gray-100 rounded text-gray-600"
+              title="რედაქტირება"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(instructor)}
+              className="p-2 hover:bg-red-50 rounded text-red-600"
+              title="წაშლა"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -315,19 +412,19 @@ export default function InstructorsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">ლექტორები</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">ლექტორები</h1>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
               მართეთ კურსების ლექტორები და მათი ინფორმაცია
             </p>
           </div>
 
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 text-sm w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             ახალი ლექტორი
@@ -335,36 +432,36 @@ export default function InstructorsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-gray-900">{totalInstructors}</div>
-            <div className="text-sm text-gray-500">სულ ლექტორი</div>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-gray-900">{totalInstructors}</div>
+            <div className="text-xs sm:text-sm text-gray-500">სულ</div>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-green-600">{activeInstructors}</div>
-            <div className="text-sm text-gray-500">აქტიური</div>
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{activeInstructors}</div>
+            <div className="text-xs sm:text-sm text-gray-500">აქტიური</div>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-primary-600">{totalCourses}</div>
-            <div className="text-sm text-gray-500">მიბმული კურსი</div>
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-primary-600">{totalCourses}</div>
+            <div className="text-xs sm:text-sm text-gray-500">კურსი</div>
           </div>
         </div>
 
         {/* Info */}
-        <div className="bg-accent-50 border border-accent-200 rounded-lg p-4 text-sm text-accent-700">
+        <div className="bg-accent-50 border border-accent-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-accent-700">
           <strong>მინიშნება:</strong> გადაათრიეთ ლექტორები თანმიმდევრობის შესაცვლელად.
-          მხოლოდ აქტიური ლექტორები გამოჩნდება საიტზე.
+          <span className="hidden sm:inline"> მხოლოდ აქტიური ლექტორები გამოჩნდება საიტზე.</span>
         </div>
 
         {/* Instructor List */}
-        <div className="bg-gray-50 rounded-xl p-4">
+        <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
           {sortedInstructors.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <User className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>ლექტორები არ მოიძებნა</p>
+            <div className="text-center py-8 sm:py-12 text-gray-500">
+              <User className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
+              <p className="text-sm">ლექტორები არ მოიძებნა</p>
               <button
                 onClick={handleCreate}
-                className="mt-4 text-accent-600 hover:text-accent-700 font-medium"
+                className="mt-3 sm:mt-4 text-accent-600 hover:text-accent-700 font-medium text-sm"
               >
                 დაამატეთ პირველი ლექტორი
               </button>
@@ -557,7 +654,7 @@ function InstructorModal({
       title={instructor ? 'ლექტორის რედაქტირება' : 'ახალი ლექტორი'}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         {/* Avatar Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -572,12 +669,12 @@ function InstructorModal({
             preview={true}
           />
           <p className="mt-1 text-xs text-gray-500">
-            რეკომენდებული ზომა: 400x400 პიქსელი. მაქს. 5MB.
+            <span className="hidden sm:inline">რეკომენდებული ზომა: 400x400 პიქსელი. </span>მაქს. 5MB.
           </p>
         </div>
 
         {/* Name Fields */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               სახელი <span className="text-red-500">*</span>
@@ -586,7 +683,7 @@ function InstructorModal({
               type="text"
               value={formData.firstName}
               onChange={(e) => handleNameChange('firstName', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
               required
             />
           </div>
@@ -598,7 +695,7 @@ function InstructorModal({
               type="text"
               value={formData.lastName}
               onChange={(e) => handleNameChange('lastName', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
               required
             />
           </div>
@@ -613,12 +710,12 @@ function InstructorModal({
             type="text"
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
             placeholder="giorgi-beridze"
             required
           />
           <p className="mt-1 text-xs text-gray-500">
-            გამოიყენება URL-ში: /instructors/{formData.slug || 'slug'}
+            <span className="hidden sm:inline">გამოიყენება URL-ში: </span>/instructors/{formData.slug || 'slug'}
           </p>
         </div>
 
@@ -631,8 +728,8 @@ function InstructorModal({
             type="text"
             value={formData.profession}
             onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
-            placeholder="მაგ: სენიორ დეველოპერი, UI/UX დიზაინერი"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
+            placeholder="მაგ: სენიორ დეველოპერი"
             required
           />
         </div>
@@ -645,16 +742,16 @@ function InstructorModal({
           <textarea
             value={formData.bio}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
             placeholder="მოკლე ინფორმაცია ლექტორის შესახებ..."
           />
         </div>
 
         {/* Contact & Social Links */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <label className="block text-sm font-medium text-gray-700">
-            კონტაქტი და სოციალური ბმულები
+            კონტაქტი <span className="hidden sm:inline">და სოციალური ბმულები</span>
           </label>
 
           <div className="relative">
@@ -663,7 +760,7 @@ function InstructorModal({
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
               placeholder="email@example.com"
             />
           </div>
@@ -674,7 +771,7 @@ function InstructorModal({
               type="url"
               value={formData.facebook}
               onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
               placeholder="https://facebook.com/username"
             />
           </div>
@@ -685,7 +782,7 @@ function InstructorModal({
               type="url"
               value={formData.linkedin}
               onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
               placeholder="https://linkedin.com/in/username"
             />
           </div>
@@ -701,7 +798,7 @@ function InstructorModal({
             className="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-600"
           />
           <label htmlFor="isActive" className="text-sm text-gray-700">
-            აქტიური (გამოჩნდება საიტზე)
+            აქტიური <span className="hidden sm:inline">(გამოჩნდება საიტზე)</span>
           </label>
         </div>
 
@@ -709,14 +806,14 @@ function InstructorModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm w-full sm:w-auto"
           >
             გაუქმება
           </button>
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm w-full sm:w-auto"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'ინახება...'

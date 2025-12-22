@@ -41,35 +41,33 @@ export default function VersionDetailPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/admin/courses/${courseId}`}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Version {version.version}: {version.title}
-                </h1>
-                {version.isActive && (
-                  <Badge variant="success">აქტიური</Badge>
-                )}
-              </div>
-              <p className="mt-1 text-sm text-gray-500">
-                {version.course.title}
-              </p>
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+          <Link
+            href={`/admin/courses/${courseId}`}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 mt-0.5 sm:mt-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">
+                v{version.version}: {version.title}
+              </h1>
+              {version.isActive && (
+                <Badge variant="success">აქტიური</Badge>
+              )}
             </div>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 truncate">
+              {version.course.title}
+            </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200">
-          <nav className="flex gap-8">
+        <div className="border-b border-gray-200 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <nav className="flex gap-1 sm:gap-6 overflow-x-auto scrollbar-hide pb-px">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -77,18 +75,22 @@ export default function VersionDetailPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    relative py-4 px-1 font-medium text-sm transition-colors
+                    relative py-3 sm:py-4 px-3 sm:px-1 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0
                     ${activeTab === tab.id
                       ? 'text-accent-600 border-b-2 border-accent-600'
                       : 'text-gray-500 hover:text-gray-700'
                     }
                   `}
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 sm:gap-2">
                     <Icon className="w-4 h-4" />
-                    {tab.label}
+                    <span className="hidden xs:inline">{tab.label}</span>
+                    <span className="xs:hidden">
+                      {tab.id === 'info' ? 'ინფო' :
+                       tab.id === 'chapters' ? 'თავები' : 'გამოცდა'}
+                    </span>
                     {tab.count !== undefined && (
-                      <span className="px-2 py-0.5 text-xs bg-gray-100 rounded-full">
+                      <span className="px-1.5 sm:px-2 py-0.5 text-xs bg-gray-100 rounded-full">
                         {tab.count}
                       </span>
                     )}
@@ -100,7 +102,7 @@ export default function VersionDetailPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-white rounded-lg border p-4 sm:p-6">
           {activeTab === 'info' && (
             <VersionInfoTab version={version} courseId={courseId} />
           )}

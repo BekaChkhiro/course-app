@@ -110,6 +110,63 @@ export const validateDeviceNaming = [
     .withMessage('Device name must be between 1 and 50 characters'),
 ];
 
+export const validateProfileUpdate = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2 and 50 characters'),
+
+  body('surname')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Surname must be between 2 and 50 characters'),
+
+  body('phone')
+    .optional()
+    .trim()
+    .custom((value) => {
+      if (value === '' || value === null) return true;
+      return GEORGIAN_PHONE_REGEX.test(value);
+    })
+    .withMessage('Invalid Georgian phone number format'),
+
+  body('bio')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Bio must be at most 500 characters'),
+
+  body('avatar')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Avatar URL must be at most 500 characters'),
+];
+
+export const validateChangePassword = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+
+  body('newPassword')
+    .notEmpty()
+    .withMessage('New password is required')
+    .isLength({ min: PASSWORD_MIN_LENGTH })
+    .withMessage(`Password must be at least ${PASSWORD_MIN_LENGTH} characters long`)
+    .matches(PASSWORD_REGEX)
+    .withMessage(
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+    ),
+
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('Password confirmation is required')
+    .custom((value, { req }) => value === req.body.newPassword)
+    .withMessage('Passwords do not match'),
+];
+
 // Middleware to handle validation errors
 export const handleValidationErrors = (
   req: Request,

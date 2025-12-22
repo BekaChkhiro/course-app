@@ -152,16 +152,16 @@ export default function CourseChaptersTab({
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">თავები</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">თავები</h2>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm bg-accent-600 text-white rounded-lg hover:bg-accent-700"
           >
             <Plus className="w-4 h-4" />
-            ახალი თავი
+            <span className="hidden xs:inline">ახალი</span> თავი
           </button>
         </div>
 
@@ -169,11 +169,11 @@ export default function CourseChaptersTab({
         {isLoading ? (
           <div className="text-center py-8 text-gray-500">იტვირთება...</div>
         ) : chapters.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed rounded-lg">
-            <p className="text-gray-500 mb-4">თავები არ არის</p>
+          <div className="text-center py-8 sm:py-12 border-2 border-dashed rounded-lg">
+            <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4">თავები არ არის</p>
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="text-accent-600 hover:text-accent-600 font-medium"
+              className="text-accent-600 hover:text-accent-600 font-medium text-sm sm:text-base"
             >
               დაამატე პირველი თავი
             </button>
@@ -251,41 +251,41 @@ function SortableChapterItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-4 p-4 bg-white border rounded-lg transition-shadow ${isPublished ? 'opacity-75' : 'hover:shadow-md'}`}
+      className={`flex items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-white border rounded-lg transition-shadow ${isPublished ? 'opacity-75' : 'hover:shadow-md'}`}
     >
       {!isPublished && (
-        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-          <GripVertical className="w-5 h-5 text-gray-400" />
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing mt-1 sm:mt-0 flex-shrink-0">
+          <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
         </button>
       )}
 
-      <div className="flex-1 cursor-pointer" onClick={onEdit}>
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium text-gray-900">{chapter.title}</h3>
+      <div className="flex-1 min-w-0 cursor-pointer" onClick={onEdit}>
+        <div className="flex items-start sm:items-center gap-2 flex-wrap">
+          <h3 className="font-medium text-gray-900 text-sm sm:text-base">{chapter.title}</h3>
           {chapter.isFree && <Badge variant="success" size="sm">უფასო</Badge>}
         </div>
         {chapter.description && (
-          <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-1">{chapter.description}</p>
         )}
-        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs text-gray-500">
           {chapter.videoUrl && (
             <span className="flex items-center gap-1">
-              <Video className="w-3 h-3" /> ვიდეო
+              <Video className="w-3 h-3" /> <span className="hidden xs:inline">ვიდეო</span>
             </span>
           )}
           {chapter.theory && (
             <span className="flex items-center gap-1">
-              <FileText className="w-3 h-3" /> თეორია
+              <FileText className="w-3 h-3" /> <span className="hidden xs:inline">თეორია</span>
             </span>
           )}
           {chapter.assignmentFile && (
             <span className="flex items-center gap-1">
-              <File className="w-3 h-3" /> დავალება
+              <File className="w-3 h-3" /> <span className="hidden xs:inline">დავალება</span>
             </span>
           )}
           {chapter.hasQuiz && (
             <span className="flex items-center gap-1 text-accent-600">
-              <HelpCircle className="w-3 h-3" /> ქვიზი
+              <HelpCircle className="w-3 h-3" /> <span className="hidden xs:inline">ქვიზი</span>
             </span>
           )}
         </div>
@@ -297,7 +297,7 @@ function SortableChapterItem({
             e.stopPropagation();
             onDelete();
           }}
-          className="p-2 hover:bg-red-100 rounded text-red-600"
+          className="p-1.5 sm:p-2 hover:bg-red-100 rounded text-red-600 flex-shrink-0"
           title="წაშლა"
         >
           <Trash2 className="w-4 h-4" />

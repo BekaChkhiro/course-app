@@ -71,78 +71,147 @@ function SortableSliderItem({
       style={style}
       className={`${isDragging ? 'opacity-50' : ''}`}
     >
-      <div className={`flex items-center gap-4 p-4 bg-white border rounded-lg mb-3 hover:shadow-sm transition-shadow ${!slider.isActive ? 'opacity-60' : ''}`}>
-        {/* Drag Handle */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
-        >
-          <GripVertical className="w-5 h-5 text-gray-400" />
-        </button>
+      <div className={`p-3 sm:p-4 bg-white border rounded-lg mb-2 sm:mb-3 hover:shadow-sm transition-shadow ${!slider.isActive ? 'opacity-60' : ''}`}>
+        {/* Mobile Layout */}
+        <div className="flex items-start gap-2.5 sm:hidden">
+          {/* Drag Handle */}
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing flex-shrink-0 mt-1"
+          >
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </button>
 
-        {/* Image Preview */}
-        <div className="relative w-40 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-          <Image
-            src={slider.imageUrl}
-            alt="Slider image"
-            fill
-            className="object-cover"
-          />
-        </div>
+          {/* Image Preview */}
+          <div className="relative w-24 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+            <Image
+              src={slider.imageUrl}
+              alt="Slider image"
+              fill
+              className="object-cover"
+            />
+          </div>
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-medium text-gray-900">
-              სლაიდი #{slider.order + 1}
-            </span>
-            {slider.linkUrl && (
-              <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">
-                <LinkIcon className="w-3 h-3" />
-                ლინკი
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-xs font-medium text-gray-900">
+                #{slider.order + 1}
               </span>
+              <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                slider.isActive
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                {slider.isActive ? 'აქტ.' : 'არა'}
+              </span>
+            </div>
+            {slider.linkUrl && (
+              <div className="flex items-center gap-1 mt-1">
+                <LinkIcon className="w-3 h-3 text-blue-600" />
+                <span className="text-xs text-gray-500 truncate">{slider.linkUrl}</span>
+              </div>
             )}
           </div>
-          {slider.linkUrl && (
-            <p className="text-sm text-gray-500 truncate">{slider.linkUrl}</p>
-          )}
+
+          {/* Actions */}
+          <div className="flex flex-col gap-1 flex-shrink-0">
+            <button
+              onClick={() => onToggle(slider)}
+              className={`p-1.5 hover:bg-gray-100 rounded ${slider.isActive ? 'text-green-600' : 'text-gray-400'}`}
+            >
+              {slider.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onEdit(slider)}
+              className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(slider)}
+              className="p-1.5 hover:bg-red-50 rounded text-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            slider.isActive
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600'
-          }`}>
-            {slider.isActive ? 'აქტიური' : 'არააქტიური'}
-          </span>
-        </div>
+        {/* Desktop Layout */}
+        <div className="hidden sm:flex items-center gap-4">
+          {/* Drag Handle */}
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
+          >
+            <GripVertical className="w-5 h-5 text-gray-400" />
+          </button>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onToggle(slider)}
-            className={`p-2 hover:bg-gray-100 rounded ${slider.isActive ? 'text-green-600' : 'text-gray-400'}`}
-            title={slider.isActive ? 'გამორთვა' : 'ჩართვა'}
-          >
-            {slider.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={() => onEdit(slider)}
-            className="p-2 hover:bg-gray-100 rounded text-gray-600"
-            title="რედაქტირება"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDelete(slider)}
-            className="p-2 hover:bg-red-50 rounded text-red-600"
-            title="წაშლა"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {/* Image Preview */}
+          <div className="relative w-40 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+            <Image
+              src={slider.imageUrl}
+              alt="Slider image"
+              fill
+              className="object-cover"
+            />
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm font-medium text-gray-900">
+                სლაიდი #{slider.order + 1}
+              </span>
+              {slider.linkUrl && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs">
+                  <LinkIcon className="w-3 h-3" />
+                  ლინკი
+                </span>
+              )}
+            </div>
+            {slider.linkUrl && (
+              <p className="text-sm text-gray-500 truncate">{slider.linkUrl}</p>
+            )}
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded text-xs font-medium ${
+              slider.isActive
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              {slider.isActive ? 'აქტიური' : 'არააქტიური'}
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onToggle(slider)}
+              className={`p-2 hover:bg-gray-100 rounded ${slider.isActive ? 'text-green-600' : 'text-gray-400'}`}
+              title={slider.isActive ? 'გამორთვა' : 'ჩართვა'}
+            >
+              {slider.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onEdit(slider)}
+              className="p-2 hover:bg-gray-100 rounded text-gray-600"
+              title="რედაქტირება"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(slider)}
+              className="p-2 hover:bg-red-50 rounded text-red-600"
+              title="წაშლა"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -272,19 +341,19 @@ export default function SlidersPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">სლაიდერი</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              მართეთ მთავარი გვერდის სლაიდერის სურათები
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">სლაიდერი</h1>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
+              მართეთ <span className="hidden sm:inline">მთავარი გვერდის </span>სლაიდერის სურათები
             </p>
           </div>
 
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 text-sm w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             ახალი სლაიდი
@@ -292,33 +361,33 @@ export default function SlidersPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-gray-900">{totalSliders}</div>
-            <div className="text-sm text-gray-500">სულ სლაიდი</div>
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-gray-900">{totalSliders}</div>
+            <div className="text-xs sm:text-sm text-gray-500">სულ</div>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-green-600">{activeSliders}</div>
-            <div className="text-sm text-gray-500">აქტიური</div>
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{activeSliders}</div>
+            <div className="text-xs sm:text-sm text-gray-500">აქტიური</div>
           </div>
         </div>
 
         {/* Info */}
-        <div className="bg-accent-50 border border-accent-200 rounded-lg p-4 text-sm text-accent-700">
+        <div className="bg-accent-50 border border-accent-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-accent-700">
           <strong>მინიშნება:</strong> გადაათრიეთ სლაიდები თანმიმდევრობის შესაცვლელად.
-          მხოლოდ აქტიური სლაიდები გამოჩნდება მთავარ გვერდზე.
-          რეკომენდებული სურათის ზომა: <strong>1800x600</strong> პიქსელი.
+          <span className="hidden sm:inline"> მხოლოდ აქტიური სლაიდები გამოჩნდება მთავარ გვერდზე.</span>
+          <span className="hidden md:inline"> რეკომენდებული სურათის ზომა: <strong>1800x600</strong> პიქსელი.</span>
         </div>
 
         {/* Slider List */}
-        <div className="bg-gray-50 rounded-xl p-4">
+        <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
           {sortedSliders.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>სლაიდები არ მოიძებნა</p>
+            <div className="text-center py-8 sm:py-12 text-gray-500">
+              <ImageIcon className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
+              <p className="text-sm">სლაიდები არ მოიძებნა</p>
               <button
                 onClick={handleCreate}
-                className="mt-4 text-accent-600 hover:text-accent-700 font-medium"
+                className="mt-3 sm:mt-4 text-accent-600 hover:text-accent-700 font-medium text-sm"
               >
                 დაამატეთ პირველი სლაიდი
               </button>
@@ -508,7 +577,7 @@ function SliderModal({
       title={slider ? 'სლაიდის რედაქტირება' : 'ახალი სლაიდი'}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             სურათი <span className="text-red-500">*</span>
@@ -522,14 +591,14 @@ function SliderModal({
             preview={true}
           />
           <p className="mt-1 text-xs text-gray-500">
-            რეკომენდებული ზომა: 1800x600 პიქსელი. მაქს. 10MB.
+            <span className="hidden sm:inline">რეკომენდებული ზომა: 1800x600 პიქსელი. </span>მაქს. 10MB.
           </p>
         </div>
 
         {/* Link Type Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            ლინკი (არასავალდებულო)
+            ლინკი <span className="text-gray-400 font-normal">(არასავალდებულო)</span>
           </label>
           <div className="space-y-2">
             <label className="flex items-center gap-2">
@@ -575,7 +644,7 @@ function SliderModal({
               type="url"
               value={directUrl}
               onChange={(e) => setDirectUrl(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
               placeholder="https://example.com/page"
             />
           </div>
@@ -587,7 +656,7 @@ function SliderModal({
             <select
               value={selectedCourseSlug}
               onChange={(e) => setSelectedCourseSlug(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
             >
               <option value="">აირჩიეთ კურსი...</option>
               {courses.map((course) => (
@@ -608,7 +677,7 @@ function SliderModal({
             className="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-600"
           />
           <label htmlFor="isActive" className="text-sm text-gray-700">
-            აქტიური (გამოჩნდება მთავარ გვერდზე)
+            აქტიური <span className="hidden sm:inline">(გამოჩნდება მთავარ გვერდზე)</span>
           </label>
         </div>
 
@@ -616,14 +685,14 @@ function SliderModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm w-full sm:w-auto"
           >
             გაუქმება
           </button>
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm w-full sm:w-auto"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'ინახება...'

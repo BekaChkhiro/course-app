@@ -773,4 +773,132 @@ export class AuthController {
       });
     }
   }
+
+  /**
+   * Update user profile
+   * PUT /api/auth/profile
+   */
+  static async updateProfile(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.userId!;
+      const { name, surname, phone, bio, avatar } = req.body;
+
+      // Check if phone is already taken by another user
+      if (phone) {
+        const existingPhone = await db.user.findFirst({
+          where: {
+            phone,
+            NOT: { id: userId },
+          },
+        });
+
+        if (existingPhone) {
+          return res.status(409).json({
+            success: false,
+            message: 'ეს ტელეფონის ნომერი უკვე გამოყენებულია',
+          });
+        }
+      }
+
+      // Build update data - only include provided fields
+      const updateData: Record<string, any> = {};
+      if (name !== undefined) updateData.name = name;
+      if (surname !== undefined) updateData.surname = surname;
+      if (phone !== undefined) updateData.phone = phone || null;
+      if (bio !== undefined) updateData.bio = bio || null;
+      if (avatar !== undefined) updateData.avatar = avatar || null;
+
+      const updatedUser = await db.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          surname: true,
+          email: true,
+          phone: true,
+          role: true,
+          avatar: true,
+          bio: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'პროფილი წარმატებით განახლდა',
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'პროფილის განახლება ვერ მოხერხდა',
+      });
+    }
+  }
+
+  /**
+   * Change password
+   * POST /api/auth/change-password
+   */
+  static async changePassword(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.userId!;
+      const { currentPassword, newPassword } = req.body;
+
+      // Get user with password
+      const user = await db.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'მომხმარებელი ვერ მოიძებნა',
+        });
+      }
+
+      // Verify current password
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+      if (!isPasswordValid) {
+        return res.status(400).json({
+          success: false,
+          message: 'მიმდინარე პაროლი არასწორია',
+        });
+      }
+
+      // Check if new password is same as current
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'ახალი პაროლი არ უნდა ემთხვეოდეს მიმდინარეს',
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+      // Update password
+      await db.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'პაროლი წარმატებით შეიცვალა',
+      });
+    } catch (error) {
+      console.error('Change password error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'პაროლის შეცვლა ვერ მოხერხდა',
+      });
+    }
+  }
 }

@@ -8,6 +8,8 @@ import {
   validateResetPassword,
   validateEmailVerification,
   validateDeviceNaming,
+  validateProfileUpdate,
+  validateChangePassword,
   handleValidationErrors,
 } from '../middleware/validation';
 import {
@@ -109,5 +111,23 @@ router.patch(
 
 // DELETE /api/auth/devices/:id - Remove a device session
 router.delete('/devices/:id', requireAuth, AuthController.removeDevice);
+
+// PUT /api/auth/profile - Update user profile
+router.put(
+  '/profile',
+  requireAuth,
+  validateProfileUpdate,
+  handleValidationErrors,
+  AuthController.updateProfile
+);
+
+// POST /api/auth/change-password - Change password while logged in
+router.post(
+  '/change-password',
+  requireAuth,
+  validateChangePassword,
+  handleValidationErrors,
+  AuthController.changePassword
+);
 
 export default router;

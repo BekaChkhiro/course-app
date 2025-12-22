@@ -83,18 +83,47 @@ export default function VersionsPage() {
     }
   ];
 
+  const mobileCardRender = (version: Version) => (
+    <div className="p-4 border-b border-gray-100 last:border-b-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono font-medium text-gray-900">v{version.version}</span>
+            {version.isActive && <Badge variant="success" size="sm">აქტიური</Badge>}
+          </div>
+          <h3 className="font-medium text-gray-900 mt-1 truncate">{version.title}</h3>
+          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+            <span>{version._count.chapters} თავი</span>
+            <span>{version.publishedAt ? formatDate(version.publishedAt) : 'არ არის გამოქვეყნებული'}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {!version.isActive && (
+            <button
+              onClick={() => activateMutation.mutate(version.id)}
+              className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+              title="გააქტიურება"
+            >
+              <CheckCircle className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">კურსის ვერსიები</h1>
-            <p className="mt-1 text-sm text-gray-500">მართეთ კურსის ვერსიები</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">კურსის ვერსიები</h1>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">მართეთ კურსის ვერსიები</p>
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             disabled={!selectedCourse}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             ახალი ვერსია
@@ -106,7 +135,7 @@ export default function VersionsPage() {
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
-            className="max-w-md px-3 py-2 border border-gray-300 rounded-lg"
+            className="w-full sm:max-w-md px-3 py-2 border border-gray-300 rounded-lg text-sm"
           >
             <option value="">აირჩიეთ კურსი...</option>
             {courses.map((course: any) => (
@@ -116,9 +145,9 @@ export default function VersionsPage() {
         </div>
 
         {isLoading ? <PageLoader /> : !selectedCourse ? (
-          <div className="text-center py-12 text-gray-500">აირჩიეთ კურსი</div>
+          <div className="text-center py-8 sm:py-12 text-gray-500 text-sm">აირჩიეთ კურსი</div>
         ) : (
-          <DataTable columns={columns} data={versions} />
+          <DataTable columns={columns} data={versions} mobileCardRender={mobileCardRender} />
         )}
       </div>
     </AdminLayout>

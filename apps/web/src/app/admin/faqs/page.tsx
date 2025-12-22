@@ -69,69 +69,130 @@ function SortableFAQItem({
       style={style}
       className={`${isDragging ? 'opacity-50' : ''}`}
     >
-      <div className={`flex items-start gap-3 p-4 bg-white border rounded-lg mb-2 hover:shadow-sm transition-shadow ${!faq.isActive ? 'opacity-60' : ''}`}>
-        {/* Drag Handle */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing mt-1"
-        >
-          <GripVertical className="w-4 h-4 text-gray-400" />
-        </button>
+      <div className={`p-3 sm:p-4 bg-white border rounded-lg mb-2 hover:shadow-sm transition-shadow ${!faq.isActive ? 'opacity-60' : ''}`}>
+        {/* Mobile Layout */}
+        <div className="flex items-start gap-2.5 sm:hidden">
+          {/* Drag Handle */}
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing flex-shrink-0 mt-0.5"
+          >
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </button>
 
-        {/* Icon */}
-        <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center flex-shrink-0">
-          <HelpCircle className="w-5 h-5 text-accent-600" />
-        </div>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <h3 className="font-medium text-gray-900 text-sm line-clamp-2">{faq.question}</h3>
+            </div>
+            <p className="text-xs text-gray-500 line-clamp-2 mb-2">{faq.answer}</p>
 
-        {/* FAQ Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-gray-900 line-clamp-1">{faq.question}</h3>
-            {faq.category && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-                {faq.category}
+            {/* Meta row */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                faq.isActive
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                {faq.isActive ? 'აქტ.' : 'არა'}
               </span>
-            )}
+              {faq.category && (
+                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                  {faq.category}
+                </span>
+              )}
+            </div>
           </div>
-          <p className="text-sm text-gray-500 line-clamp-2">{faq.answer}</p>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-1 flex-shrink-0">
+            <button
+              onClick={() => onToggle(faq)}
+              className={`p-1.5 hover:bg-gray-100 rounded ${faq.isActive ? 'text-green-600' : 'text-gray-400'}`}
+            >
+              {faq.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onEdit(faq)}
+              className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(faq)}
+              className="p-1.5 hover:bg-red-50 rounded text-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            faq.isActive
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600'
-          }`}>
-            {faq.isActive ? 'აქტიური' : 'არააქტიური'}
-          </span>
-          <span className="text-xs text-gray-400">#{faq.order}</span>
-        </div>
+        {/* Desktop Layout */}
+        <div className="hidden sm:flex items-start gap-3">
+          {/* Drag Handle */}
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing mt-1"
+          >
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          </button>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onToggle(faq)}
-            className={`p-2 hover:bg-gray-100 rounded ${faq.isActive ? 'text-green-600' : 'text-gray-400'}`}
-            title={faq.isActive ? 'გამორთვა' : 'ჩართვა'}
-          >
-            {faq.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={() => onEdit(faq)}
-            className="p-2 hover:bg-gray-100 rounded text-gray-600"
-            title="რედაქტირება"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDelete(faq)}
-            className="p-2 hover:bg-red-50 rounded text-red-600"
-            title="წაშლა"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {/* Icon */}
+          <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <HelpCircle className="w-5 h-5 text-accent-600" />
+          </div>
+
+          {/* FAQ Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-medium text-gray-900 line-clamp-1">{faq.question}</h3>
+              {faq.category && (
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                  {faq.category}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 line-clamp-2">{faq.answer}</p>
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded text-xs font-medium ${
+              faq.isActive
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              {faq.isActive ? 'აქტიური' : 'არააქტიური'}
+            </span>
+            <span className="text-xs text-gray-400">#{faq.order}</span>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onToggle(faq)}
+              className={`p-2 hover:bg-gray-100 rounded ${faq.isActive ? 'text-green-600' : 'text-gray-400'}`}
+              title={faq.isActive ? 'გამორთვა' : 'ჩართვა'}
+            >
+              {faq.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => onEdit(faq)}
+              className="p-2 hover:bg-gray-100 rounded text-gray-600"
+              title="რედაქტირება"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(faq)}
+              className="p-2 hover:bg-red-50 rounded text-red-600"
+              title="წაშლა"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -256,19 +317,22 @@ export default function FAQsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">ხშირად დასმული კითხვები</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              მართეთ FAQ-ები რომლებიც გამოჩნდება მთავარ გვერდზე
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+              <span className="hidden sm:inline">ხშირად დასმული კითხვები</span>
+              <span className="sm:hidden">FAQ</span>
+            </h1>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
+              მართეთ FAQ-ები <span className="hidden sm:inline">რომლებიც გამოჩნდება მთავარ გვერდზე</span>
             </p>
           </div>
 
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 text-sm w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             ახალი FAQ
@@ -276,36 +340,36 @@ export default function FAQsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-gray-900">{totalFAQs}</div>
-            <div className="text-sm text-gray-500">სულ FAQ</div>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-gray-900">{totalFAQs}</div>
+            <div className="text-xs sm:text-sm text-gray-500">სულ</div>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-green-600">{activeFAQs}</div>
-            <div className="text-sm text-gray-500">აქტიური</div>
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{activeFAQs}</div>
+            <div className="text-xs sm:text-sm text-gray-500">აქტიური</div>
           </div>
-          <div className="bg-white p-4 rounded-lg border">
-            <div className="text-2xl font-bold text-accent-600">{categories.length}</div>
-            <div className="text-sm text-gray-500">კატეგორია</div>
+          <div className="bg-white p-3 sm:p-4 rounded-lg border">
+            <div className="text-lg sm:text-2xl font-bold text-accent-600">{categories.length}</div>
+            <div className="text-xs sm:text-sm text-gray-500">კატეგ.</div>
           </div>
         </div>
 
         {/* Info */}
-        <div className="bg-accent-50 border border-accent-200 rounded-lg p-4 text-sm text-accent-700">
+        <div className="bg-accent-50 border border-accent-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-accent-700">
           <strong>მინიშნება:</strong> გადაათრიეთ FAQ-ები თანმიმდევრობის შესაცვლელად.
-          მხოლოდ აქტიური FAQ-ები გამოჩნდება მთავარ გვერდზე.
+          <span className="hidden sm:inline"> მხოლოდ აქტიური FAQ-ები გამოჩნდება მთავარ გვერდზე.</span>
         </div>
 
         {/* FAQ List */}
-        <div className="bg-gray-50 rounded-xl p-4">
+        <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
           {sortedFAQs.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <HelpCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>FAQ-ები არ მოიძებნა</p>
+            <div className="text-center py-8 sm:py-12 text-gray-500">
+              <HelpCircle className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
+              <p className="text-sm">FAQ-ები არ მოიძებნა</p>
               <button
                 onClick={handleCreate}
-                className="mt-4 text-accent-600 hover:text-accent-700 font-medium"
+                className="mt-3 sm:mt-4 text-accent-600 hover:text-accent-700 font-medium text-sm"
               >
                 დაამატეთ პირველი FAQ
               </button>
@@ -444,7 +508,7 @@ function FAQModal({
       title={faq ? 'FAQ-ის რედაქტირება' : 'ახალი FAQ'}
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             კითხვა <span className="text-red-500">*</span>
@@ -453,7 +517,7 @@ function FAQModal({
             type="text"
             value={formData.question}
             onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
             placeholder="მაგ: როგორ შევიძინო კურსი?"
             required
           />
@@ -466,8 +530,8 @@ function FAQModal({
           <textarea
             value={formData.answer}
             onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
-            rows={5}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
             placeholder="შეიყვანეთ დეტალური პასუხი..."
             required
           />
@@ -480,8 +544,8 @@ function FAQModal({
             list="category-options"
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent"
-            placeholder="მაგ: გადახდა, კურსები, ტექნიკური"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-transparent text-sm"
+            placeholder="მაგ: გადახდა, კურსები"
           />
           <datalist id="category-options">
             {existingCategories.map((cat) => (
@@ -489,7 +553,7 @@ function FAQModal({
             ))}
           </datalist>
           <p className="mt-1 text-xs text-gray-500">
-            არასავალდებულო. შეგიძლიათ აირჩიოთ არსებული ან შექმნათ ახალი.
+            არასავალდებულო.<span className="hidden sm:inline"> შეგიძლიათ აირჩიოთ არსებული ან შექმნათ ახალი.</span>
           </p>
         </div>
 
@@ -502,7 +566,7 @@ function FAQModal({
             className="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-600"
           />
           <label htmlFor="isActive" className="text-sm text-gray-700">
-            აქტიური (გამოჩნდება მთავარ გვერდზე)
+            აქტიური <span className="hidden sm:inline">(გამოჩნდება მთავარ გვერდზე)</span>
           </label>
         </div>
 
@@ -510,14 +574,14 @@ function FAQModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm w-full sm:w-auto"
           >
             გაუქმება
           </button>
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
+            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm w-full sm:w-auto"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'ინახება...'

@@ -131,32 +131,32 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">კურსის ვერსიები</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg sm:text-xl font-semibold">ვერსიები</h2>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+          className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm bg-accent-600 text-white rounded-lg hover:bg-accent-700"
         >
           <Plus className="w-4 h-4" />
-          ახალი ვერსია
+          <span className="hidden xs:inline">ახალი</span> ვერსია
         </button>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-sm text-gray-600">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-yellow-400"></span>
           Draft
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+          <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green-500"></span>
           Published
         </span>
         <span className="flex items-center gap-1.5">
           <Badge variant="info" size="sm">აქტიური</Badge>
-          სტუდენტები ხედავენ
+          <span className="hidden xs:inline">სტუდენტები ხედავენ</span>
         </span>
       </div>
 
@@ -174,30 +174,30 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {versions.map((version: Version) => (
             <div key={version.id} className="relative group">
               <Link
                 href={`/admin/courses/${courseId}/versions/${version.id}`}
                 className={`
-                  block p-6 border rounded-lg hover:shadow-md transition-all bg-white
+                  block p-3 sm:p-4 md:p-6 border rounded-lg hover:shadow-md transition-all bg-white
                   ${version.status === 'DRAFT' ? 'border-l-4 border-l-yellow-400' : 'border-l-4 border-l-green-500'}
                 `}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl font-mono font-bold text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                      <span className="text-lg sm:text-xl md:text-2xl font-mono font-bold text-gray-900">
                         v{version.version}
                       </span>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 truncate">
                         {version.title}
                       </h3>
 
                       {/* Status Badge */}
                       <span
                         className={`
-                          inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full
+                          inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 text-xs font-medium rounded-full
                           ${version.status === 'PUBLISHED'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-yellow-100 text-yellow-700'
@@ -205,53 +205,103 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                         `}
                       >
                         {version.status === 'PUBLISHED' ? (
-                          <><Globe className="w-3 h-3" /> Published</>
+                          <><Globe className="w-3 h-3" /> <span className="hidden xs:inline">Published</span></>
                         ) : (
-                          <><FileEdit className="w-3 h-3" /> Draft</>
+                          <><FileEdit className="w-3 h-3" /> <span className="hidden xs:inline">Draft</span></>
                         )}
                       </span>
 
                       {version.isActive && (
-                        <Badge variant="info">აქტიური</Badge>
+                        <Badge variant="info" size="sm">აქტიური</Badge>
                       )}
                     </div>
-                    <p className="text-gray-600 mb-4">{version.description}</p>
+                    {version.description && (
+                      <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2">{version.description}</p>
+                    )}
 
-                    <div className="flex items-center gap-6 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 text-xs sm:text-sm text-gray-500">
                       <span className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
+                        <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {version._count.chapters} თავი
                       </span>
                       <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {version._count.progress} სტუდენტი
+                        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        {version._count.progress}
                       </span>
                       {version.publishedAt && (
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {formatDate(version.publishedAt)}
                         </span>
                       )}
-                      {version.upgradePriceType && version.upgradePriceValue && (
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          განახლება: {version.upgradePriceType === 'FIXED'
-                            ? formatCurrency(version.upgradePriceValue)
-                            : `${version.upgradePriceValue}%`}
-                        </span>
-                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="hidden sm:flex items-center">
                     <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-accent-600 group-hover:translate-x-1 transition-all" />
                   </div>
                 </div>
+
+                {/* Mobile Action buttons */}
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t sm:hidden">
+                  {version.status === 'DRAFT' && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePublish(version);
+                      }}
+                      disabled={publishMutation.isPending}
+                      className="flex-1 px-2 py-1.5 bg-green-600 text-white text-xs rounded-lg flex items-center justify-center gap-1"
+                    >
+                      <Rocket className="w-3 h-3" />
+                      Publish
+                    </button>
+                  )}
+                  {version.status === 'PUBLISHED' && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCreateDraftCopy(version);
+                      }}
+                      disabled={createDraftCopyMutation.isPending}
+                      className="flex-1 px-2 py-1.5 bg-accent-600 text-white text-xs rounded-lg flex items-center justify-center gap-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                      ასლი
+                    </button>
+                  )}
+                  {!version.isActive && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleActivate(version);
+                        }}
+                        disabled={activateMutation.isPending}
+                        className="px-2 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-lg flex items-center gap-1"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDelete(version);
+                        }}
+                        className="p-1.5 hover:bg-red-100 rounded text-red-600"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </Link>
 
-              {/* Action buttons - positioned absolutely to prevent link interference */}
-              <div className="absolute top-6 right-14 flex items-center gap-2 z-10">
-                {/* Publish button for DRAFT versions */}
+              {/* Desktop Action buttons */}
+              <div className="absolute top-4 sm:top-6 right-10 sm:right-14 hidden sm:flex items-center gap-2 z-10">
                 {version.status === 'DRAFT' && (
                   <button
                     onClick={(e) => {
@@ -260,15 +310,14 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       handlePublish(version);
                     }}
                     disabled={publishMutation.isPending}
-                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm rounded-lg flex items-center gap-1 sm:gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="გამოქვეყნება"
                   >
-                    <Rocket className="w-3.5 h-3.5" />
-                    Publish
+                    <Rocket className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span className="hidden md:inline">Publish</span>
                   </button>
                 )}
 
-                {/* Create Draft Copy button for PUBLISHED versions */}
                 {version.status === 'PUBLISHED' && (
                   <button
                     onClick={(e) => {
@@ -277,15 +326,14 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       handleCreateDraftCopy(version);
                     }}
                     disabled={createDraftCopyMutation.isPending}
-                    className="px-3 py-1.5 bg-accent-600 hover:bg-accent-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-accent-600 hover:bg-accent-700 text-white text-xs sm:text-sm rounded-lg flex items-center gap-1 sm:gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="Draft ასლის შექმნა"
                   >
-                    <Copy className="w-3.5 h-3.5" />
-                    Draft ასლი
+                    <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span className="hidden md:inline">ასლი</span>
                   </button>
                 )}
 
-                {/* Set as Active button - show for non-active versions */}
                 {!version.isActive && (
                   <button
                     onClick={(e) => {
@@ -294,15 +342,13 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       handleActivate(version);
                     }}
                     disabled={activateMutation.isPending}
-                    className="px-3 py-1.5 bg-accent-600 hover:bg-accent-700 text-white text-sm rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-accent-600 hover:bg-accent-700 text-white text-xs sm:text-sm rounded-lg flex items-center gap-1 sm:gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="აქტიურის გახდომა"
                   >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    აქტიური
+                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </button>
                 )}
 
-                {/* Delete button - show for non-active versions */}
                 {!version.isActive && (
                   <button
                     onClick={(e) => {
@@ -310,10 +356,10 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       e.stopPropagation();
                       handleDelete(version);
                     }}
-                    className="p-2 bg-white hover:bg-red-100 rounded border border-gray-200 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="p-1.5 sm:p-2 bg-white hover:bg-red-100 rounded border border-gray-200 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="წაშლა"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 )}
               </div>
@@ -532,7 +578,7 @@ function VersionModal({
             <p className="text-xs text-gray-600 mb-3">
               მიუთითეთ რამდენი უნდა გადაიხადონ წინა ვერსიის მფლობელებმა ამ ვერსიაზე გადასასვლელად
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   ფასის ტიპი

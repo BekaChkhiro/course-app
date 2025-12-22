@@ -234,62 +234,62 @@ export default function AdminMessagesPage() {
 
   return (
     <AdminLayout>
-      <div className="h-[calc(100vh-120px)] flex flex-col">
+      <div className="h-[calc(100vh-120px)] sm:h-[calc(100vh-120px)] flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">შეტყობინებები</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            მართეთ და უპასუხეთ სტუდენტების შეკითხვებს
+        <div className="flex-shrink-0 mb-3 sm:mb-4">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">შეტყობინებები</h1>
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
+            მართეთ და უპასუხეთ <span className="hidden sm:inline">სტუდენტების </span>შეკითხვებს
           </p>
         </div>
 
         {/* Analytics Cards */}
-        <div className="flex-shrink-0 grid grid-cols-4 gap-4 mb-4">
-          <div className="bg-white rounded-lg border border-gray-200 p-3">
+        <div className="flex-shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-3 sm:mb-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-2.5 sm:p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">სულ</span>
-              <MessageSquare className="w-4 h-4 text-gray-400" />
+              <span className="text-xs sm:text-sm text-gray-500">სულ</span>
+              <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{analytics.total || 0}</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-gray-900">{analytics.total || 0}</p>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-2.5 sm:p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">ახალი</span>
-              <AlertCircle className="w-4 h-4 text-accent-600" />
+              <span className="text-xs sm:text-sm text-gray-500">ახალი</span>
+              <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-600" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-accent-600">{analytics.newMessages || 0}</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-accent-600">{analytics.newMessages || 0}</p>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-2.5 sm:p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">გადაწყვეტილი</span>
-              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span className="text-xs sm:text-sm text-gray-500">გადაწყვ.</span>
+              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-green-600">{analytics.resolved || 0}</p>
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-green-600">{analytics.resolved || 0}</p>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-3">
+          <div className="bg-white rounded-lg border border-gray-200 p-2.5 sm:p-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">საშ. პასუხი</span>
-              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-xs sm:text-sm text-gray-500">საშ. პას.</span>
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-gray-900">
+            <p className="mt-1 text-lg sm:text-2xl font-bold text-gray-900">
               {analytics.avgResponseTimeMinutes || 0}წ
             </p>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex gap-4 min-h-0">
-          {/* Message List */}
-          <div className="w-1/3 bg-white rounded-lg border border-gray-200 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row gap-3 sm:gap-4 min-h-0">
+          {/* Message List - Hidden on mobile when message is selected */}
+          <div className={`${selectedMessage ? 'hidden md:flex' : 'flex'} md:w-1/3 bg-white rounded-lg border border-gray-200 flex-col overflow-hidden flex-1 md:flex-none`}>
             {/* Filters */}
-            <div className="flex-shrink-0 p-3 border-b border-gray-200 space-y-2">
+            <div className="flex-shrink-0 p-2.5 sm:p-3 border-b border-gray-200 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="შეტყობინებების ძიება..."
+                  placeholder="ძიება..."
                   className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
@@ -299,7 +299,7 @@ export default function AdminMessagesPage() {
                   onChange={(e) => setStatusFilter(e.target.value as MessageStatus | '')}
                   className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
                 >
-                  <option value="">ყველა სტატუსი</option>
+                  <option value="">სტატუსი</option>
                   <option value="NEW">ახალი</option>
                   <option value="IN_PROGRESS">მუშავდება</option>
                   <option value="ANSWERED">უპასუხა</option>
@@ -310,7 +310,7 @@ export default function AdminMessagesPage() {
                   onChange={(e) => setPriorityFilter(e.target.value as MessagePriority | '')}
                   className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
                 >
-                  <option value="">ყველა პრიორიტეტი</option>
+                  <option value="">პრიორიტეტი</option>
                   <option value="URGENT">სასწრაფო</option>
                   <option value="HIGH">მაღალი</option>
                   <option value="MEDIUM">საშუალო</option>
@@ -327,22 +327,22 @@ export default function AdminMessagesPage() {
                   <div
                     key={message.id}
                     onClick={() => setSelectedMessage(message.id)}
-                    className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    className={`p-2.5 sm:p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
                       selectedMessage === message.id ? 'bg-primary-50' : ''
                     }`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
                       {/* Avatar */}
                       <div className="flex-shrink-0">
                         {message.user.avatar ? (
                           <img
                             src={message.user.avatar}
                             alt=""
-                            className="w-10 h-10 rounded-full"
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-primary-900">
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                            <span className="text-xs sm:text-sm font-medium text-primary-900">
                               {message.user.name.charAt(0)}
                               {message.user.surname.charAt(0)}
                             </span>
@@ -353,7 +353,7 @@ export default function AdminMessagesPage() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="font-medium text-gray-900 truncate">
+                          <p className="font-medium text-gray-900 truncate text-sm">
                             {message.user.name} {message.user.surname}
                           </p>
                           <span className="flex-shrink-0 text-xs text-gray-500">
@@ -363,17 +363,17 @@ export default function AdminMessagesPage() {
                         <p className="text-sm font-medium text-gray-700 truncate">
                           {message.subject}
                         </p>
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="text-xs sm:text-sm text-gray-500 truncate">
                           {message.content.substring(0, 50)}...
                         </p>
-                        <div className="mt-1 flex items-center gap-2">
+                        <div className="mt-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <span
                             className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium rounded ${
                               statusColors[message.status].bg
                             } ${statusColors[message.status].text}`}
                           >
                             <StatusIcon className="w-3 h-3" />
-                            {statusLabels[message.status]}
+                            <span className="hidden sm:inline">{statusLabels[message.status]}</span>
                           </span>
                           <span
                             className={`px-1.5 py-0.5 text-xs font-medium rounded ${
@@ -384,7 +384,7 @@ export default function AdminMessagesPage() {
                           </span>
                           {message._count && message._count.replies > 0 && (
                             <span className="text-xs text-gray-400">
-                              {message._count.replies} პასუხი
+                              {message._count.replies} <span className="hidden sm:inline">პასუხი</span>
                             </span>
                           )}
                         </div>
@@ -395,9 +395,9 @@ export default function AdminMessagesPage() {
               })}
 
               {messages.length === 0 && (
-                <div className="p-8 text-center">
-                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">შეტყობინებები არ მოიძებნა</p>
+                <div className="p-6 sm:p-8 text-center">
+                  <MessageSquare className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">შეტყობინებები არ მოიძებნა</p>
                 </div>
               )}
             </div>
@@ -406,7 +406,7 @@ export default function AdminMessagesPage() {
             {pagination.totalPages > 1 && (
               <div className="flex-shrink-0 border-t border-gray-200 p-2 flex items-center justify-between">
                 <span className="text-xs text-gray-500">
-                  გვერდი {pagination.page}/{pagination.totalPages}
+                  {pagination.page}/{pagination.totalPages}
                 </span>
                 <div className="flex gap-1">
                   <button
@@ -428,28 +428,37 @@ export default function AdminMessagesPage() {
             )}
           </div>
 
-          {/* Message Detail */}
-          <div className="flex-1 bg-white rounded-lg border border-gray-200 flex flex-col overflow-hidden">
+          {/* Message Detail - Hidden on mobile when no message selected */}
+          <div className={`${selectedMessage ? 'flex' : 'hidden md:flex'} flex-1 bg-white rounded-lg border border-gray-200 flex-col overflow-hidden`}>
             {currentMessage ? (
               <>
                 {/* Message Header */}
-                <div className="flex-shrink-0 p-4 border-b border-gray-200">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900">
+                <div className="flex-shrink-0 p-3 sm:p-4 border-b border-gray-200">
+                  {/* Back button - Mobile only */}
+                  <button
+                    onClick={() => setSelectedMessage(null)}
+                    className="md:hidden flex items-center gap-1 text-sm text-gray-600 mb-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    უკან
+                  </button>
+
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                         {currentMessage.subject}
                       </h2>
-                      <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
-                        <span>
-                          გამომგზავნი: {currentMessage.user.name} {currentMessage.user.surname}
+                      <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs sm:text-sm text-gray-500">
+                        <span className="truncate">
+                          {currentMessage.user.name} {currentMessage.user.surname}
                         </span>
-                        <span>{currentMessage.user.email}</span>
+                        <span className="hidden sm:inline">{currentMessage.user.email}</span>
                         {currentMessage.course && (
-                          <span>კურსი: {currentMessage.course.title}</span>
+                          <span className="truncate">კურსი: {currentMessage.course.title}</span>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <select
                         value={currentMessage.status}
                         onChange={(e) =>
@@ -458,13 +467,13 @@ export default function AdminMessagesPage() {
                             status: e.target.value as MessageStatus,
                           })
                         }
-                        className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                        className="border border-gray-300 rounded-lg px-2 py-1 text-xs sm:text-sm flex-1 sm:flex-none"
                       >
                         <option value="NEW">ახალი</option>
                         <option value="IN_PROGRESS">მუშავდება</option>
                         <option value="ANSWERED">უპასუხა</option>
                         <option value="RESOLVED">გადაწყვეტილი</option>
-                        <option value="ARCHIVED">დაარქივებული</option>
+                        <option value="ARCHIVED">არქივი</option>
                       </select>
                       <select
                         value={currentMessage.priority}
@@ -474,7 +483,7 @@ export default function AdminMessagesPage() {
                             priority: e.target.value as MessagePriority,
                           })
                         }
-                        className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                        className="border border-gray-300 rounded-lg px-2 py-1 text-xs sm:text-sm flex-1 sm:flex-none"
                       >
                         <option value="LOW">დაბალი</option>
                         <option value="MEDIUM">საშუალო</option>
@@ -486,12 +495,12 @@ export default function AdminMessagesPage() {
                 </div>
 
                 {/* Conversation - Chat Style */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-gray-50">
                   {/* Original Message - Left (Student) */}
                   <div className="flex justify-start">
-                    <div className="max-w-[75%]">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                    <div className="max-w-[85%] sm:max-w-[75%]">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                           {currentMessage.user.avatar ? (
                             <img src={currentMessage.user.avatar} alt="" className="w-full h-full rounded-full" />
                           ) : (
@@ -501,23 +510,24 @@ export default function AdminMessagesPage() {
                           )}
                         </div>
                         <span className="text-xs font-medium text-gray-700">
-                          {currentMessage.user.name} {currentMessage.user.surname}
+                          {currentMessage.user.name}
                         </span>
                         <span className="text-xs text-gray-400">
                           {formatDate(currentMessage.createdAt)}
                         </span>
                       </div>
-                      <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md p-3 shadow-sm">
-                        <p className="text-gray-800 whitespace-pre-wrap">{currentMessage.content}</p>
+                      <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-md p-2.5 sm:p-3 shadow-sm">
+                        <p className="text-sm sm:text-base text-gray-800 whitespace-pre-wrap">{currentMessage.content}</p>
                         {currentMessage.attachmentUrl && (
                           <a
                             href={currentMessage.attachmentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-2 inline-flex items-center gap-1 text-sm text-primary-900 hover:text-primary-800"
+                            className="mt-2 inline-flex items-center gap-1 text-xs sm:text-sm text-primary-900 hover:text-primary-800"
                           >
-                            <Paperclip className="w-4 h-4" />
-                            მიმაგრებული ფაილი
+                            <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">მიმაგრებული ფაილი</span>
+                            <span className="sm:hidden">ფაილი</span>
                           </a>
                         )}
                       </div>
@@ -534,10 +544,10 @@ export default function AdminMessagesPage() {
                         key={reply.id}
                         className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} ${isInternal ? 'opacity-80' : ''}`}
                       >
-                        <div className={`max-w-[75%] ${isAdmin ? 'order-2' : ''}`}>
-                          <div className={`flex items-center gap-2 mb-1 ${isAdmin ? 'justify-end' : ''}`}>
+                        <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? 'order-2' : ''}`}>
+                          <div className={`flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap ${isAdmin ? 'justify-end' : ''}`}>
                             {!isAdmin && (
-                              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                                 {reply.user.avatar ? (
                                   <img src={reply.user.avatar} alt="" className="w-full h-full rounded-full" />
                                 ) : (
@@ -548,10 +558,10 @@ export default function AdminMessagesPage() {
                               </div>
                             )}
                             <span className="text-xs font-medium text-gray-700">
-                              {reply.user.name} {reply.user.surname}
+                              {reply.user.name}
                             </span>
                             {isInternal && (
-                              <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">
+                              <span className="px-1 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded">
                                 შიდა
                               </span>
                             )}
@@ -559,7 +569,7 @@ export default function AdminMessagesPage() {
                               {formatDate(reply.createdAt)}
                             </span>
                             {isAdmin && (
-                              <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                 {reply.user.avatar ? (
                                   <img src={reply.user.avatar} alt="" className="w-full h-full rounded-full" />
                                 ) : (
@@ -571,7 +581,7 @@ export default function AdminMessagesPage() {
                             )}
                           </div>
                           <div
-                            className={`p-3 shadow-sm ${
+                            className={`p-2.5 sm:p-3 shadow-sm ${
                               isInternal
                                 ? 'bg-yellow-50 border-2 border-dashed border-yellow-300 rounded-2xl'
                                 : isAdmin
@@ -579,7 +589,7 @@ export default function AdminMessagesPage() {
                                 : 'bg-white border border-gray-200 rounded-2xl rounded-tl-md'
                             }`}
                           >
-                            <p className={`whitespace-pre-wrap ${isAdmin && !isInternal ? 'text-white' : 'text-gray-800'}`}>
+                            <p className={`text-sm sm:text-base whitespace-pre-wrap ${isAdmin && !isInternal ? 'text-white' : 'text-gray-800'}`}>
                               {reply.content}
                             </p>
                           </div>
@@ -590,21 +600,22 @@ export default function AdminMessagesPage() {
                 </div>
 
                 {/* Reply Box */}
-                <div className="flex-shrink-0 border-t border-gray-200 p-4">
+                <div className="flex-shrink-0 border-t border-gray-200 p-3 sm:p-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <label className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={isInternalNote}
                           onChange={(e) => setIsInternalNote(e.target.checked)}
                           className="rounded border-gray-300"
                         />
-                        შიდა ჩანაწერი (სტუდენტისთვის არ ჩანს)
+                        <span className="hidden sm:inline">შიდა ჩანაწერი (სტუდენტისთვის არ ჩანს)</span>
+                        <span className="sm:hidden">შიდა ჩანაწერი</span>
                       </label>
                       <button
                         onClick={() => setShowCannedResponses(!showCannedResponses)}
-                        className="ml-auto text-sm text-primary-900 hover:text-primary-800"
+                        className="sm:ml-auto text-xs sm:text-sm text-primary-900 hover:text-primary-800"
                       >
                         შაბლონის ჩასმა
                       </button>
@@ -632,7 +643,7 @@ export default function AdminMessagesPage() {
                           ? 'დაწერეთ შიდა ჩანაწერი...'
                           : 'დაწერეთ პასუხი...'
                       }
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 text-sm ${
                         isInternalNote ? 'border-yellow-300 bg-yellow-50' : 'border-gray-300'
                       }`}
                       rows={3}
@@ -641,10 +652,11 @@ export default function AdminMessagesPage() {
                       <button
                         onClick={handleSendReply}
                         disabled={!replyContent.trim() || replyMutation.isPending}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm w-full sm:w-auto justify-center"
                       >
                         <Send className="w-4 h-4" />
-                        {isInternalNote ? 'ჩანაწერის დამატება' : 'პასუხის გაგზავნა'}
+                        <span className="hidden sm:inline">{isInternalNote ? 'ჩანაწერის დამატება' : 'პასუხის გაგზავნა'}</span>
+                        <span className="sm:hidden">გაგზავნა</span>
                       </button>
                     </div>
                   </div>
@@ -652,9 +664,9 @@ export default function AdminMessagesPage() {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p>აირჩიეთ შეტყობინება დეტალების სანახავად</p>
+                <div className="text-center p-4">
+                  <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-sm sm:text-base">აირჩიეთ შეტყობინება <span className="hidden sm:inline">დეტალების სანახავად</span></p>
                 </div>
               </div>
             )}

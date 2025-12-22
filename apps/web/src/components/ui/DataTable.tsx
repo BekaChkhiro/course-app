@@ -25,6 +25,7 @@ interface DataTableProps<TData, TValue> {
   loading?: boolean;
   pageSize?: number;
   emptyMessage?: string;
+  mobileCardRender?: (row: TData) => React.ReactNode;
 }
 
 export default function DataTable<TData, TValue>({
@@ -35,7 +36,8 @@ export default function DataTable<TData, TValue>({
   onRowClick,
   loading = false,
   pageSize = 10,
-  emptyMessage = 'No results found'
+  emptyMessage = 'No results found',
+  mobileCardRender
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -64,23 +66,48 @@ export default function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Search */}
       {searchKey && (
-        <div className="relative max-w-sm">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder={searchPlaceholder}
             value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
             onChange={(e) => table.getColumn(searchKey)?.setFilterValue(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       )}
 
-      {/* Table */}
-      <div className="border rounded-lg overflow-hidden bg-white">
+      {/* Mobile Cards */}
+      {mobileCardRender && (
+        <div className="md:hidden space-y-3">
+          {loading ? (
+            <div className="py-8 text-center">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : table.getRowModel().rows.length === 0 ? (
+            <div className="py-8 text-center text-sm text-gray-500 bg-white rounded-lg border">
+              {emptyMessage}
+            </div>
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <div
+                key={row.id}
+                onClick={() => onRowClick?.(row.original)}
+                className={cn(onRowClick && 'cursor-pointer')}
+              >
+                {mobileCardRender(row.original)}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Desktop Table */}
+      <div className={cn("border rounded-lg overflow-hidden bg-white", mobileCardRender && "hidden md:block")}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -122,7 +149,7 @@ export default function DataTable<TData, TValue>({
                 </tr>
               ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={columns.length} className="px-6 py-12 text-center text-sm text-gray-500">
                     {emptyMessage}
                   </td>
                 </tr>
@@ -151,30 +178,30 @@ export default function DataTable<TData, TValue>({
 
       {/* Pagination */}
       {table.getPageCount() > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+          <div className="text-xs sm:text-sm text-gray-700 order-2 sm:order-1">
+            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
             {Math.min(
               (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
               table.getFilteredRowModel().rows.length
             )}{' '}
-            of {table.getFilteredRowModel().rows.length} results
+            / {table.getFilteredRowModel().rows.length}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 order-1 sm:order-2 w-full sm:w-auto">
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Previous
+              წინა
             </button>
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Next
+              შემდეგი
             </button>
           </div>
         </div>

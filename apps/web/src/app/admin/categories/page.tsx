@@ -79,86 +79,95 @@ function SortableCategoryItem({
       className={`${isDragging ? 'opacity-50' : ''}`}
     >
       <div
-        className={`flex items-center gap-2 p-3 bg-white border rounded-lg mb-2 hover:shadow-sm transition-shadow ${
-          level > 0 ? 'ml-8 border-l-4 border-l-accent-200' : ''
+        className={`p-3 bg-white border rounded-lg mb-2 hover:shadow-sm transition-shadow ${
+          level > 0 ? 'ml-4 sm:ml-8 border-l-4 border-l-accent-200' : ''
         }`}
       >
-        {/* Drag Handle */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing"
-        >
-          <GripVertical className="w-4 h-4 text-gray-400" />
-        </button>
-
-        {/* Expand/Collapse Button */}
-        {hasChildren ? (
+        {/* Mobile: Stacked Layout */}
+        <div className="flex items-start gap-2">
+          {/* Drag Handle */}
           <button
-            onClick={onToggle}
-            className="p-1 hover:bg-gray-100 rounded"
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-gray-100 rounded cursor-grab active:cursor-grabbing flex-shrink-0 mt-0.5"
           >
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-gray-500" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-500" />
-            )}
+            <GripVertical className="w-4 h-4 text-gray-400" />
           </button>
-        ) : (
-          <div className="w-6" />
-        )}
 
-        {/* Icon */}
-        {hasChildren ? (
-          isExpanded ? (
-            <FolderOpen className="w-5 h-5 text-accent-600" />
+          {/* Expand/Collapse Button */}
+          {hasChildren ? (
+            <button
+              onClick={onToggle}
+              className="p-1 hover:bg-gray-100 rounded flex-shrink-0 mt-0.5"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-500" />
+              )}
+            </button>
           ) : (
-            <Folder className="w-5 h-5 text-accent-600" />
-          )
-        ) : (
-          <div className="w-5 h-5 rounded bg-gray-200" />
-        )}
+            <div className="w-6 flex-shrink-0" />
+          )}
 
-        {/* Category Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900">{category.name}</span>
-            <span className="text-xs text-gray-400">({category.slug})</span>
+          {/* Icon */}
+          <div className="flex-shrink-0 mt-0.5">
+            {hasChildren ? (
+              isExpanded ? (
+                <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-accent-600" />
+              ) : (
+                <Folder className="w-4 h-4 sm:w-5 sm:h-5 text-accent-600" />
+              )
+            ) : (
+              <div className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-gray-200" />
+            )}
           </div>
-          {category.description && (
-            <p className="text-sm text-gray-500 truncate">{category.description}</p>
-          )}
-        </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <span className="px-2 py-1 bg-accent-50 text-accent-600 rounded">
-            {category._count.courses} კურსი
-          </span>
-          {hasChildren && (
-            <span className="px-2 py-1 bg-accent-50 text-accent-600 rounded">
-              {category._count.children} ქვეკატეგორია
-            </span>
-          )}
-          <span className="text-gray-400">#{category.order}</span>
-        </div>
+          {/* Category Info & Stats */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start sm:items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                  <span className="font-medium text-gray-900 text-sm sm:text-base">{category.name}</span>
+                  <span className="text-xs text-gray-400 hidden sm:inline">({category.slug})</span>
+                </div>
+                {category.description && (
+                  <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">{category.description}</p>
+                )}
+              </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => onEdit(category)}
-            className="p-2 hover:bg-gray-100 rounded text-gray-600"
-            title="რედაქტირება"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onDelete(category)}
-            className="p-2 hover:bg-red-50 rounded text-red-600"
-            title="წაშლა"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+              {/* Actions - always visible */}
+              <div className="flex items-center gap-0.5 flex-shrink-0">
+                <button
+                  onClick={() => onEdit(category)}
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded text-gray-600"
+                  title="რედაქტირება"
+                >
+                  <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(category)}
+                  className="p-1.5 sm:p-2 hover:bg-red-50 rounded text-red-600"
+                  title="წაშლა"
+                >
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Stats - below on mobile */}
+            <div className="flex items-center gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-500 flex-wrap">
+              <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-accent-50 text-accent-600 rounded text-xs">
+                {category._count.courses} კურსი
+              </span>
+              {hasChildren && (
+                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-accent-50 text-accent-600 rounded text-xs">
+                  {category._count.children} ქვე
+                </span>
+              )}
+              <span className="text-gray-400 text-xs">#{category.order}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -303,49 +312,51 @@ export default function CategoriesPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">კატეგორიები</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">კატეგორიები</h1>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
               მართეთ კურსების კატეგორიები და მათი თანმიმდევრობა
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={expandAll}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              ყველას გახსნა
+              <span className="hidden sm:inline">ყველას გახსნა</span>
+              <span className="sm:hidden">გახსნა</span>
             </button>
             <button
               onClick={collapseAll}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              ყველას დაკეცვა
+              <span className="hidden sm:inline">ყველას დაკეცვა</span>
+              <span className="sm:hidden">დაკეცვა</span>
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 text-xs sm:text-sm"
             >
               <Plus className="w-4 h-4" />
-              ახალი კატეგორია
+              <span className="hidden xs:inline">ახალი</span>
             </button>
           </div>
         </div>
 
         {/* Info */}
-        <div className="bg-accent-50 border border-accent-200 rounded-lg p-4 text-sm text-accent-600">
+        <div className="bg-accent-50 border border-accent-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm text-accent-600">
           <strong>მინიშნება:</strong> გადაათრიეთ კატეგორიები თანმიმდევრობის შესაცვლელად.
-          ქვეკატეგორიების სანახავად დააჭირეთ ისარს.
+          <span className="hidden sm:inline"> ქვეკატეგორიების სანახავად დააჭირეთ ისარს.</span>
         </div>
 
         {/* Categories Tree */}
-        <div className="bg-gray-50 rounded-xl p-4">
+        <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
           {parentCategories.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-8 sm:py-12 text-gray-500 text-sm">
               კატეგორიები არ მოიძებნა
             </div>
           ) : (
@@ -518,7 +529,7 @@ function CategoryModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={category ? 'კატეგორიის რედაქტირება' : 'ახალი კატეგორია'}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">სახელი</label>
           <input
@@ -528,7 +539,7 @@ function CategoryModal({
               const name = e.target.value;
               setFormData({ ...formData, name, slug: slugify(name) });
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
             required
           />
         </div>
@@ -539,7 +550,7 @@ function CategoryModal({
             type="text"
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
             required
           />
         </div>
@@ -549,8 +560,8 @@ function CategoryModal({
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
+            rows={2}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
           />
         </div>
 
@@ -559,9 +570,9 @@ function CategoryModal({
           <select
             value={formData.parentId}
             onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
           >
-            <option value="">არცერთი (მთავარი კატეგორია)</option>
+            <option value="">არცერთი (მთავარი)</option>
             {parentCategoriesForSelect
               .filter((cat) => cat.id !== category?.id)
               .map((cat) => (
@@ -581,11 +592,11 @@ function CategoryModal({
         {category && childCategories.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">ქვეკატეგორიები</label>
-            <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+            <div className="space-y-1.5 sm:space-y-2 max-h-32 sm:max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-2 sm:p-3 bg-gray-50">
               {childCategories.map((child) => (
                 <div
                   key={child.id}
-                  className="flex items-center justify-between text-sm p-2 bg-white rounded border border-gray-100"
+                  className="flex items-center justify-between text-xs sm:text-sm p-1.5 sm:p-2 bg-white rounded border border-gray-100"
                 >
                   <span className="font-medium text-gray-900">{child.name}</span>
                   <span className="text-gray-500 text-xs">
@@ -601,14 +612,14 @@ function CategoryModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
           >
             გაუქმება
           </button>
           <button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
-            className="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50"
+            className="px-3 sm:px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 text-sm"
           >
             {createMutation.isPending || updateMutation.isPending
               ? 'ინახება...'

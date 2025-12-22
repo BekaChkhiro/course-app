@@ -58,22 +58,22 @@ function StatCard({ title, value, subtitle, change, icon, iconBg }: StatCardProp
   const isPositive = change !== undefined && change >= 0;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-5">
       <div className="flex items-start justify-between">
-        <div className={`p-3 rounded-lg ${iconBg}`}>
+        <div className={`p-2 sm:p-3 rounded-lg ${iconBg}`}>
           {icon}
         </div>
         {change !== undefined && (
-          <div className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-            {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+          <div className={`flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            {isPositive ? <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />}
             {isPositive ? '+' : ''}{change}%
           </div>
         )}
       </div>
-      <div className="mt-4">
-        <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
-        <p className="text-sm text-gray-500 mt-1">{title}</p>
-        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+      <div className="mt-2 sm:mt-4">
+        <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{value}</h3>
+        <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">{title}</p>
+        {subtitle && <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">{subtitle}</p>}
       </div>
     </div>
   );
@@ -102,33 +102,33 @@ export default function AnalyticsPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-1">
               <Link href="/admin" className="hover:text-primary-900">მთავარი</Link>
               <span>/</span>
               <span>ანალიტიკა</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">ანალიტიკა</h1>
-            <p className="text-gray-500 mt-1">გადახდები, მომხმარებლები და კურსების სტატისტიკა</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ანალიტიკა</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1 hidden sm:block">გადახდები, მომხმარებლები და კურსების სტატისტიკა</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <select
               value={period}
               onChange={(e) => setPeriod(parseInt(e.target.value))}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
-              <option value={7}>ბოლო 7 დღე</option>
-              <option value={30}>ბოლო 30 დღე</option>
-              <option value={90}>ბოლო 90 დღე</option>
-              <option value={365}>ბოლო წელი</option>
+              <option value={7}>7 დღე</option>
+              <option value={30}>30 დღე</option>
+              <option value={90}>90 დღე</option>
+              <option value={365}>1 წელი</option>
             </select>
             <button
               onClick={() => refetch()}
               disabled={isFetching}
-              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
               title="განახლება"
             >
               <RefreshCw className={`w-5 h-5 ${isFetching ? 'animate-spin' : ''}`} />
@@ -137,23 +137,23 @@ export default function AnalyticsPage() {
         </div>
 
         {isLoading ? (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-gray-200 rounded-xl animate-pulse h-64" />
+              <div key={i} className="bg-gray-200 rounded-xl animate-pulse h-48 sm:h-64" />
             ))}
           </div>
         ) : analytics ? (
           <>
             {/* ===== PAYMENTS SECTION ===== */}
             <section>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <DollarSign className="w-5 h-5 text-green-600" />
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
+                  <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">გადახდები</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">გადახდები</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <StatCard
                   title="სულ შემოსავალი"
                   value={formatCurrency(analytics.payments?.totalRevenue || 0)}
@@ -183,11 +183,11 @@ export default function AnalyticsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Revenue Chart */}
-                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
-                  <h3 className="text-sm font-medium text-gray-700 mb-4">შემოსავლის ტრენდი</h3>
-                  <div className="h-64">
+                <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-3 sm:p-5">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4">შემოსავლის ტრენდი</h3>
+                  <div className="h-48 sm:h-64">
                     {analytics.payments?.trend && analytics.payments.trend.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={analytics.payments.trend}>
@@ -225,26 +225,26 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Top Courses by Revenue */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5">
-                  <h3 className="text-sm font-medium text-gray-700 mb-4">Top კურსები შემოსავლით</h3>
-                  <div className="space-y-3">
+                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-5">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4">Top კურსები შემოსავლით</h3>
+                  <div className="space-y-2 sm:space-y-3">
                     {analytics.payments?.topCourses && analytics.payments.topCourses.length > 0 ? (
                       analytics.payments.topCourses.map((course: TopCourse, index: number) => (
-                        <div key={course.id} className="flex items-center gap-3">
-                          <span className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                        <div key={course.id} className="flex items-center gap-2 sm:gap-3">
+                          <span className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-100 rounded-full text-xs font-medium text-gray-600 flex-shrink-0">
                             {index + 1}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{course.title}</p>
-                            <p className="text-xs text-gray-500">{course.purchases} შეძენა</p>
+                            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{course.title}</p>
+                            <p className="text-xs text-gray-500 hidden sm:block">{course.purchases} შეძენა</p>
                           </div>
-                          <span className="text-sm font-semibold text-green-600">
+                          <span className="text-xs sm:text-sm font-semibold text-green-600 flex-shrink-0">
                             {formatCurrency(Number(course.revenue) || 0)}
                           </span>
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-400 text-center py-4">მონაცემები არ არის</p>
+                      <p className="text-xs sm:text-sm text-gray-400 text-center py-4">მონაცემები არ არის</p>
                     )}
                   </div>
                 </div>
@@ -253,14 +253,14 @@ export default function AnalyticsPage() {
 
             {/* ===== USERS SECTION ===== */}
             <section>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users className="w-5 h-5 text-blue-600" />
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">მომხმარებლები</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">მომხმარებლები</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <StatCard
                   title="სულ სტუდენტები"
                   value={analytics.users?.total || 0}
@@ -291,9 +291,9 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Registration Trend Chart */}
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <h3 className="text-sm font-medium text-gray-700 mb-4">რეგისტრაციის ტრენდი</h3>
-                <div className="h-48">
+              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-5">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4">რეგისტრაციის ტრენდი</h3>
+                <div className="h-40 sm:h-48">
                   {analytics.users?.trend && analytics.users.trend.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={analytics.users.trend}>
@@ -323,14 +323,14 @@ export default function AnalyticsPage() {
 
             {/* ===== COURSES SECTION ===== */}
             <section>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <BookOpen className="w-5 h-5 text-purple-600" />
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900">კურსები</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900">კურსები</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <StatCard
                   title="გამოქვეყნებული კურსები"
                   value={analytics.courses?.total || 0}
@@ -360,9 +360,11 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Top Courses by Enrollments */}
-              <div className="bg-white rounded-xl border border-gray-200 p-5">
-                <h3 className="text-sm font-medium text-gray-700 mb-4">Top კურსები ჩარიცხვებით</h3>
-                <div className="overflow-x-auto">
+              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-5">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-3 sm:mb-4">Top კურსები ჩარიცხვებით</h3>
+
+                {/* Desktop table */}
+                <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
@@ -410,6 +412,33 @@ export default function AnalyticsPage() {
                       )}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile list */}
+                <div className="sm:hidden space-y-2">
+                  {analytics.courses?.topCourses && analytics.courses.topCourses.length > 0 ? (
+                    analytics.courses.topCourses.map((course: TopCourse, index: number) => (
+                      <div key={course.id} className="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
+                        <span className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded-full text-xs font-medium text-gray-600 flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/admin/courses/${course.id}`}
+                            className="text-xs font-medium text-gray-900 hover:text-primary-900 truncate block"
+                          >
+                            {course.title}
+                          </Link>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-xs font-semibold text-gray-900">{course.enrollments}</span>
+                          <span className="text-xs text-yellow-600">{Number(course.avg_rating || 0).toFixed(1)} ★</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center py-4">მონაცემები არ არის</p>
+                  )}
                 </div>
               </div>
             </section>

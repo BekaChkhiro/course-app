@@ -134,45 +134,45 @@ function QuestionFormFields({
   };
 
   return (
-    <div className={`space-y-4 ${isEditing ? '' : 'p-5 bg-gray-50 rounded-xl mb-6'}`}>
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <label className="block text-sm text-gray-600 mb-1.5">ტიპი</label>
+    <div className={`space-y-3 sm:space-y-4 ${isEditing ? '' : 'p-4 sm:p-5 bg-gray-50 rounded-xl mb-4 sm:mb-6'}`}>
+      <div className="flex gap-2 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">ტიპი</label>
           <select
             value={currentQuestion.type}
             onChange={(e) => setCurrentQuestion({ ...currentQuestion, type: e.target.value as QuestionType })}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full px-2 sm:px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
           >
             <option value={QuestionType.SINGLE_CHOICE}>ერთი სწორი</option>
             <option value={QuestionType.MULTIPLE_CHOICE}>რამდენიმე სწორი</option>
             <option value={QuestionType.TRUE_FALSE}>ჭეშმარიტი/მცდარი</option>
           </select>
         </div>
-        <div className="w-24">
-          <label className="block text-sm text-gray-600 mb-1.5">ქულა</label>
+        <div className="w-16 sm:w-24 flex-shrink-0">
+          <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">ქულა</label>
           <input
             type="number"
             value={currentQuestion.points}
             onChange={(e) => setCurrentQuestion({ ...currentQuestion, points: parseInt(e.target.value) || 1 })}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full px-2 sm:px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1.5">კითხვა</label>
+        <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">კითხვა</label>
         <textarea
           value={currentQuestion.question}
           onChange={(e) => setCurrentQuestion({ ...currentQuestion, question: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+          className="w-full px-2 sm:px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
           placeholder="შეიყვანეთ კითხვა..."
         />
       </div>
 
       {/* Question Image Upload */}
       <div>
-        <label className="block text-sm text-gray-600 mb-1.5">სურათი (არასავალდებულო)</label>
+        <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">სურათი (არასავალდებულო)</label>
         <input
           ref={fileInputRef}
           type="file"
@@ -186,7 +186,7 @@ function QuestionFormFields({
             <img
               src={currentQuestion.questionImage}
               alt="კითხვის სურათი"
-              className="max-w-xs max-h-40 rounded-lg border border-gray-200"
+              className="max-w-[200px] sm:max-w-xs max-h-32 sm:max-h-40 rounded-lg border border-gray-200"
             />
             <button
               type="button"
@@ -202,7 +202,7 @@ function QuestionFormFields({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-accent-600 hover:bg-accent-50 border border-dashed border-gray-300 hover:border-accent-300 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-gray-500 hover:text-accent-600 hover:bg-accent-50 border border-dashed border-gray-300 hover:border-accent-300 rounded-lg transition-colors disabled:opacity-50"
           >
             {isUploading ? (
               <>
@@ -221,7 +221,7 @@ function QuestionFormFields({
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm text-gray-600">პასუხები</label>
+          <label className="text-xs sm:text-sm text-gray-600">პასუხები</label>
           <button
             type="button"
             onClick={addAnswer}
@@ -247,7 +247,7 @@ function QuestionFormFields({
                 value={answer.answer}
                 onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
                 placeholder={`პასუხი ${index + 1}`}
-                className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 ${
+                className={`flex-1 min-w-0 px-2 sm:px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 ${
                   answer.isCorrect ? 'border-green-200 bg-green-50' : 'border-gray-200'
                 }`}
               />
@@ -255,7 +255,7 @@ function QuestionFormFields({
                 <button
                   type="button"
                   onClick={() => removeAnswer(index)}
-                  className="p-1.5 text-gray-400 hover:text-red-500"
+                  className="p-1.5 text-gray-400 hover:text-red-500 flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -266,12 +266,12 @@ function QuestionFormFields({
       </div>
 
       <div>
-        <label className="block text-sm text-gray-600 mb-1.5">განმარტება (არასავალდებულო)</label>
+        <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">განმარტება (არასავალდებულო)</label>
         <textarea
           value={currentQuestion.explanation}
           onChange={(e) => setCurrentQuestion({ ...currentQuestion, explanation: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
+          className="w-full px-2 sm:px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 resize-none"
           placeholder="რატომ არის ეს პასუხი სწორი..."
         />
       </div>
@@ -289,7 +289,7 @@ function QuestionFormFields({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+          className="px-3 sm:px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
         >
           გაუქმება
         </button>
@@ -580,60 +580,60 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
     const totalPoints = questions.reduce((sum: number, q: any) => sum + (q.points || 0), 0);
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">{existingExam.title}</h2>
-            <p className="text-sm text-gray-500 mt-1">საფინალო გამოცდა</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">{existingExam.title}</h2>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">საფინალო გამოცდა</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={() => setEditingSettings(!editingSettings)}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
               onClick={() => confirm('წავშალოთ გამოცდა?') && deleteExamMutation.mutate()}
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="p-4 bg-gray-50 rounded-xl">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 uppercase tracking-wide">დრო</p>
-            <p className="text-2xl font-semibold text-gray-900 mt-1">{existingExam.timeLimit}<span className="text-sm font-normal text-gray-500 ml-1">წთ</span></p>
+            <p className="text-lg sm:text-2xl font-semibold text-gray-900 mt-0.5 sm:mt-1">{existingExam.timeLimit}<span className="text-xs sm:text-sm font-normal text-gray-500 ml-1">წთ</span></p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-xl">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 uppercase tracking-wide">გასავლელი</p>
-            <p className="text-2xl font-semibold text-gray-900 mt-1">{existingExam.passingScore}<span className="text-sm font-normal text-gray-500 ml-1">%</span></p>
+            <p className="text-lg sm:text-2xl font-semibold text-gray-900 mt-0.5 sm:mt-1">{existingExam.passingScore}<span className="text-xs sm:text-sm font-normal text-gray-500 ml-1">%</span></p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-xl">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 uppercase tracking-wide">მცდელობები</p>
-            <p className="text-2xl font-semibold text-gray-900 mt-1">{existingExam.maxAttempts}</p>
+            <p className="text-lg sm:text-2xl font-semibold text-gray-900 mt-0.5 sm:mt-1">{existingExam.maxAttempts}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-xl">
+          <div className="p-3 sm:p-4 bg-gray-50 rounded-xl">
             <p className="text-xs text-gray-500 uppercase tracking-wide">ქულები</p>
-            <p className="text-2xl font-semibold text-gray-900 mt-1">{totalPoints}</p>
+            <p className="text-lg sm:text-2xl font-semibold text-gray-900 mt-0.5 sm:mt-1">{totalPoints}</p>
           </div>
         </div>
 
         {/* Settings Panel */}
         {editingSettings && (
-          <div className="p-5 bg-white border border-gray-200 rounded-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-gray-900">პარამეტრები</h3>
+          <div className="p-4 sm:p-5 bg-white border border-gray-200 rounded-xl">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="font-medium text-gray-900 text-sm sm:text-base">პარამეტრები</h3>
               <button onClick={() => setEditingSettings(false)} className="p-1 hover:bg-gray-100 rounded">
                 <X className="w-4 h-4 text-gray-400" />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="sm:col-span-2">
                 <label className="block text-sm text-gray-600 mb-1.5">სათაური</label>
                 <input
                   type="text"
@@ -673,7 +673,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
             <button
               onClick={() => updateExamMutation.mutate(examData)}
               disabled={updateExamMutation.isPending}
-              className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50"
+              className="mt-4 px-4 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-800 disabled:opacity-50 w-full sm:w-auto"
             >
               {updateExamMutation.isPending ? 'შენახვა...' : 'შენახვა'}
             </button>
@@ -682,8 +682,8 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
 
         {/* Questions */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-gray-900">კითხვები ({questions.length})</h3>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="font-medium text-gray-900 text-sm sm:text-base">კითხვები ({questions.length})</h3>
             <button
               onClick={() => {
                 setShowQuestionForm(!showQuestionForm);
@@ -693,7 +693,8 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800"
             >
               <Plus className="w-4 h-4" />
-              დამატება
+              <span className="hidden xs:inline">დამატება</span>
+              <span className="xs:hidden">+</span>
             </button>
           </div>
 
@@ -711,12 +712,12 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
 
           {/* Questions List */}
           {questions.length === 0 && !showQuestionForm ? (
-            <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
-              <FileQuestion className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">კითხვები არ არის</p>
+            <div className="text-center py-8 sm:py-12 border-2 border-dashed border-gray-200 rounded-xl">
+              <FileQuestion className="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mx-auto mb-2 sm:mb-3" />
+              <p className="text-gray-500 text-xs sm:text-sm">კითხვები არ არის</p>
               <button
                 onClick={() => setShowQuestionForm(true)}
-                className="mt-3 text-sm text-gray-900 font-medium hover:underline"
+                className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-900 font-medium hover:underline"
               >
                 დაამატე პირველი კითხვა
               </button>
@@ -760,13 +761,13 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
 
   // Create Exam Form
   return (
-    <div className="max-w-lg mx-auto py-12">
-      <div className="text-center mb-8">
-        <h2 className="text-xl font-semibold text-gray-900">საფინალო გამოცდა</h2>
-        <p className="text-sm text-gray-500 mt-1">შექმენით გამოცდა სერტიფიკატის მისაღებად</p>
+    <div className="max-w-lg mx-auto py-6 sm:py-12 px-4 sm:px-0">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">საფინალო გამოცდა</h2>
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">შექმენით გამოცდა სერტიფიკატის მისაღებად</p>
       </div>
 
-      <form onSubmit={handleCreateExam} className="space-y-6">
+      <form onSubmit={handleCreateExam} className="space-y-4 sm:space-y-6">
         <div>
           <label className="block text-sm text-gray-600 mb-1.5">სათაური</label>
           <input
@@ -774,62 +775,62 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
             value={examData.title}
             onChange={(e) => setExamData({ ...examData, title: e.target.value })}
             placeholder="მაგ: კურსის საფინალო გამოცდა"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
             required
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1.5">დრო (წთ)</label>
+            <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">დრო (წთ)</label>
             <input
               type="number"
               value={examData.timeLimit}
               onChange={(e) => setExamData({ ...examData, timeLimit: parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1.5">გასავლელი (%)</label>
+            <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">გასავლელი (%)</label>
             <input
               type="number"
               value={examData.passingScore}
               onChange={(e) => setExamData({ ...examData, passingScore: parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1.5">მცდელობები</label>
+            <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-1.5">მცდელობები</label>
             <input
               type="number"
               value={examData.maxAttempts}
               onChange={(e) => setExamData({ ...examData, maxAttempts: parseInt(e.target.value) || 1 })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+              className="w-full px-2 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               required
             />
           </div>
         </div>
 
         <div className="pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-400 mb-4">ავტომატურად ჩართულია:</p>
+          <p className="text-xs text-gray-400 mb-3 sm:mb-4">ავტომატურად ჩართულია:</p>
           <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              სერტიფიკატის გენერაცია
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <span className="truncate">სერტიფიკატის გენერაცია</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              შერეული კითხვები
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <span className="truncate">შერეული კითხვები</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              Anti-Cheat დაცვა
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <span className="truncate">Anti-Cheat დაცვა</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              განმარტებები
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <span className="truncate">განმარტებები</span>
             </div>
           </div>
         </div>
@@ -837,7 +838,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
         <button
           type="submit"
           disabled={createExamMutation.isPending}
-          className="w-full py-3 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-colors"
+          className="w-full py-2.5 sm:py-3 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 disabled:opacity-50 transition-colors"
         >
           {createExamMutation.isPending ? 'იქმნება...' : 'შექმნა'}
         </button>
@@ -894,16 +895,16 @@ function SortableQuestionItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`p-4 ${isEditing ? 'bg-gray-50' : ''}`}
+      className={`p-3 sm:p-4 ${isEditing ? 'bg-gray-50' : ''}`}
     >
       {isEditing ? (
         // Edit Mode
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
               {index + 1}
             </span>
-            <span className="text-sm font-medium text-gray-700">რედაქტირება</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700">რედაქტირება</span>
           </div>
           <QuestionFormFields
             currentQuestion={currentQuestion}
@@ -917,18 +918,18 @@ function SortableQuestionItem({
       ) : (
         // View Mode
         <>
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3">
             {/* Drag Handle */}
             <button
               type="button"
-              className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none mt-0.5"
+              className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none mt-0.5 flex-shrink-0"
               {...attributes}
               {...listeners}
             >
               <GripVertical className="w-4 h-4" />
             </button>
 
-            <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0 mt-0.5">
+            <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 flex-shrink-0 mt-0.5">
               {index + 1}
             </span>
 
@@ -936,73 +937,73 @@ function SortableQuestionItem({
               className="flex-1 min-w-0 cursor-pointer"
               onClick={() => toggleQuestion(question.id)}
             >
-              <p className="text-sm text-gray-900">{question.question}</p>
+              <p className="text-xs sm:text-sm text-gray-900 line-clamp-2">{question.question}</p>
               {question.questionImage && (
                 <img
                   src={question.questionImage}
                   alt="კითხვის სურათი"
-                  className="mt-2 max-w-xs max-h-32 rounded-lg border border-gray-200"
+                  className="mt-2 max-w-[150px] sm:max-w-xs max-h-24 sm:max-h-32 rounded-lg border border-gray-200"
                 />
               )}
-              <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
+              <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5 text-xs text-gray-400">
                 <span>{question.points} ქულა</span>
                 <span>{question.answers?.length || 0} პასუხი</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEditQuestion(question);
                 }}
-                className="p-1.5 text-gray-300 hover:text-gray-600 rounded"
+                className="p-1 sm:p-1.5 text-gray-300 hover:text-gray-600 rounded"
                 title="რედაქტირება"
               >
-                <Edit2 className="w-4 h-4" />
+                <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   confirm('წავშალოთ?') && deleteQuestionMutation.mutate(question.id);
                 }}
-                className="p-1.5 text-gray-300 hover:text-red-500 rounded"
+                className="p-1 sm:p-1.5 text-gray-300 hover:text-red-500 rounded"
                 title="წაშლა"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
               <button
                 onClick={() => toggleQuestion(question.id)}
-                className="p-1.5 text-gray-400"
+                className="p-1 sm:p-1.5 text-gray-400"
               >
                 {isExpanded ? (
-                  <ChevronUp className="w-4 h-4" />
+                  <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 ) : (
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 )}
               </button>
             </div>
           </div>
 
           {isExpanded && (
-            <div className="mt-4 ml-14 space-y-2">
+            <div className="mt-3 sm:mt-4 ml-8 sm:ml-14 space-y-2">
               {question.answers?.map((a: any, aIndex: number) => (
                 <div
                   key={a.id || aIndex}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                  className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm ${
                     a.isCorrect ? 'bg-green-50 text-green-800' : 'bg-gray-50 text-gray-600'
                   }`}
                 >
                   {a.isCorrect ? (
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
                   ) : (
-                    <div className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
                   )}
-                  {a.answer}
+                  <span className="line-clamp-1">{a.answer}</span>
                 </div>
               ))}
               {question.explanation && (
-                <p className="text-xs text-gray-500 mt-3 pl-1">
+                <p className="text-xs text-gray-500 mt-2 sm:mt-3 pl-1">
                   {question.explanation}
                 </p>
               )}

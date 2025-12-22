@@ -105,6 +105,20 @@ export interface User {
   bio?: string;
 }
 
+export interface UpdateProfileData {
+  name?: string;
+  surname?: string;
+  phone?: string;
+  bio?: string;
+  avatar?: string;
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface Device {
   id: string;
   deviceName: string;
@@ -221,6 +235,18 @@ export const authApi = {
   // Remove device
   removeDevice: async (deviceId: string) => {
     const response = await apiClient.delete(`/auth/devices/${deviceId}`);
+    return response.data;
+  },
+
+  // Update user profile
+  updateProfile: async (data: UpdateProfileData): Promise<{ success: boolean; data: { user: User }; message?: string }> => {
+    const response = await apiClient.put('/auth/profile', data);
+    return response.data;
+  },
+
+  // Change password
+  changePassword: async (data: ChangePasswordData): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.post('/auth/change-password', data);
     return response.data;
   },
 };

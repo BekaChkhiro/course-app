@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { Plus, Edit, Copy, Trash2, Download, MoreVertical } from 'lucide-react';
+import { Plus, Edit, Copy, Trash2, Download, MoreVertical, ChevronRight } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import DataTable from '@/components/ui/DataTable';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -198,30 +198,30 @@ export default function CoursesPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">კურსები</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">კურსები</h1>
+            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
               მართეთ თქვენი კურსების კატალოგი
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleExport}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex-1 sm:flex-none"
             >
               <Download className="w-4 h-4" />
-              CSV ექსპორტი
+              <span className="hidden xs:inline">CSV</span> ექსპორტი
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm bg-accent-600 text-white rounded-lg hover:bg-accent-700 flex-1 sm:flex-none"
             >
               <Plus className="w-4 h-4" />
-              ახალი კურსი
+              <span className="hidden xs:inline">ახალი</span> კურსი
             </button>
           </div>
         </div>
@@ -233,6 +233,61 @@ export default function CoursesPage() {
           searchKey="title"
           searchPlaceholder="კურსის ძიება..."
           onRowClick={(course) => router.push(`/admin/courses/${course.id}`)}
+          mobileCardRender={(course) => (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 truncate">{course.title}</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">{course.category?.name}</p>
+                </div>
+                <Badge variant={
+                  course.status === 'PUBLISHED' ? 'success' :
+                  course.status === 'DRAFT' ? 'default' : 'warning'
+                }>
+                  {course.status === 'PUBLISHED' ? 'გამოქვეყნებული' :
+                   course.status === 'DRAFT' ? 'დრაფტი' : 'დაარქივებული'}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <span>{formatCurrency(course.price)}</span>
+                  <span>{course._count.purchases} ჩარიცხვა</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCourse(course);
+                      setIsEditModalOpen(true);
+                    }}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <Edit className="w-4 h-4 text-gray-500" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDuplicate(course);
+                    }}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <Copy className="w-4 h-4 text-gray-500" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(course);
+                    }}
+                    className="p-2 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
+                  <ChevronRight className="w-4 h-4 text-gray-400 ml-1" />
+                </div>
+              </div>
+            </div>
+          )}
         />
       </div>
 
@@ -404,7 +459,7 @@ function CourseModal({
           onChange={(url, path) => setFormData({ ...formData, thumbnail: url, thumbnailPath: path })}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ფასი (ლარი)</label>
             <input
