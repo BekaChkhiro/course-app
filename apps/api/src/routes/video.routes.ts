@@ -12,6 +12,8 @@ import {
   replaceVideo,
   getSecureVideoUrl,
   proxyStreamVideo,
+  getPresignedUploadUrl,
+  confirmVideoUpload,
 } from '../controllers/videoController';
 import { requireAuth, requireAdmin } from '../middleware/auth';
 
@@ -33,6 +35,8 @@ router.get('/:videoId/thumbnails', getVideoThumbnails);
 // Admin routes
 router.use(requireAdmin);
 router.post('/upload', uploadMiddleware, uploadVideo);
+router.post('/presigned-upload', getPresignedUploadUrl); // Get presigned URL for direct R2 upload
+router.post('/confirm-upload', confirmVideoUpload); // Confirm upload after direct R2 upload
 router.delete('/:videoId', deleteVideo);
 router.put('/:videoId/replace', uploadMiddleware, replaceVideo);
 

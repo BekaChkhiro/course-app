@@ -130,7 +130,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
     });
   }, []);
 
-  // Upload video function
+  // Upload video function using presigned URL (direct to R2)
   const uploadVideo = async (upload: UploadItem) => {
     try {
       // Update status to uploading
@@ -140,11 +140,32 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
         )
       );
 
-      const formData = new FormData();
-      formData.append('video', upload.file);
-      formData.append('chapterId', chapterId);
+      // Step 1: Get presigned URL from backend
+      const presignedResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/videos/presigned-upload`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+          body: JSON.stringify({
+            chapterId,
+            fileName: upload.file.name,
+            fileSize: upload.file.size,
+            mimeType: upload.file.type || 'video/mp4',
+          }),
+        }
+      );
 
-      // Create XMLHttpRequest for progress tracking
+      const presignedData = await presignedResponse.json();
+      if (!presignedData.success) {
+        throw new Error(presignedData.message || 'Failed to get upload URL');
+      }
+
+      const { uploadUrl, r2Key } = presignedData.data;
+
+      // Step 2: Upload directly to R2 using presigned URL
       const xhr = new XMLHttpRequest();
 
       // Track upload progress
@@ -158,28 +179,49 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
       });
 
       // Handle completion
-      xhr.addEventListener('load', () => {
-        if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          if (response.success) {
-            const videoId = response.data.videoId;
-
-            // Update to processing status
-            setUploads((prev) =>
-              prev.map((u) =>
-                u.id === upload.id
-                  ? { ...u, status: 'processing' as const, videoId, progress: 100 }
-                  : u
-              )
+      xhr.addEventListener('load', async () => {
+        if (xhr.status === 200 || xhr.status === 201) {
+          // Step 3: Confirm upload to create video record
+          try {
+            const confirmResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/videos/confirm-upload`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+                body: JSON.stringify({
+                  chapterId,
+                  r2Key,
+                  fileName: upload.file.name,
+                  fileSize: upload.file.size,
+                  mimeType: upload.file.type || 'video/mp4',
+                }),
+              }
             );
 
-            // Poll for processing status
-            pollProcessingStatus(upload.id, videoId);
-          } else {
-            throw new Error(response.message || 'Upload failed');
+            const confirmData = await confirmResponse.json();
+            if (confirmData.success) {
+              const videoId = confirmData.data.videoId;
+              setUploads((prev) =>
+                prev.map((u) =>
+                  u.id === upload.id
+                    ? { ...u, status: 'completed' as const, videoId, progress: 100 }
+                    : u
+                )
+              );
+              if (onUploadComplete) {
+                onUploadComplete(videoId);
+              }
+            } else {
+              throw new Error(confirmData.message || 'Failed to confirm upload');
+            }
+          } catch (confirmError) {
+            throw new Error('ატვირთვა დასრულდა, მაგრამ დადასტურება ვერ მოხერხდა');
           }
         } else {
-          throw new Error(`Upload failed with status: ${xhr.status}`);
+          throw new Error(`R2 ატვირთვა ვერ მოხერხდა: ${xhr.status}`);
         }
       });
 
@@ -191,17 +233,17 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
               ? {
                   ...u,
                   status: 'error' as const,
-                  error: 'ატვირთვა ვერ მოხერხდა',
+                  error: 'R2-ზე ატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.',
                 }
               : u
           )
         );
       });
 
-      // Send request
-      xhr.open('POST', `${process.env.NEXT_PUBLIC_API_URL}/api/videos/upload`);
-      xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('accessToken')}`);
-      xhr.send(formData);
+      // Send directly to R2
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Type', upload.file.type || 'video/mp4');
+      xhr.send(upload.file);
     } catch (error) {
       console.error('Upload error:', error);
       setUploads((prev) =>

@@ -222,7 +222,7 @@ class R2Service {
   }
 
   /**
-   * Generate a presigned URL for temporary access
+   * Generate a presigned URL for temporary download access
    */
   async getPresignedUrl(
     key: string,
@@ -239,6 +239,30 @@ class R2Service {
     } catch (error) {
       console.error('R2 presigned URL error:', error);
       throw new Error(`Failed to generate presigned URL: ${error}`);
+    }
+  }
+
+  /**
+   * Generate a presigned URL for direct upload to R2
+   * Client can upload directly without going through our server
+   */
+  async getUploadPresignedUrl(
+    key: string,
+    contentType: string,
+    expiresIn: number = 3600 // 1 hour default
+  ): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.config.bucketName,
+        Key: key,
+        ContentType: contentType,
+      });
+
+      const url = await getSignedUrl(this.client, command, { expiresIn });
+      return url;
+    } catch (error) {
+      console.error('R2 upload presigned URL error:', error);
+      throw new Error(`Failed to generate upload presigned URL: ${error}`);
     }
   }
 

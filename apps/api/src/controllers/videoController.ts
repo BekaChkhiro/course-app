@@ -188,6 +188,162 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * Get presigned URL for direct upload to R2 (bypasses server)
+ * This is the recommended way for large video files
+ */
+export const getPresignedUploadUrl = async (req: AuthRequest, res: Response) => {
+  try {
+    const { chapterId, fileName, fileSize, mimeType } = req.body;
+
+    if (!chapterId || !fileName || !mimeType) {
+      return res.status(400).json({
+        success: false,
+        message: 'chapterId, fileName, and mimeType are required',
+      });
+    }
+
+    // Validate file type
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
+    if (!allowedTypes.includes(mimeType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file type. Only MP4, MOV, AVI, MKV, and WebM are allowed.',
+      });
+    }
+
+    // Get chapter and course info
+    const chapter = await prisma.chapter.findUnique({
+      where: { id: chapterId },
+      include: {
+        courseVersion: {
+          include: {
+            course: true,
+          },
+        },
+      },
+    });
+
+    if (!chapter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chapter not found',
+      });
+    }
+
+    const courseId = chapter.courseVersion.courseId;
+
+    // Generate R2 key for the video
+    const r2Key = r2Service.generateVideoKey(courseId, chapterId, fileName);
+
+    // Generate presigned upload URL (valid for 1 hour)
+    const uploadUrl = await r2Service.getUploadPresignedUrl(r2Key, mimeType, 3600);
+
+    res.json({
+      success: true,
+      data: {
+        uploadUrl,
+        r2Key,
+        expiresIn: 3600,
+      },
+    });
+  } catch (error) {
+    console.error('Get presigned upload URL error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get upload URL',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * Confirm video upload after client uploaded directly to R2
+ */
+export const confirmVideoUpload = async (req: AuthRequest, res: Response) => {
+  try {
+    const { chapterId, r2Key, fileName, fileSize, mimeType } = req.body;
+
+    if (!chapterId || !r2Key || !fileName) {
+      return res.status(400).json({
+        success: false,
+        message: 'chapterId, r2Key, and fileName are required',
+      });
+    }
+
+    // Verify the file exists in R2
+    try {
+      await r2Service.getFileMetadata(r2Key);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: 'Video file not found in storage. Upload may have failed.',
+      });
+    }
+
+    // Get chapter info
+    const chapter = await prisma.chapter.findUnique({
+      where: { id: chapterId },
+    });
+
+    if (!chapter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chapter not found',
+      });
+    }
+
+    // Delete existing video if any
+    const existingVideo = await prisma.video.findFirst({
+      where: { chapterId },
+    });
+
+    if (existingVideo && existingVideo.r2Key) {
+      await r2Service.deleteFile(existingVideo.r2Key).catch(() => {});
+      await prisma.video.delete({ where: { id: existingVideo.id } });
+    }
+
+    // Generate public URL
+    const publicUrl = `${process.env.R2_PUBLIC_URL || ''}/${r2Key}`;
+
+    // Create video record
+    const video = await prisma.video.create({
+      data: {
+        chapterId,
+        originalName: fileName,
+        originalSize: fileSize || 0,
+        mimeType: mimeType || 'video/mp4',
+        r2Key: r2Key,
+        r2Bucket: process.env.R2_BUCKET_NAME || 'course-videos',
+        processingStatus: 'COMPLETED',
+        hlsMasterUrl: publicUrl,
+      },
+    });
+
+    // Update chapter with video URL
+    await prisma.chapter.update({
+      where: { id: chapterId },
+      data: { videoUrl: publicUrl },
+    });
+
+    res.json({
+      success: true,
+      message: 'Video upload confirmed',
+      data: {
+        videoId: video.id,
+        status: video.processingStatus,
+      },
+    });
+  } catch (error) {
+    console.error('Confirm video upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to confirm video upload',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
  * Get video processing status
  */
 export const getProcessingStatus = async (req: AuthRequest, res: Response) => {
