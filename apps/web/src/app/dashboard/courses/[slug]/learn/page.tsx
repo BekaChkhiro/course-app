@@ -700,8 +700,8 @@ function ChapterContent({
                     <p>ვიდეო იტვირთება...</p>
                   </div>
                 </div>
-              ) : secureVideoData?.data ? (
-                // Use secure signed URL with watermark
+              ) : secureVideoData?.data?.url ? (
+                // Use secure proxy URL (never exposes real video URL)
                 <div className="w-full max-w-[1200px]">
                   <VideoPlayer
                     src={secureVideoData.data.url}
@@ -717,19 +717,15 @@ function ChapterContent({
                   />
                 </div>
               ) : (
-                // Fallback to direct URL (for development or if secure URL fails)
-                <div className="w-full max-w-[1200px]">
-                  <VideoPlayer
-                    src={chapter.video.hlsMasterUrl}
-                    title={chapter.title}
-                    initialTime={progress.lastPosition || 0}
-                    onProgress={() => {
-                      // Optional: Save progress to backend periodically
-                    }}
-                    onEnded={() => {
-                      // Optional: Mark as completed when video ends
-                    }}
-                  />
+                // Video not available
+                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[1200px] flex items-center justify-center text-white">
+                  <div className="text-center">
+                    <svg className="w-16 h-16 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-lg font-medium mb-2">ვიდეო მიუწვდომელია</p>
+                    <p className="text-gray-400 text-sm">ვიდეო ფაილი ვერ მოიძებნა. გთხოვთ დაუკავშირდეთ ადმინისტრატორს.</p>
+                  </div>
                 </div>
               )
             ) : (

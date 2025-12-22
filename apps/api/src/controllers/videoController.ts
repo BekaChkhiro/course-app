@@ -11,7 +11,14 @@ import videoAccessService from '../services/videoAccess.service';
 import r2Service from '../services/r2.service';
 
 // In-memory store for stream tokens (in production, use Redis)
-const streamTokens = new Map<string, { videoId: string; userId: string; expiresAt: Date; watermark: { text: string; visibleText: string } }>();
+const streamTokens = new Map<string, {
+  videoId: string;
+  userId: string;
+  expiresAt: Date;
+  watermark: { text: string; visibleText: string };
+  externalUrl?: string; // For proxying external videos (YouTube, etc.)
+  r2Key?: string; // For R2 videos
+}>();
 
 // Clean expired tokens periodically
 setInterval(() => {
@@ -559,15 +566,45 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
     const streamToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
 
-    // Store token
+    // Determine video source and store in token
+    let hasR2Source = false;
+    let hasExternalSource = false;
+
+    // Check if video file exists in R2
+    if (video.r2Key) {
+      try {
+        await r2Service.getFileMetadata(video.r2Key);
+        hasR2Source = true;
+      } catch (err) {
+        console.error('R2 file not found:', video.r2Key, err);
+        hasR2Source = false;
+      }
+    }
+
+    // Check for external URL fallback
+    if (!hasR2Source && video.hlsMasterUrl) {
+      hasExternalSource = true;
+    }
+
+    // No video source available
+    if (!hasR2Source && !hasExternalSource) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video file not available',
+      });
+    }
+
+    // Store token with source info (NEVER expose actual URLs to client)
     streamTokens.set(streamToken, {
       videoId,
       userId,
       expiresAt,
       watermark,
+      r2Key: hasR2Source ? video.r2Key! : undefined,
+      externalUrl: hasExternalSource ? video.hlsMasterUrl! : undefined,
     });
 
-    // Return proxied URL (no R2 URL exposed in browser)
+    // ALWAYS return proxied URL (no real URL exposed in browser)
     const apiUrl = process.env.API_URL || 'http://localhost:4000';
     const proxyUrl = `${apiUrl}/api/videos/proxy-stream/${streamToken}`;
 
@@ -577,6 +614,7 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
         url: proxyUrl,
         expiresAt: expiresAt.toISOString(),
         watermark,
+        isExternal: hasExternalSource,
       },
     });
   } catch (error) {
@@ -624,41 +662,261 @@ export const proxyStreamVideo = async (req: AuthRequest, res: Response) => {
       process.env.FRONTEND_URL || '',
     ].filter(Boolean);
 
-    // Check referer - MUST come from our site (empty referer = direct URL access = blocked)
+    // Check referer - MUST come from our site (required for video requests)
     const isValidReferer = referer && allowedOrigins.some(origin => referer.startsWith(origin));
 
     // Check user-agent - block common download tools
-    const blockedAgents = ['wget', 'curl', 'python', 'java', 'libwww', 'httpclient', 'okhttp', 'postman', 'insomnia'];
+    const blockedAgents = ['wget', 'curl', 'python', 'java', 'libwww', 'httpclient', 'okhttp', 'postman', 'insomnia', 'download', 'idm'];
     const isBlockedAgent = blockedAgents.some(agent => userAgent.toLowerCase().includes(agent));
 
-    // Check if request looks like a direct browser navigation (not video element)
+    // Check Accept header - direct browser navigation starts with text/html
     const acceptHeader = req.headers.accept || '';
-    const isDirectNavigation = acceptHeader.includes('text/html') && !acceptHeader.includes('video');
+    const isDirectBrowserNavigation = acceptHeader.startsWith('text/html');
 
-    if (!isValidReferer || isBlockedAgent || isDirectNavigation) {
-      console.log(`Blocked video request - Referer: ${referer}, User-Agent: ${userAgent}, Accept: ${acceptHeader}`);
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied - Video can only be played within the course platform',
-      });
+    // Check Sec-Fetch headers (modern browsers send these)
+    const secFetchDest = req.headers['sec-fetch-dest'] || '';
+
+    // Block if:
+    // 1. Blocked user agent
+    // 2. Direct browser navigation (typing URL in address bar)
+    // 3. No valid referer from our site
+    // 4. Sec-Fetch-Dest indicates document navigation
+    const isDocumentNavigation = secFetchDest === 'document';
+
+    // Helper function to render error page
+    const renderErrorPage = (title: string, message: string, icon: string) => {
+      const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:3000';
+      return `
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #091e33 0%, #0e3355 50%, #1e3d63 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.5s ease-out;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #ff4d40 0%, #ed3124 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px -5px rgba(255, 77, 64, 0.4);
+    }
+    .icon svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+    h1 {
+      font-size: 24px;
+      color: #0e3355;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    p {
+      color: #5a88b8;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #0e3355 0%, #1e3d63 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px -3px rgba(14, 51, 85, 0.4);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px -5px rgba(14, 51, 85, 0.5);
+      background: linear-gradient(135deg, #1e3d63 0%, #2d5280 100%);
+    }
+    .btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .logo {
+      width: 120px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      ${icon}
+    </div>
+    <h1>${title}</h1>
+    <p>${message}</p>
+    <a href="${frontendUrl}/dashboard" class="btn">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      პლატფორმაზე დაბრუნება
+    </a>
+  </div>
+</body>
+</html>`;
+    };
+
+    const shieldIcon = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
+    const blockIcon = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>`;
+
+    if (isBlockedAgent) {
+      console.log(`Blocked download tool - User-Agent: ${userAgent}`);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(403).send(renderErrorPage(
+        'ჩამოტვირთვა აკრძალულია',
+        'ვიდეოს ჩამოტვირთვა მესამე მხარის პროგრამებით შეუძლებელია. ვიდეოები დაცულია საავტორო უფლებებით.',
+        blockIcon
+      ));
     }
 
-    // Get video info
-    const video = await prisma.video.findUnique({
-      where: { id: tokenData.videoId },
-    });
+    if (isDocumentNavigation || isDirectBrowserNavigation) {
+      console.log(`Blocked direct navigation - Accept: ${acceptHeader}, Sec-Fetch-Dest: ${secFetchDest}`);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(403).send(renderErrorPage(
+        'წვდომა შეზღუდულია',
+        'ვიდეო კონტენტი ხელმისაწვდომია მხოლოდ პლატფორმის ფარგლებში. გთხოვთ, დაუბრუნდეთ სასწავლო გვერდს ვიდეოს სანახავად.',
+        shieldIcon
+      ));
+    }
 
-    if (!video || !video.r2Key) {
+    if (!isValidReferer) {
+      console.log(`Blocked - invalid referer: ${referer}`);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(403).send(renderErrorPage(
+        'არასწორი წვდომა',
+        'ვიდეოზე წვდომა შესაძლებელია მხოლოდ პლატფორმიდან. გთხოვთ, შედით თქვენს ანგარიშში და გახსენით კურსი.',
+        shieldIcon
+      ));
+    }
+
+    // Common CORS headers for video streaming
+    const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': corsOrigin,
+      'Access-Control-Allow-Credentials': 'true',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    };
+
+    // Handle external URL streaming (proxy the external video)
+    if (tokenData.externalUrl) {
+      try {
+        // Fetch external video and proxy it
+        const https = await import('https');
+        const http = await import('http');
+        const url = await import('url');
+
+        const parsedUrl = new url.URL(tokenData.externalUrl);
+        const protocol = parsedUrl.protocol === 'https:' ? https : http;
+
+        const options: any = {
+          hostname: parsedUrl.hostname,
+          path: parsedUrl.pathname + parsedUrl.search,
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        };
+
+        // Add range header if present
+        if (range) {
+          options.headers['Range'] = range;
+        }
+
+        const proxyReq = protocol.request(options, (proxyRes: any) => {
+          // Forward status and headers
+          const responseHeaders: Record<string, string> = {
+            'Content-Type': proxyRes.headers['content-type'] || 'video/mp4',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            ...corsHeaders,
+          };
+
+          if (proxyRes.headers['content-length']) {
+            responseHeaders['Content-Length'] = proxyRes.headers['content-length'];
+          }
+          if (proxyRes.headers['content-range']) {
+            responseHeaders['Content-Range'] = proxyRes.headers['content-range'];
+          }
+          if (proxyRes.headers['accept-ranges']) {
+            responseHeaders['Accept-Ranges'] = proxyRes.headers['accept-ranges'];
+          }
+
+          res.writeHead(proxyRes.statusCode || 200, responseHeaders);
+          proxyRes.pipe(res);
+        });
+
+        proxyReq.on('error', (err: Error) => {
+          console.error('External video proxy error:', err);
+          res.status(500).json({
+            success: false,
+            message: 'Failed to stream external video',
+          });
+        });
+
+        proxyReq.end();
+        return;
+      } catch (err) {
+        console.error('External video stream error:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to stream external video',
+        });
+      }
+    }
+
+    // Handle R2 video streaming
+    if (!tokenData.r2Key) {
       return res.status(404).json({
         success: false,
-        message: 'Video not found',
+        message: 'Video source not found',
       });
     }
 
     // Get file from R2 and stream it
     try {
-      const fileStream = await r2Service.getFile(video.r2Key);
-      const metadata = await r2Service.getFileMetadata(video.r2Key);
+      const video = await prisma.video.findUnique({
+        where: { id: tokenData.videoId },
+        select: { mimeType: true },
+      });
+
+      const fileStream = await r2Service.getFile(tokenData.r2Key);
+      const metadata = await r2Service.getFileMetadata(tokenData.r2Key);
       const fileSize = metadata.size;
 
       // Handle range requests for video seeking
@@ -672,20 +930,22 @@ export const proxyStreamVideo = async (req: AuthRequest, res: Response) => {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
           'Accept-Ranges': 'bytes',
           'Content-Length': chunkSize,
-          'Content-Type': video.mimeType || 'video/mp4',
+          'Content-Type': video?.mimeType || 'video/mp4',
           'Cache-Control': 'no-store, no-cache, must-revalidate',
+          ...corsHeaders,
         });
 
         // For range requests, we need to fetch a specific range from R2
         // S3/R2 GetObjectCommand supports Range header
-        const rangeStream = await r2Service.getFileRange(video.r2Key, start, end);
+        const rangeStream = await r2Service.getFileRange(tokenData.r2Key, start, end);
         rangeStream.pipe(res);
       } else {
         res.writeHead(200, {
           'Content-Length': fileSize,
-          'Content-Type': video.mimeType || 'video/mp4',
+          'Content-Type': video?.mimeType || 'video/mp4',
           'Accept-Ranges': 'bytes',
           'Cache-Control': 'no-store, no-cache, must-revalidate',
+          ...corsHeaders,
         });
 
         fileStream.pipe(res);
