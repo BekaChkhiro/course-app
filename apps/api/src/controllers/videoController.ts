@@ -18,7 +18,13 @@ const streamTokens = new Map<string, {
   watermark: { text: string; visibleText: string };
   externalUrl?: string; // For proxying external videos (YouTube, etc.)
   r2Key?: string; // For R2 videos
+  fileSize?: number; // Cached file size for faster streaming
+  mimeType?: string; // Cached mime type
 }>();
+
+// Cache for R2 file metadata (5 minute TTL)
+const metadataCache = new Map<string, { size: number; mimeType: string; cachedAt: number }>();
+const METADATA_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Clean expired tokens periodically
 setInterval(() => {
@@ -124,9 +130,10 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
     // Generate R2 key for the video
     const r2Key = r2Service.generateVideoKey(courseId, chapterId, req.file.originalname);
 
-    // Read file and upload to R2
-    const fileBuffer = await fs.readFile(req.file.path);
-    const uploadResult = await r2Service.uploadFile(r2Key, fileBuffer, req.file.mimetype, {
+    // Use stream upload instead of reading entire file to memory
+    // This prevents memory issues and timeouts with large video files
+    const fileStream = createReadStream(req.file.path);
+    const uploadResult = await r2Service.uploadStream(r2Key, fileStream, req.file.mimetype, {
       originalName: req.file.originalname,
       courseId,
       chapterId,
@@ -569,12 +576,30 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
     // Determine video source and store in token
     let hasR2Source = false;
     let hasExternalSource = false;
+    let cachedFileSize: number | undefined;
+    let cachedMimeType: string | undefined;
 
-    // Check if video file exists in R2
+    // Check if video file exists in R2 and cache metadata
     if (video.r2Key) {
       try {
-        await r2Service.getFileMetadata(video.r2Key);
-        hasR2Source = true;
+        // Check metadata cache first
+        const cached = metadataCache.get(video.r2Key);
+        if (cached && (Date.now() - cached.cachedAt) < METADATA_CACHE_TTL) {
+          hasR2Source = true;
+          cachedFileSize = cached.size;
+          cachedMimeType = cached.mimeType;
+        } else {
+          // Fetch and cache metadata
+          const metadata = await r2Service.getFileMetadata(video.r2Key);
+          hasR2Source = true;
+          cachedFileSize = metadata.size;
+          cachedMimeType = metadata.contentType || video.mimeType || 'video/mp4';
+          metadataCache.set(video.r2Key, {
+            size: cachedFileSize,
+            mimeType: cachedMimeType,
+            cachedAt: Date.now(),
+          });
+        }
       } catch (err) {
         console.error('R2 file not found:', video.r2Key, err);
         hasR2Source = false;
@@ -594,7 +619,7 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Store token with source info (NEVER expose actual URLs to client)
+    // Store token with source info and cached metadata (NEVER expose actual URLs to client)
     streamTokens.set(streamToken, {
       videoId,
       userId,
@@ -602,6 +627,8 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
       watermark,
       r2Key: hasR2Source ? video.r2Key! : undefined,
       externalUrl: hasExternalSource ? video.hlsMasterUrl! : undefined,
+      fileSize: cachedFileSize,
+      mimeType: cachedMimeType,
     });
 
     // ALWAYS return proxied URL (no real URL exposed in browser)
@@ -1111,9 +1138,9 @@ export const replaceVideo = async (req: AuthRequest, res: Response) => {
     // Generate R2 key for the new video
     const r2Key = r2Service.generateVideoKey(courseId, chapterId, req.file.originalname);
 
-    // Read file and upload to R2
-    const fileBuffer = await fs.readFile(req.file.path);
-    const uploadResult = await r2Service.uploadFile(r2Key, fileBuffer, req.file.mimetype, {
+    // Use stream upload instead of reading entire file to memory
+    const fileStream = createReadStream(req.file.path);
+    const uploadResult = await r2Service.uploadStream(r2Key, fileStream, req.file.mimetype, {
       originalName: req.file.originalname,
       courseId,
       chapterId,
