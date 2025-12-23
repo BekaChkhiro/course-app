@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { getDeviceId } from '@/utils/deviceId';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -143,9 +144,11 @@ export const authApi = {
   // Login user
   login: async (data: LoginData) => {
     const fingerprint = getDeviceFingerprint();
+    const deviceId = getDeviceId();
     const response = await apiClient.post('/auth/login', {
       ...data,
       ...fingerprint,
+      deviceId,
     });
 
     // Save access token

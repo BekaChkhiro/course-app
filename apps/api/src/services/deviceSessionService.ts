@@ -15,6 +15,21 @@ export interface CreateDeviceSessionData {
   userAgent: string;
 }
 
+// Custom error for device limit
+export class DeviceLimitError extends Error {
+  code: string;
+  activeDevices: number;
+  maxDevices: number;
+
+  constructor(activeDevices: number) {
+    super('მოწყობილობების ლიმიტი ამოიწურა');
+    this.name = 'DeviceLimitError';
+    this.code = 'DEVICE_LIMIT_REACHED';
+    this.activeDevices = activeDevices;
+    this.maxDevices = MAX_DEVICES_PER_USER;
+  }
+}
+
 export class DeviceSessionService {
   /**
    * Create a new device session
@@ -60,22 +75,9 @@ export class DeviceSessionService {
       },
     });
 
-    // If max devices reached, remove the oldest inactive or least recently used device
+    // If max devices reached, throw error instead of auto-deleting
     if (activeDeviceCount >= MAX_DEVICES_PER_USER) {
-      const oldestDevice = await db.deviceSession.findFirst({
-        where: {
-          userId: data.userId,
-        },
-        orderBy: {
-          lastActiveAt: 'asc',
-        },
-      });
-
-      if (oldestDevice) {
-        await db.deviceSession.delete({
-          where: { id: oldestDevice.id },
-        });
-      }
+      throw new DeviceLimitError(activeDeviceCount);
     }
 
     // Create new session

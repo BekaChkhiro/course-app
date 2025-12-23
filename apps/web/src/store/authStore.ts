@@ -39,6 +39,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  errorCode: string | null; // შეცდომის კოდი (მაგ. DEVICE_LIMIT_REACHED)
   isInitialized: boolean; // ტოკენის ვალიდაცია დასრულებულია?
 
   // Actions
@@ -58,10 +59,11 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      errorCode: null,
       isInitialized: false,
 
       login: async (data: LoginData) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, errorCode: null });
         try {
           const response = await authApi.login(data);
 
@@ -71,6 +73,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
               error: null,
+              errorCode: null,
             });
           } else {
             throw new Error(response.message || 'Login failed');
@@ -78,9 +81,11 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           const rawMessage =
             error.response?.data?.message || error.message || 'Login failed';
+          const errorCode = error.response?.data?.code || null;
           const errorMessage = translateError(rawMessage);
           set({
             error: errorMessage,
+            errorCode,
             isLoading: false,
             isAuthenticated: false,
             user: null,
@@ -207,7 +212,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      clearError: () => set({ error: null }),
+      clearError: () => set({ error: null, errorCode: null }),
 
       setUser: (user: User | null) =>
         set({ user, isAuthenticated: !!user }),

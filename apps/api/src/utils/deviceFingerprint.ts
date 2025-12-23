@@ -14,8 +14,16 @@ export interface DeviceInfo {
 
 /**
  * Generate a device fingerprint based on user agent and client hints
+ * If deviceId is provided from frontend (localStorage), use it instead
  */
 export function generateDeviceFingerprint(req: Request): string {
+  // Check if deviceId is provided from frontend (localStorage-based)
+  // This is more stable than browser fingerprinting
+  if (req.body.deviceId && typeof req.body.deviceId === 'string') {
+    return req.body.deviceId;
+  }
+
+  // Fallback to browser fingerprinting if no deviceId provided
   const userAgent = req.headers['user-agent'] || '';
   const acceptLanguage = req.headers['accept-language'] || '';
   const acceptEncoding = req.headers['accept-encoding'] || '';

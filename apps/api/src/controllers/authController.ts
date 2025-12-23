@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { db } from '../config/database';
 import { AuthRequest } from '../middleware/auth';
 import { TokenService } from '../services/tokenService';
-import { DeviceSessionService } from '../services/deviceSessionService';
+import { DeviceSessionService, DeviceLimitError } from '../services/deviceSessionService';
 import { EmailService } from '../services/emailService';
 import { parseDeviceInfo, getClientIp } from '../utils/deviceFingerprint';
 
@@ -197,6 +197,19 @@ export class AuthController {
         },
       });
     } catch (error) {
+      // Handle device limit error
+      if (error instanceof DeviceLimitError) {
+        return res.status(403).json({
+          success: false,
+          message: 'მოწყობილობების ლიმიტი ამოიწურა. თქვენ უკვე გაქვთ 3 აქტიური მოწყობილობა. ახალი მოწყობილობიდან შესასვლელად, ჯერ გამოდით ერთ-ერთი არსებული მოწყობილობიდან.',
+          code: error.code,
+          data: {
+            activeDevices: error.activeDevices,
+            maxDevices: error.maxDevices,
+          },
+        });
+      }
+
       console.error('Login error:', error);
       return res.status(500).json({
         success: false,
