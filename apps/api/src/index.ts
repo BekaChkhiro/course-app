@@ -35,6 +35,9 @@ import refundRoutes from './routes/refund.routes'
 // Initialize video processor worker
 import './workers/videoProcessor'
 
+// Import refund job service
+import { startRefundCheckJob } from './services/refundJobService'
+
 // Validate required environment variables
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
   console.error('❌ Missing required environment variables!')
@@ -173,6 +176,9 @@ app.use((req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`)
   console.log(`📚 Environment: ${process.env.NODE_ENV}`)
+
+  // Start refund check background job
+  startRefundCheckJob()
 })
 
 export default app

@@ -642,6 +642,10 @@ model RefundRequest {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
+  // Background job fields for auto-checking
+  nextCheckAt     DateTime?    // როდის უნდა შემოწმდეს BOG სტატუსი
+  checkCount      Int          @default(0)  // რამდენჯერ შემოწმდა
+
   // Relations
   purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 
@@ -649,6 +653,7 @@ model RefundRequest {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([nextCheckAt])
   @@map("refund_requests")
 }
 

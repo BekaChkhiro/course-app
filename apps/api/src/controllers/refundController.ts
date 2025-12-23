@@ -2,6 +2,8 @@ import { Response } from 'express'
 import { prisma } from '../config/database'
 import { AuthRequest } from '../middleware/auth'
 import { bogService } from '../services/bog.service'
+import { EmailService } from '../services/emailService'
+import { scheduleFirstRefundCheck } from '../services/refundJobService'
 
 // ============================================
 // STUDENT ENDPOINTS
@@ -90,6 +92,29 @@ export const createRefundRequest = async (req: AuthRequest, res: Response) => {
     })
 
     console.log(`📝 Refund request created: ${refundRequest.id} for purchase ${purchaseId}`)
+
+    // სტუდენტის ინფორმაციის მოძიება email-ისთვის
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    })
+
+    // Email გაგზავნა - მოთხოვნა მიღებულია
+    if (user) {
+      try {
+        await EmailService.sendRefundRequestReceivedEmail(
+          user.email,
+          user.name,
+          purchase.course.title,
+          Number(purchase.finalAmount),
+          userId
+        )
+        console.log(`📧 Refund request received email sent to ${user.email}`)
+      } catch (emailError) {
+        console.error('Failed to send refund request email:', emailError)
+        // Continue even if email fails
+      }
+    }
 
     return res.status(201).json({
       success: true,
@@ -269,11 +294,26 @@ export const approveRefundRequest = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // RefundRequest-ის მოძიება
+    // RefundRequest-ის მოძიება (user და course ინფო email-ისთვის)
     const refundRequest = await prisma.refundRequest.findUnique({
       where: { id },
       include: {
-        purchase: true,
+        purchase: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+            course: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -328,6 +368,29 @@ export const approveRefundRequest = async (req: AuthRequest, res: Response) => {
       })
 
       console.log(`✅ Refund approved and sent to BOG: ${id}, actionId: ${bogResponse.action_id}`)
+
+      // Schedule first auto-check after 1 minute
+      try {
+        await scheduleFirstRefundCheck(id)
+      } catch (scheduleError) {
+        console.error(`Failed to schedule refund check for ${id}:`, scheduleError)
+        // Continue even if scheduling fails
+      }
+
+      // Email გაგზავნა - მოთხოვნა დადასტურდა
+      try {
+        await EmailService.sendRefundApprovedEmail(
+          refundRequest.purchase.user.email,
+          refundRequest.purchase.user.name,
+          refundRequest.purchase.course.title,
+          Number(refundRequest.requestedAmount),
+          refundRequest.purchase.user.id
+        )
+        console.log(`📧 Refund approved email sent to ${refundRequest.purchase.user.email}`)
+      } catch (emailError) {
+        console.error('Failed to send refund approved email:', emailError)
+        // Continue even if email fails
+      }
 
       return res.json({
         success: true,
@@ -455,11 +518,26 @@ export const completeRefundManually = async (req: AuthRequest, res: Response) =>
       })
     }
 
-    // RefundRequest-ის მოძიება
+    // RefundRequest-ის მოძიება (user და course ინფო email-ისთვის)
     const refundRequest = await prisma.refundRequest.findUnique({
       where: { id },
       include: {
-        purchase: true,
+        purchase: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+            course: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -477,6 +555,8 @@ export const completeRefundManually = async (req: AuthRequest, res: Response) =>
       })
     }
 
+    const refundAmount = Number(refundRequest.requestedAmount)
+
     // RefundRequest-ის განახლება
     await prisma.refundRequest.update({
       where: { id },
@@ -485,6 +565,7 @@ export const completeRefundManually = async (req: AuthRequest, res: Response) =>
         refundedAmount: refundRequest.requestedAmount,
         bogRefundStatus: 'manual_complete',
         completedAt: new Date(),
+        nextCheckAt: null, // Stop auto-checking
       },
     })
 
@@ -497,6 +578,21 @@ export const completeRefundManually = async (req: AuthRequest, res: Response) =>
     })
 
     console.log(`✅ Refund manually completed: ${id} by admin ${adminId}`)
+
+    // Email გაგზავნა - თანხა დაბრუნდა
+    try {
+      await EmailService.sendRefundCompletedEmail(
+        refundRequest.purchase.user.email,
+        refundRequest.purchase.user.name,
+        refundRequest.purchase.course.title,
+        refundAmount,
+        refundRequest.purchase.user.id
+      )
+      console.log(`📧 Refund completed email sent to ${refundRequest.purchase.user.email}`)
+    } catch (emailError) {
+      console.error('Failed to send refund completed email:', emailError)
+      // Continue even if email fails
+    }
 
     return res.json({
       success: true,
@@ -531,11 +627,26 @@ export const checkRefundStatus = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // RefundRequest-ის მოძიება
+    // RefundRequest-ის მოძიება (user და course ინფო email-ისთვის)
     const refundRequest = await prisma.refundRequest.findUnique({
       where: { id },
       include: {
-        purchase: true,
+        purchase: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+            course: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -586,6 +697,7 @@ export const checkRefundStatus = async (req: AuthRequest, res: Response) => {
             refundedAmount: refundAmount,
             bogRefundStatus: bogDetails.order_status?.key,
             completedAt: new Date(),
+            nextCheckAt: null, // Stop auto-checking
           },
         })
 
@@ -598,6 +710,21 @@ export const checkRefundStatus = async (req: AuthRequest, res: Response) => {
         })
 
         console.log(`✅ Refund auto-completed from BOG check: ${id}`)
+
+        // Email გაგზავნა - თანხა დაბრუნდა
+        try {
+          await EmailService.sendRefundCompletedEmail(
+            refundRequest.purchase.user.email,
+            refundRequest.purchase.user.name,
+            refundRequest.purchase.course.title,
+            refundAmount,
+            refundRequest.purchase.user.id
+          )
+          console.log(`📧 Refund completed email sent to ${refundRequest.purchase.user.email}`)
+        } catch (emailError) {
+          console.error('Failed to send refund completed email:', emailError)
+          // Continue even if email fails
+        }
 
         return res.json({
           success: true,
