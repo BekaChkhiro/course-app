@@ -54,14 +54,6 @@ export default function BuyButton({
 
   return (
     <div className="space-y-3">
-      {/* ფასი */}
-      <div className="flex items-center gap-2">
-        <span className="text-2xl font-bold text-gray-900">{price} ₾</span>
-        {hasDiscount && (
-          <span className="text-lg text-gray-400 line-through">{originalPrice} ₾</span>
-        )}
-      </div>
-
       {/* პრომო კოდის სექცია */}
       {showPromoInput ? (
         <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
@@ -157,7 +149,7 @@ export default function BuyButton({
             მიმდინარეობს...
           </span>
         ) : (
-          `შეძენა - ${price} ₾`
+          'შეძენა'
         )}
       </button>
     </div>

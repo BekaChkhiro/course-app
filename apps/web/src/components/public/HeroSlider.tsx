@@ -30,16 +30,8 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
   }
 
   return (
-    <section className="w-full py-12 bg-primary-900 relative overflow-hidden">
-      {/* White dots pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle, white 1.5px, transparent 1.5px)',
-          backgroundSize: '25px 25px',
-        }}
-      />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <section className="w-full pt-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="aspect-[2/1] sm:aspect-[16/9] lg:aspect-[3/1] relative rounded-xl sm:rounded-2xl overflow-hidden group">
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}

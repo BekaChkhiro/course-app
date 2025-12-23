@@ -91,12 +91,14 @@ export default function CoursePage() {
       </div>
 
       <div className="p-6">
-        {/* Price */}
-        {course.price === 0 && (
-          <div className="text-3xl font-bold text-green-600 mb-4">
-            უფასო
-          </div>
-        )}
+        {/* Price - ყოველთვის ჩანს */}
+        <div className="text-3xl font-bold mb-4">
+          {course.price === 0 ? (
+            <span className="text-green-600">უფასო</span>
+          ) : (
+            <span className="text-gray-900">{course.price} ₾</span>
+          )}
+        </div>
 
         {/* CTA Button */}
         {isAuthenticated ? (
