@@ -103,19 +103,33 @@ export default function CoursePage() {
         {/* CTA Button */}
         {isAuthenticated ? (
           course.isEnrolled ? (
-            <Link
-              href={`/dashboard/courses/${course.slug}/learn`}
-              className="block w-full text-center bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
-            >
-              {course.progressPercentage && course.progressPercentage > 0 ? (
-                <>
-                  <span>გაგრძელება</span>
-                  <span className="ml-2 text-green-200">({Math.round(course.progressPercentage)}%)</span>
-                </>
-              ) : (
-                'დაწყება'
-              )}
-            </Link>
+            course.progressPercentage === 100 ? (
+              <Link
+                href={`/dashboard/courses/${course.slug}/learn`}
+                className="block w-full text-center bg-gray-600 text-white py-3 rounded-xl font-medium hover:bg-gray-700 transition-colors"
+              >
+                <span className="flex items-center justify-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  დასრულებული
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href={`/dashboard/courses/${course.slug}/learn`}
+                className="block w-full text-center bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors"
+              >
+                {course.progressPercentage && course.progressPercentage > 0 ? (
+                  <>
+                    <span>გაგრძელება</span>
+                    <span className="ml-2 text-green-200">({course.progressPercentage}%)</span>
+                  </>
+                ) : (
+                  'დაწყება'
+                )}
+              </Link>
+            )
           ) : course.price > 0 ? (
             <BuyButton
               courseId={course.id}

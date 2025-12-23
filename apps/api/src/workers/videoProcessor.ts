@@ -37,18 +37,28 @@ class VideoProcessor {
    * Set up queue processors
    */
   private setupProcessors(): void {
+    const videoQueue = queueService.getVideoProcessingQueue();
+    const thumbnailQueue = queueService.getThumbnailQueue();
+    const metadataQueue = queueService.getMetadataQueue();
+
+    // Skip setup if queues are not available (Redis not configured)
+    if (!videoQueue || !thumbnailQueue || !metadataQueue) {
+      console.log('ℹ️ VideoProcessor: Queues not available, video processing disabled');
+      return;
+    }
+
     // Video processing queue processor
-    queueService.getVideoProcessingQueue().process(async (job: Job<VideoProcessingJobData>) => {
+    videoQueue.process(async (job: Job<VideoProcessingJobData>) => {
       return this.processVideo(job);
     });
 
     // Thumbnail generation queue processor
-    queueService.getThumbnailQueue().process(async (job: Job<ThumbnailGenerationJobData>) => {
+    thumbnailQueue.process(async (job: Job<ThumbnailGenerationJobData>) => {
       return this.generateThumbnails(job);
     });
 
     // Metadata extraction queue processor
-    queueService.getMetadataQueue().process(async (job: Job<VideoMetadataJobData>) => {
+    metadataQueue.process(async (job: Job<VideoMetadataJobData>) => {
       return this.extractMetadata(job);
     });
   }

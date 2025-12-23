@@ -238,8 +238,10 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
       });
     }
 
-    // Check if user is enrolled (if authenticated)
+    // Check if user is enrolled and get progress (if authenticated)
     let isEnrolled = false;
+    let progressPercentage = 0;
+
     if (userId) {
       const purchase = await prisma.purchase.findUnique({
         where: {
@@ -250,6 +252,28 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         },
       });
       isEnrolled = purchase?.status === 'COMPLETED';
+
+      // Calculate progress for enrolled users
+      if (isEnrolled) {
+        const activeVersion = course.versions[0];
+        if (activeVersion) {
+          const totalChapters = activeVersion.chapters.length;
+
+          if (totalChapters > 0) {
+            const chapterIds = activeVersion.chapters.map((c) => c.id);
+
+            const completedCount = await prisma.progress.count({
+              where: {
+                userId,
+                chapterId: { in: chapterIds },
+                isCompleted: true,
+              },
+            });
+
+            progressPercentage = Math.round((completedCount / totalChapters) * 100);
+          }
+        }
+      }
     }
 
     // Calculate stats
@@ -289,7 +313,8 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         chapters,
         learningOutcomes,
         totalDuration: 0, // Can be calculated if duration is stored in chapters
-        isEnrolled, // Added: enrollment status for authenticated users
+        isEnrolled,
+        progressPercentage,
       },
     });
   } catch (error) {
