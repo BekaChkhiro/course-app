@@ -181,4 +181,30 @@ export const rejectRefundRequest = async (id: string, rejectionReason: string, a
   }
 };
 
+/**
+ * ადმინის - refund მოთხოვნის ხელით დასრულება
+ * (გამოიყენება როცა BOG callback არ მოვიდა მაგრამ თანხა დაბრუნდა)
+ */
+export const completeRefundManually = async (id: string) => {
+  try {
+    const response = await refundApi.post(`/admin/${id}/complete`);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: 'შეცდომა მოთხოვნის დასრულებისას' };
+  }
+};
+
+/**
+ * ადმინის - BOG-ში refund სტატუსის შემოწმება
+ * (ამოწმებს BOG-ში დასრულდა თუ არა და განაახლებს სტატუსს)
+ */
+export const checkRefundStatus = async (id: string) => {
+  try {
+    const response = await refundApi.post(`/admin/${id}/check`);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || { message: 'შეცდომა სტატუსის შემოწმებისას' };
+  }
+};
+
 export default refundApi;

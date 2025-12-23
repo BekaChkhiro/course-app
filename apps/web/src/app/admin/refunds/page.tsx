@@ -25,6 +25,8 @@ import {
   getRefundStats,
   approveRefundRequest,
   rejectRefundRequest,
+  completeRefundManually,
+  checkRefundStatus,
   RefundRequest,
   RefundStatus,
 } from '@/lib/api/refundApi';
@@ -82,6 +84,29 @@ export default function AdminRefundsPage() {
       setShowRejectModal(false);
       setRejectionReason('');
       setAdminNotes('');
+    },
+  });
+
+  // Complete manually mutation (for when BOG callback didn't arrive)
+  const completeMutation = useMutation({
+    mutationFn: (id: string) => completeRefundManually(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-refunds'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-refund-stats'] });
+      setSelectedRefund(null);
+    },
+  });
+
+  // Check BOG status mutation
+  const checkStatusMutation = useMutation({
+    mutationFn: (id: string) => checkRefundStatus(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-refunds'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-refund-stats'] });
+      // If status changed to COMPLETED, close the modal
+      if (data.data?.status === 'COMPLETED') {
+        setSelectedRefund(null);
+      }
     },
   });
 
@@ -427,6 +452,49 @@ export default function AdminRefundsPage() {
                       <XCircle className="h-5 w-5" />
                       უარყოფა
                     </button>
+                  </div>
+                )}
+
+                {/* Actions for PROCESSING status (check BOG or manual complete) */}
+                {selectedRefund.status === 'PROCESSING' && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 mb-4">
+                      <div className="flex gap-3">
+                        <AlertCircle className="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-purple-700">
+                          <p className="font-medium mb-1">BOG-ში გაიგზავნა</p>
+                          <p className="text-purple-600">
+                            შეამოწმეთ სტატუსი BOG-ში ან თუ თანხა უკვე დაბრუნდა, დაასრულეთ ხელით.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => checkStatusMutation.mutate(selectedRefund.id)}
+                        disabled={checkStatusMutation.isPending || completeMutation.isPending}
+                        className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {checkStatusMutation.isPending ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <RefreshCcw className="h-5 w-5" />
+                        )}
+                        BOG-ში შემოწმება
+                      </button>
+                      <button
+                        onClick={() => completeMutation.mutate(selectedRefund.id)}
+                        disabled={completeMutation.isPending || checkStatusMutation.isPending}
+                        className="flex-1 bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {completeMutation.isPending ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-5 w-5" />
+                        )}
+                        ხელით დასრულება
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

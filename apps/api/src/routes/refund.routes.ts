@@ -8,6 +8,8 @@ import {
   getAllRefundRequests,
   approveRefundRequest,
   rejectRefundRequest,
+  completeRefundManually,
+  checkRefundStatus,
   getRefundStats,
 } from '../controllers/refundController'
 
@@ -38,5 +40,11 @@ router.post('/admin/:id/approve', verifyToken, requireAdmin, approveRefundReques
 
 // Refund მოთხოვნის უარყოფა
 router.post('/admin/:id/reject', verifyToken, requireAdmin, rejectRefundRequest)
+
+// Refund მოთხოვნის ხელით დასრულება (როცა BOG callback არ მოვიდა)
+router.post('/admin/:id/complete', verifyToken, requireAdmin, completeRefundManually)
+
+// BOG-ში refund სტატუსის შემოწმება
+router.post('/admin/:id/check', verifyToken, requireAdmin, checkRefundStatus)
 
 export default router

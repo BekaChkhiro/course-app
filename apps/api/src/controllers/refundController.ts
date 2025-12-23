@@ -440,6 +440,206 @@ export const rejectRefundRequest = async (req: AuthRequest, res: Response) => {
 }
 
 /**
+ * ადმინის - PROCESSING სტატუსის refund-ის ხელით დასრულება
+ * (გამოიყენება როცა BOG callback არ მოვიდა მაგრამ თანხა დაბრუნდა)
+ */
+export const completeRefundManually = async (req: AuthRequest, res: Response) => {
+  try {
+    const adminId = req.user?.id
+    const { id } = req.params
+
+    if (!adminId) {
+      return res.status(401).json({
+        success: false,
+        message: 'ავტორიზაცია საჭიროა',
+      })
+    }
+
+    // RefundRequest-ის მოძიება
+    const refundRequest = await prisma.refundRequest.findUnique({
+      where: { id },
+      include: {
+        purchase: true,
+      },
+    })
+
+    if (!refundRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'მოთხოვნა ვერ მოიძებნა',
+      })
+    }
+
+    if (refundRequest.status !== 'PROCESSING') {
+      return res.status(400).json({
+        success: false,
+        message: 'მხოლოდ PROCESSING სტატუსის მოთხოვნა შეიძლება დასრულდეს ხელით',
+      })
+    }
+
+    // RefundRequest-ის განახლება
+    await prisma.refundRequest.update({
+      where: { id },
+      data: {
+        status: 'COMPLETED',
+        refundedAmount: refundRequest.requestedAmount,
+        bogRefundStatus: 'manual_complete',
+        completedAt: new Date(),
+      },
+    })
+
+    // Purchase-ის სტატუსის განახლება REFUNDED-ზე
+    await prisma.purchase.update({
+      where: { id: refundRequest.purchaseId },
+      data: {
+        status: 'REFUNDED',
+      },
+    })
+
+    console.log(`✅ Refund manually completed: ${id} by admin ${adminId}`)
+
+    return res.json({
+      success: true,
+      message: 'მოთხოვნა ხელით დასრულდა',
+      data: {
+        id,
+        status: 'COMPLETED',
+      },
+    })
+  } catch (error) {
+    console.error('Error completing refund manually:', error)
+    return res.status(500).json({
+      success: false,
+      message: 'შეცდომა მოთხოვნის დასრულებისას',
+    })
+  }
+}
+
+/**
+ * ადმინის - BOG-ში refund სტატუსის შემოწმება
+ * (PROCESSING სტატუსის refund-ებისთვის - ამოწმებს BOG-ში დასრულდა თუ არა)
+ */
+export const checkRefundStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const adminId = req.user?.id
+    const { id } = req.params
+
+    if (!adminId) {
+      return res.status(401).json({
+        success: false,
+        message: 'ავტორიზაცია საჭიროა',
+      })
+    }
+
+    // RefundRequest-ის მოძიება
+    const refundRequest = await prisma.refundRequest.findUnique({
+      where: { id },
+      include: {
+        purchase: true,
+      },
+    })
+
+    if (!refundRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'მოთხოვნა ვერ მოიძებნა',
+      })
+    }
+
+    if (refundRequest.status !== 'PROCESSING') {
+      return res.status(400).json({
+        success: false,
+        message: 'მხოლოდ PROCESSING სტატუსის მოთხოვნა შეიძლება შემოწმდეს',
+      })
+    }
+
+    if (!refundRequest.purchase.bogOrderId) {
+      return res.status(400).json({
+        success: false,
+        message: 'BOG Order ID არ არსებობს',
+      })
+    }
+
+    // BOG-ში სტატუსის შემოწმება
+    try {
+      const bogDetails = await bogService.getOrderDetails(refundRequest.purchase.bogOrderId)
+
+      console.log(`🔍 BOG status check for refund ${id}:`, {
+        orderStatus: bogDetails.order_status?.key,
+        refundAmount: bogDetails.purchase_units?.refund_amount,
+      })
+
+      // შევამოწმოთ refund დასრულდა თუ არა
+      const isRefunded = bogDetails.order_status?.key === 'refunded' ||
+                        bogDetails.order_status?.key === 'refunded_partially'
+
+      if (isRefunded) {
+        const refundAmount = bogDetails.purchase_units?.refund_amount
+          ? parseFloat(bogDetails.purchase_units.refund_amount)
+          : Number(refundRequest.requestedAmount)
+
+        // RefundRequest-ის განახლება COMPLETED-ზე
+        await prisma.refundRequest.update({
+          where: { id },
+          data: {
+            status: 'COMPLETED',
+            refundedAmount: refundAmount,
+            bogRefundStatus: bogDetails.order_status?.key,
+            completedAt: new Date(),
+          },
+        })
+
+        // Purchase-ის სტატუსის განახლება REFUNDED-ზე
+        await prisma.purchase.update({
+          where: { id: refundRequest.purchaseId },
+          data: {
+            status: 'REFUNDED',
+          },
+        })
+
+        console.log(`✅ Refund auto-completed from BOG check: ${id}`)
+
+        return res.json({
+          success: true,
+          message: 'დაბრუნება BOG-ში დასრულებულია, სტატუსი განახლდა',
+          data: {
+            id,
+            status: 'COMPLETED',
+            bogStatus: bogDetails.order_status?.key,
+            refundedAmount: refundAmount,
+          },
+        })
+      } else {
+        // ჯერ კიდევ მუშავდება
+        return res.json({
+          success: true,
+          message: 'დაბრუნება BOG-ში ჯერ კიდევ მუშავდება',
+          data: {
+            id,
+            status: 'PROCESSING',
+            bogStatus: bogDetails.order_status?.key,
+          },
+        })
+      }
+    } catch (bogError: any) {
+      console.error(`❌ Failed to check BOG status for refund ${id}:`, bogError.message)
+
+      return res.status(500).json({
+        success: false,
+        message: 'BOG-ში სტატუსის შემოწმება ვერ მოხერხდა',
+        error: bogError.message,
+      })
+    }
+  } catch (error) {
+    console.error('Error checking refund status:', error)
+    return res.status(500).json({
+      success: false,
+      message: 'შეცდომა სტატუსის შემოწმებისას',
+    })
+  }
+}
+
+/**
  * ადმინის - refund სტატისტიკა
  */
 export const getRefundStats = async (req: AuthRequest, res: Response) => {
