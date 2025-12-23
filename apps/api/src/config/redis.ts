@@ -2,32 +2,37 @@ import Redis from 'ioredis'
 
 const redisUrl = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL
 
-const redis = redisUrl
-  ? new Redis(redisUrl, {
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000)
-        return delay
-      },
-      maxRetriesPerRequest: 3,
-    })
-  : new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD || undefined,
-      db: parseInt(process.env.REDIS_DB || '0'),
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000)
-        return delay
-      },
-      maxRetriesPerRequest: 3,
-    })
+console.log('🔍 REDIS_URL:', redisUrl ? 'configured' : 'not configured')
 
-redis.on('connect', () => {
-  console.log('✅ Redis connected')
-})
+let redis: Redis | null = null
 
-redis.on('error', (err) => {
-  console.error('❌ Redis error:', err)
-})
+if (redisUrl) {
+  redis = new Redis(redisUrl, {
+    retryStrategy: (times) => {
+      if (times > 3) {
+        console.log('⚠️ Redis: max retries reached, stopping reconnection')
+        return null
+      }
+      return Math.min(times * 100, 2000)
+    },
+    maxRetriesPerRequest: 3,
+    lazyConnect: true,
+  })
+
+  redis.on('connect', () => {
+    console.log('✅ Redis connected')
+  })
+
+  redis.on('error', (err) => {
+    console.log('⚠️ Redis error:', err.message)
+  })
+
+  redis.connect().catch((err) => {
+    console.log('⚠️ Redis connection failed:', err.message)
+    redis = null
+  })
+} else {
+  console.log('ℹ️ Running without Redis (REDIS_URL not set)')
+}
 
 export default redis
