@@ -24,7 +24,8 @@ import {
   FileText,
   UsersRound,
   Globe,
-  Cog
+  Cog,
+  RefreshCcw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -67,6 +68,7 @@ const navigationCategories: NavCategory[] = [
       { name: 'სტუდენტები', href: '/admin/students', icon: Users },
       { name: 'შეფასებები', href: '/admin/reviews', icon: Star },
       { name: 'შეტყობინებები', href: '/admin/messages', icon: MessageSquare },
+      { name: 'დაბრუნებები', href: '/admin/refunds', icon: RefreshCcw },
     ],
   },
   {

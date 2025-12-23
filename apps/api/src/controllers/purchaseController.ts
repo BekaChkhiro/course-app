@@ -271,6 +271,34 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
       })
     }
 
+    // Refund-ის შემთხვევაში RefundRequest-ის განახლება
+    if (newStatus === 'REFUNDED') {
+      const refundAmount = body.purchase_units?.refund_amount
+        ? parseFloat(body.purchase_units.refund_amount)
+        : null
+
+      // ვეძებთ PROCESSING სტატუსზე მყოფ RefundRequest-ს
+      const refundRequest = await prisma.refundRequest.findFirst({
+        where: {
+          purchaseId: purchase.id,
+          status: 'PROCESSING',
+        },
+      })
+
+      if (refundRequest) {
+        await prisma.refundRequest.update({
+          where: { id: refundRequest.id },
+          data: {
+            status: 'COMPLETED',
+            refundedAmount: refundAmount,
+            bogRefundStatus: order_status?.key,
+            completedAt: new Date(),
+          },
+        })
+        console.log(`✅ RefundRequest ${refundRequest.id} completed, amount: ${refundAmount}`)
+      }
+    }
+
     console.log(`✅ Purchase ${purchase.id} updated to ${newStatus}`)
 
     // BOG-ს უნდა დავუბრუნოთ 200 OK

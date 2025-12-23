@@ -139,6 +139,18 @@ export class AuthController {
         });
       }
 
+      // Check if email is verified
+      if (!user.emailVerified) {
+        return res.status(403).json({
+          success: false,
+          message: 'გთხოვთ დაადასტუროთ ელ-ფოსტა შესვლამდე',
+          code: 'EMAIL_NOT_VERIFIED',
+          data: {
+            email: user.email,
+          },
+        });
+      }
+
       // Parse device information
       const deviceInfo = parseDeviceInfo(req);
       const ipAddress = getClientIp(req);

@@ -4,10 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
+import { authApi } from '@/lib/api/authApi';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, errorCode, clearError } = useAuthStore();
+  const { login, isLoading, error, errorCode, unverifiedEmail, clearError } = useAuthStore();
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     email: '',

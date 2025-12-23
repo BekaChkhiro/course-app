@@ -47,6 +47,7 @@ interface BOGPaymentDetails {
   purchase_units: {
     request_amount: string
     transfer_amount: string
+    refund_amount?: string
     currency_code: string
   }
   payment_detail?: {
@@ -58,6 +59,12 @@ interface BOGPaymentDetails {
     payer_identifier: string
     card_type: string
   }
+}
+
+interface BOGRefundResponse {
+  key: string        // "request_received"
+  message: string    // "Refund request received"
+  action_id: string  // უნიკალური action ID
 }
 
 class BOGService {
@@ -214,6 +221,54 @@ class BOGService {
     } catch (error) {
       console.error('❌ Signature verification failed:', error)
       return false
+    }
+  }
+
+  /**
+   * თანხის დაბრუნება (Refund)
+   *
+   * @param bogOrderId - BOG-ის order ID
+   * @param amount - თანხა (optional - თუ არ მიუთითებ, სრულ თანხას დააბრუნებს)
+   * @returns BOGRefundResponse
+   */
+  async refundOrder(params: {
+    bogOrderId: string
+    amount?: number  // optional - partial refund-ისთვის
+  }): Promise<BOGRefundResponse> {
+    const token = await this.getAccessToken()
+
+    try {
+      const requestBody: { amount?: string } = {}
+
+      // თუ amount მითითებულია, partial refund-ია
+      if (params.amount !== undefined && params.amount > 0) {
+        requestBody.amount = params.amount.toString()
+      }
+
+      const response = await this.axiosInstance.post<BOGRefundResponse>(
+        `${this.apiUrl}/payments/v1/payment/refund/${params.bogOrderId}`,
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      console.log('✅ BOG refund request sent:', {
+        orderId: params.bogOrderId,
+        amount: params.amount || 'full',
+        actionId: response.data.action_id,
+      })
+
+      return response.data
+    } catch (error: any) {
+      console.error('❌ Failed to process BOG refund:', {
+        orderId: params.bogOrderId,
+        error: error.response?.data || error.message,
+      })
+      throw new Error(error.response?.data?.message || 'Failed to process refund')
     }
   }
 }

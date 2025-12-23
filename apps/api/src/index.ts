@@ -30,6 +30,7 @@ import sliderRoutes from './routes/sliderRoutes'
 import instructorRoutes from './routes/instructorRoutes'
 import mediaRoutes from './routes/media.routes'
 import adminStudentsRoutes from './routes/adminStudents.routes'
+import refundRoutes from './routes/refund.routes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -136,6 +137,9 @@ app.use('/api/public', publicRoutes)
 
 // Purchase routes (requires authentication)
 app.use('/api/purchase', purchaseRoutes)
+
+// Refund routes (student and admin)
+app.use('/api/refund', refundRoutes)
 
 // Attachment routes (file attachments for chapters)
 app.use('/api/attachments', attachmentRoutes)

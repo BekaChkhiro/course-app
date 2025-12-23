@@ -39,7 +39,8 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  errorCode: string | null; // შეცდომის კოდი (მაგ. DEVICE_LIMIT_REACHED)
+  errorCode: string | null; // შეცდომის კოდი (მაგ. DEVICE_LIMIT_REACHED, EMAIL_NOT_VERIFIED)
+  unverifiedEmail: string | null; // ელ-ფოსტა რომელიც არ არის ვერიფიცირებული
   isInitialized: boolean; // ტოკენის ვალიდაცია დასრულებულია?
 
   // Actions
@@ -60,10 +61,11 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
       errorCode: null,
+      unverifiedEmail: null,
       isInitialized: false,
 
       login: async (data: LoginData) => {
-        set({ isLoading: true, error: null, errorCode: null });
+        set({ isLoading: true, error: null, errorCode: null, unverifiedEmail: null });
         try {
           const response = await authApi.login(data);
 
@@ -82,10 +84,12 @@ export const useAuthStore = create<AuthState>()(
           const rawMessage =
             error.response?.data?.message || error.message || 'Login failed';
           const errorCode = error.response?.data?.code || null;
+          const unverifiedEmail = error.response?.data?.data?.email || null;
           const errorMessage = translateError(rawMessage);
           set({
             error: errorMessage,
             errorCode,
+            unverifiedEmail,
             isLoading: false,
             isAuthenticated: false,
             user: null,
@@ -212,7 +216,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      clearError: () => set({ error: null, errorCode: null }),
+      clearError: () => set({ error: null, errorCode: null, unverifiedEmail: null }),
 
       setUser: (user: User | null) =>
         set({ user, isAuthenticated: !!user }),

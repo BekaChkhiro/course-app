@@ -78,6 +78,15 @@ enum UpgradePriceType {
   PERCENTAGE  // კურსის ფასის პროცენტი
 }
 
+enum RefundStatus {
+  PENDING     // სტუდენტმა მოთხოვნა გაგზავნა
+  APPROVED    // ადმინმა დაადასტურა, BOG-ში იგზავნება
+  PROCESSING  // BOG-ში მუშავდება
+  COMPLETED   // თანხა დაბრუნდა
+  REJECTED    // ადმინმა უარყო
+  FAILED      // BOG-ში შეცდომა მოხდა
+}
+
 model User {
   id                    String    @id @default(cuid())
   email                 String    @unique
@@ -599,6 +608,48 @@ model Purchase {
     @@index([status])
     @@index([bogOrderId])
     @@map("purchases")
+
+    // Relations
+    refundRequests RefundRequest[]
+}
+
+model RefundRequest {
+  id              String       @id @default(cuid())
+  purchaseId      String
+  userId          String       // სტუდენტი რომელმაც მოითხოვა
+
+  // მოთხოვნის დეტალები
+  reason          String       @db.Text  // დაბრუნების მიზეზი
+  status          RefundStatus @default(PENDING)
+
+  // თანხის ინფორმაცია
+  requestedAmount Decimal      @db.Decimal(10, 2)  // მოთხოვნილი თანხა
+  refundedAmount  Decimal?     @db.Decimal(10, 2)  // რეალურად დაბრუნებული
+
+  // BOG Refund fields
+  bogActionId     String?      // BOG-ის refund action ID
+  bogRefundStatus String?      // BOG-დან მიღებული სტატუსი
+
+  // ადმინის გადაწყვეტილება
+  reviewedById    String?      // ადმინი რომელმაც განიხილა
+  reviewedAt      DateTime?    // განხილვის დრო
+  adminNotes      String?      @db.Text  // ადმინის შენიშვნა
+  rejectionReason String?      @db.Text  // უარყოფის მიზეზი
+
+  // დროები
+  processedAt     DateTime?    // BOG-ში გაგზავნის დრო
+  completedAt     DateTime?    // დასრულების დრო
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("refund_requests")
 }
 
 model Progress {
