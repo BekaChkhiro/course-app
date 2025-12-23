@@ -3,15 +3,28 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Helper function to convert BigInt values to numbers in query results
-function serializeBigInt(data: any): any {
+// Helper function to convert BigInt, Date, and Decimal values for JSON serialization
+function serializeQueryResult(data: any): any {
   if (data === null || data === undefined) return data;
   if (typeof data === 'bigint') return Number(data);
-  if (Array.isArray(data)) return data.map(serializeBigInt);
+  if (data instanceof Date) return data.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+  // Handle Prisma Decimal (has toNumber method) or string numbers from raw queries
+  if (typeof data === 'object' && data.constructor?.name === 'Decimal') {
+    return data.toNumber();
+  }
+  if (Array.isArray(data)) return data.map(serializeQueryResult);
   if (typeof data === 'object') {
     const result: any = {};
     for (const key in data) {
-      result[key] = serializeBigInt(data[key]);
+      const value = data[key];
+      // First recursively process the value
+      const processedValue = serializeQueryResult(value);
+      // Then convert numeric strings to numbers
+      if (typeof processedValue === 'string' && !isNaN(Number(processedValue)) && processedValue !== '' && !processedValue.includes('-')) {
+        result[key] = parseFloat(processedValue);
+      } else {
+        result[key] = processedValue;
+      }
     }
     return result;
   }
@@ -67,14 +80,14 @@ export const getConsolidatedAnalytics = async (req: Request, res: Response) => {
     // Revenue trend for chart
     const revenueTrend = await prisma.$queryRaw`
       SELECT
-        DATE("createdAt") as date,
-        SUM("finalAmount") as revenue,
-        COUNT(*) as purchases
+        TO_CHAR(DATE("createdAt"), 'YYYY-MM-DD') as date,
+        COALESCE(SUM("finalAmount")::float, 0) as revenue,
+        COUNT(*)::int as purchases
       FROM purchases
       WHERE status = 'COMPLETED'
         AND "createdAt" >= ${startDate}
       GROUP BY DATE("createdAt")
-      ORDER BY date ASC
+      ORDER BY DATE("createdAt") ASC
     `;
 
     // Top courses by revenue
@@ -83,8 +96,8 @@ export const getConsolidatedAnalytics = async (req: Request, res: Response) => {
         c.id,
         c.title,
         c.slug,
-        SUM(p."finalAmount") as revenue,
-        COUNT(p.id) as purchases
+        COALESCE(SUM(p."finalAmount")::float, 0) as revenue,
+        COUNT(p.id)::int as purchases
       FROM purchases p
       JOIN courses c ON p."courseId" = c.id
       WHERE p.status = 'COMPLETED'
@@ -142,12 +155,12 @@ export const getConsolidatedAnalytics = async (req: Request, res: Response) => {
     // Registration trend for chart
     const registrationTrend = await prisma.$queryRaw`
       SELECT
-        DATE("createdAt") as date,
-        COUNT(*) as registrations
+        TO_CHAR(DATE("createdAt"), 'YYYY-MM-DD') as date,
+        COUNT(*)::int as registrations
       FROM users
       WHERE role = 'STUDENT' AND "createdAt" >= ${startDate}
       GROUP BY DATE("createdAt")
-      ORDER BY date ASC
+      ORDER BY DATE("createdAt") ASC
     `;
 
     // ===== COURSES SECTION =====
@@ -203,8 +216,8 @@ export const getConsolidatedAnalytics = async (req: Request, res: Response) => {
         c.id,
         c.title,
         c.slug,
-        COUNT(p.id) as enrollments,
-        COALESCE(AVG(r.rating), 0) as avg_rating
+        COUNT(p.id)::int as enrollments,
+        COALESCE(AVG(r.rating)::float, 0) as avg_rating
       FROM courses c
       LEFT JOIN purchases p ON c.id = p."courseId" AND p.status = 'COMPLETED'
       LEFT JOIN reviews r ON c.id = r."courseId"
@@ -216,7 +229,7 @@ export const getConsolidatedAnalytics = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: serializeBigInt({
+      data: serializeQueryResult({
         payments: {
           totalRevenue: currentTotal,
           purchases: currentRevenue._count,
