@@ -17,6 +17,243 @@ const getResend = () => {
 const getFromEmail = () => process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const getFrontendUrl = () => process.env.FRONTEND_URL || 'http://localhost:3000';
 
+// ==========================================
+// BRAND CONSTANTS
+// ==========================================
+const BRAND = {
+  name: 'Kursebi.online',
+  colors: {
+    primary: '#0e3355',      // Navy Blue
+    primaryLight: '#1a4a7a',
+    accent: '#ff4d40',       // Coral Red
+    accentDark: '#ed3124',
+    success: '#10B981',
+    warning: '#F59E0B',
+    gray: {
+      50: '#F9FAFB',
+      100: '#F3F4F6',
+      200: '#E5E7EB',
+      300: '#D1D5DB',
+      500: '#6B7280',
+      700: '#374151',
+      900: '#1F2937',
+    },
+  },
+  logoUrl: () => `${getFrontendUrl()}/kursebi-logo.png`,
+  websiteUrl: () => getFrontendUrl(),
+  supportEmail: 'info@kursebi.online',
+};
+
+// ==========================================
+// BASE EMAIL TEMPLATE
+// ==========================================
+interface EmailTemplateOptions {
+  title: string;
+  subtitle?: string;
+  headerIcon?: string;
+  headerGradient?: 'primary' | 'accent' | 'success' | 'warning';
+  content: string;
+  showLogo?: boolean;
+}
+
+const createEmailTemplate = (options: EmailTemplateOptions): string => {
+  const { title, subtitle, headerIcon, headerGradient = 'primary', content, showLogo = true } = options;
+
+  const gradientMap = {
+    primary: `linear-gradient(135deg, ${BRAND.colors.primary} 0%, ${BRAND.colors.primaryLight} 100%)`,
+    accent: `linear-gradient(135deg, ${BRAND.colors.accent} 0%, ${BRAND.colors.accentDark} 100%)`,
+    success: `linear-gradient(135deg, ${BRAND.colors.success} 0%, #059669 100%)`,
+    warning: `linear-gradient(135deg, ${BRAND.colors.warning} 0%, #D97706 100%)`,
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: ${BRAND.colors.gray[900]};
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+          }
+          .email-wrapper {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+            background: ${gradientMap[headerGradient]};
+            color: white;
+            padding: 30px;
+            text-align: center;
+          }
+          .header-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+          }
+          .header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+          }
+          .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+          }
+          .logo-section {
+            text-align: center;
+            padding: 25px 30px 15px 30px;
+            border-bottom: 1px solid ${BRAND.colors.gray[200]};
+          }
+          .logo-section img {
+            max-width: 180px;
+            height: auto;
+          }
+          .content {
+            padding: 30px;
+          }
+          .button {
+            display: inline-block;
+            padding: 14px 28px;
+            background: ${BRAND.colors.accent};
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: background 0.3s;
+          }
+          .button:hover {
+            background: ${BRAND.colors.accentDark};
+          }
+          .button-secondary {
+            background: ${BRAND.colors.primary};
+          }
+          .button-secondary:hover {
+            background: ${BRAND.colors.primaryLight};
+          }
+          .info-box {
+            background: ${BRAND.colors.gray[50]};
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid ${BRAND.colors.primary};
+          }
+          .success-box {
+            background: #D1FAE5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid ${BRAND.colors.success};
+          }
+          .warning-box {
+            background: #FEF3C7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid ${BRAND.colors.warning};
+          }
+          .accent-box {
+            background: #FFF5F4;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid ${BRAND.colors.accent};
+          }
+          .details-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid ${BRAND.colors.gray[200]};
+          }
+          .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid ${BRAND.colors.gray[100]};
+          }
+          .detail-row:last-child {
+            border-bottom: none;
+          }
+          .detail-label {
+            color: ${BRAND.colors.gray[500]};
+            font-size: 14px;
+          }
+          .detail-value {
+            font-weight: 600;
+            color: ${BRAND.colors.gray[900]};
+          }
+          .footer {
+            background: ${BRAND.colors.gray[50]};
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid ${BRAND.colors.gray[200]};
+          }
+          .footer p {
+            margin: 5px 0;
+            font-size: 12px;
+            color: ${BRAND.colors.gray[500]};
+          }
+          .footer a {
+            color: ${BRAND.colors.primary};
+            text-decoration: none;
+          }
+          .footer .brand-name {
+            font-weight: 600;
+            color: ${BRAND.colors.primary};
+          }
+          a {
+            color: ${BRAND.colors.primary};
+          }
+          .link-text {
+            word-break: break-all;
+            color: ${BRAND.colors.primary};
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-wrapper">
+          ${showLogo ? `
+          <div class="logo-section">
+            <img src="${BRAND.logoUrl()}" alt="${BRAND.name}" />
+          </div>
+          ` : ''}
+
+          <div class="header">
+            ${headerIcon ? `<div class="header-icon">${headerIcon}</div>` : ''}
+            <h2>${title}</h2>
+            ${subtitle ? `<p>${subtitle}</p>` : ''}
+          </div>
+
+          <div class="content">
+            ${content}
+          </div>
+
+          <div class="footer">
+            <p>პატივისცემით,<br><span class="brand-name">${BRAND.name} გუნდი</span></p>
+            <p style="margin-top: 15px;">
+              <a href="${BRAND.websiteUrl()}">${BRAND.name}</a> |
+              <a href="mailto:${BRAND.supportEmail}">${BRAND.supportEmail}</a>
+            </p>
+            <p>&copy; ${new Date().getFullYear()} ${BRAND.name}. ყველა უფლება დაცულია.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+};
+
 interface EmailAttachment {
   filename: string;
   content: Buffer;
@@ -150,80 +387,57 @@ export class EmailService {
   ): Promise<boolean> {
     const verificationUrl = `${getFrontendUrl()}/auth/verify-email?token=${verificationToken}`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
-            }
-            .container {
-              background: #f9f9f9;
-              padding: 30px;
-              border-radius: 10px;
-            }
-            .button {
-              display: inline-block;
-              padding: 12px 24px;
-              background-color: #4F46E5;
-              color: #ffffff;
-              text-decoration: none;
-              border-radius: 5px;
-              margin: 20px 0;
-            }
-            .footer {
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #ddd;
-              font-size: 12px;
-              color: #666;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>Welcome to Course Platform!</h2>
-            <p>Hi ${name},</p>
-            <p>Thank you for registering with Course Platform. Please verify your email address to activate your account.</p>
-            <a href="${verificationUrl}" class="button">Verify Email</a>
-            <p>Or copy and paste this link in your browser:</p>
-            <p style="word-break: break-all; color: #4F46E5;">${verificationUrl}</p>
-            <p>This link will expire in 24 hours.</p>
-            <div class="footer">
-              <p>If you didn't create an account, please ignore this email.</p>
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <p>მადლობა რომ დარეგისტრირდით ${BRAND.name}-ზე! გთხოვთ დაადასტუროთ თქვენი ელ-ფოსტა ანგარიშის გასააქტიურებლად.</p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" class="button">ელ-ფოსტის დადასტურება</a>
+      </div>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>ან დააკოპირეთ ეს ბმული ბრაუზერში:</strong></p>
+        <p class="link-text" style="margin: 10px 0 0 0;">${verificationUrl}</p>
+      </div>
+
+      <div class="warning-box">
+        <p style="margin: 0;">⏰ ეს ბმული მოქმედებს <strong>24 საათის</strong> განმავლობაში.</p>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">თუ თქვენ არ დარეგისტრირებულხართ ${BRAND.name}-ზე, უბრალოდ უგულებელყოთ ეს შეტყობინება.</p>
     `;
 
+    const html = createEmailTemplate({
+      title: 'ელ-ფოსტის დადასტურება',
+      subtitle: 'გთხოვთ დაადასტუროთ თქვენი ანგარიში',
+      headerIcon: '✉️',
+      headerGradient: 'primary',
+      content,
+    });
+
     const text = `
-      Welcome to Course Platform!
+გამარჯობა ${name},
 
-      Hi ${name},
+მადლობა რომ დარეგისტრირდით ${BRAND.name}-ზე!
 
-      Thank you for registering with Course Platform. Please verify your email address by clicking the link below:
+გთხოვთ დაადასტუროთ თქვენი ელ-ფოსტა ამ ბმულზე გადასვლით:
+${verificationUrl}
 
-      ${verificationUrl}
+ეს ბმული მოქმედებს 24 საათის განმავლობაში.
 
-      This link will expire in 24 hours.
+თუ თქვენ არ დარეგისტრირებულხართ, უგულებელყოთ ეს შეტყობინება.
 
-      If you didn't create an account, please ignore this email.
+${BRAND.name} გუნდი
     `;
 
     return this.sendEmail({
       to: email,
-      subject: 'Verify your email - Course Platform',
+      subject: `ელ-ფოსტის დადასტურება - ${BRAND.name}`,
       html,
       text,
+      templateType: 'email_verification',
+      metadata: { verificationToken: verificationToken.substring(0, 10) + '...' },
     });
   }
 
@@ -237,88 +451,56 @@ export class EmailService {
   ): Promise<boolean> {
     const resetUrl = `${getFrontendUrl()}/auth/reset-password?token=${resetToken}`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
-            }
-            .container {
-              background: #f9f9f9;
-              padding: 30px;
-              border-radius: 10px;
-            }
-            .button {
-              display: inline-block;
-              padding: 12px 24px;
-              background-color: #EF4444;
-              color: #ffffff;
-              text-decoration: none;
-              border-radius: 5px;
-              margin: 20px 0;
-            }
-            .footer {
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #ddd;
-              font-size: 12px;
-              color: #666;
-            }
-            .warning {
-              background: #FEF3C7;
-              padding: 15px;
-              border-radius: 5px;
-              margin: 20px 0;
-              border-left: 4px solid #F59E0B;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>Password Reset Request</h2>
-            <p>Hi ${name},</p>
-            <p>We received a request to reset your password for your Course Platform account.</p>
-            <a href="${resetUrl}" class="button">Reset Password</a>
-            <p>Or copy and paste this link in your browser:</p>
-            <p style="word-break: break-all; color: #EF4444;">${resetUrl}</p>
-            <div class="warning">
-              <strong>Security Notice:</strong> This link will expire in 1 hour. If you didn't request this password reset, please ignore this email and your password will remain unchanged.
-            </div>
-            <div class="footer">
-              <p>For security reasons, this link can only be used once.</p>
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <p>მივიღეთ მოთხოვნა თქვენი ${BRAND.name} ანგარიშის პაროლის აღდგენის შესახებ.</p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" class="button">პაროლის აღდგენა</a>
+      </div>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>ან დააკოპირეთ ეს ბმული ბრაუზერში:</strong></p>
+        <p class="link-text" style="margin: 10px 0 0 0;">${resetUrl}</p>
+      </div>
+
+      <div class="warning-box">
+        <p style="margin: 0 0 10px 0;"><strong>🔒 უსაფრთხოების შეტყობინება:</strong></p>
+        <ul style="margin: 0; padding-left: 20px;">
+          <li>ეს ბმული მოქმედებს მხოლოდ <strong>1 საათის</strong> განმავლობაში</li>
+          <li>ბმული შეიძლება გამოიყენოთ მხოლოდ ერთხელ</li>
+          <li>თუ თქვენ არ მოითხოვეთ პაროლის აღდგენა, უგულებელყოთ ეს შეტყობინება</li>
+        </ul>
+      </div>
     `;
 
+    const html = createEmailTemplate({
+      title: 'პაროლის აღდგენა',
+      subtitle: 'თქვენი პაროლის შეცვლის მოთხოვნა',
+      headerIcon: '🔐',
+      headerGradient: 'accent',
+      content,
+    });
+
     const text = `
-      Password Reset Request
+გამარჯობა ${name},
 
-      Hi ${name},
+მივიღეთ მოთხოვნა თქვენი ${BRAND.name} ანგარიშის პაროლის აღდგენის შესახებ.
 
-      We received a request to reset your password for your Course Platform account.
+პაროლის აღსადგენად გადადით ამ ბმულზე:
+${resetUrl}
 
-      Click the link below to reset your password:
-      ${resetUrl}
+ეს ბმული მოქმედებს მხოლოდ 1 საათის განმავლობაში.
 
-      This link will expire in 1 hour.
+თუ თქვენ არ მოითხოვეთ პაროლის აღდგენა, უგულებელყოთ ეს შეტყობინება.
 
-      If you didn't request this password reset, please ignore this email and your password will remain unchanged.
+${BRAND.name} გუნდი
     `;
 
     return this.sendEmail({
       to: email,
-      subject: 'პაროლის აღდგენა - Kursebi',
+      subject: `პაროლის აღდგენა - ${BRAND.name}`,
       html,
       text,
       templateType: 'password_reset',
@@ -340,84 +522,92 @@ export class EmailService {
       location?: string;
     }
   ): Promise<boolean> {
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              max-width: 600px;
-              margin: 0 auto;
-              padding: 20px;
-            }
-            .container {
-              background: #f9f9f9;
-              padding: 30px;
-              border-radius: 10px;
-            }
-            .device-info {
-              background: #fff;
-              padding: 15px;
-              border-radius: 5px;
-              margin: 20px 0;
-            }
-            .footer {
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #ddd;
-              font-size: 12px;
-              color: #666;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>New Device Login Detected</h2>
-            <p>Hi ${name},</p>
-            <p>We detected a new login to your Course Platform account from a new device:</p>
-            <div class="device-info">
-              <p><strong>Device:</strong> ${deviceInfo.deviceName}</p>
-              <p><strong>Device Type:</strong> ${deviceInfo.deviceType}</p>
-              ${deviceInfo.browser ? `<p><strong>Browser:</strong> ${deviceInfo.browser}</p>` : ''}
-              <p><strong>IP Address:</strong> ${deviceInfo.ipAddress}</p>
-              ${deviceInfo.location ? `<p><strong>Location:</strong> ${deviceInfo.location}</p>` : ''}
-              <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-            </div>
-            <p>If this was you, you can safely ignore this email. If you don't recognize this activity, please secure your account immediately by changing your password.</p>
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const loginTime = new Date().toLocaleString('ka-GE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <p>აღმოვაჩინეთ ახალი მოწყობილობიდან შესვლა თქვენს ${BRAND.name} ანგარიშზე:</p>
+
+      <div class="details-card">
+        <div class="detail-row">
+          <span class="detail-label">მოწყობილობა:</span>
+          <span class="detail-value">${deviceInfo.deviceName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ტიპი:</span>
+          <span class="detail-value">${deviceInfo.deviceType}</span>
+        </div>
+        ${deviceInfo.browser ? `
+        <div class="detail-row">
+          <span class="detail-label">ბრაუზერი:</span>
+          <span class="detail-value">${deviceInfo.browser}</span>
+        </div>
+        ` : ''}
+        <div class="detail-row">
+          <span class="detail-label">IP მისამართი:</span>
+          <span class="detail-value">${deviceInfo.ipAddress}</span>
+        </div>
+        ${deviceInfo.location ? `
+        <div class="detail-row">
+          <span class="detail-label">მდებარეობა:</span>
+          <span class="detail-value">${deviceInfo.location}</span>
+        </div>
+        ` : ''}
+        <div class="detail-row">
+          <span class="detail-label">დრო:</span>
+          <span class="detail-value">${loginTime}</span>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <p style="margin: 0;"><strong>⚠️ ეს თქვენ იყავით?</strong></p>
+        <p style="margin: 10px 0 0 0;">თუ ეს თქვენ იყავით, შეგიძლიათ უგულებელყოთ ეს შეტყობინება. თუ ამ აქტივობას ვერ ცნობთ, გთხოვთ დაუყოვნებლივ შეცვალოთ პაროლი ანგარიშის დასაცავად.</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${getFrontendUrl()}/dashboard/settings" class="button">ანგარიშის პარამეტრები</a>
+      </div>
     `;
 
+    const html = createEmailTemplate({
+      title: 'ახალი მოწყობილობიდან შესვლა',
+      subtitle: 'აღმოვაჩინეთ ახალი შესვლა თქვენს ანგარიშზე',
+      headerIcon: '📱',
+      headerGradient: 'warning',
+      content,
+    });
+
     const text = `
-      New Device Login Detected
+გამარჯობა ${name},
 
-      Hi ${name},
+აღმოვაჩინეთ ახალი მოწყობილობიდან შესვლა თქვენს ${BRAND.name} ანგარიშზე:
 
-      We detected a new login to your Course Platform account from a new device:
+მოწყობილობა: ${deviceInfo.deviceName}
+ტიპი: ${deviceInfo.deviceType}
+${deviceInfo.browser ? `ბრაუზერი: ${deviceInfo.browser}` : ''}
+IP მისამართი: ${deviceInfo.ipAddress}
+${deviceInfo.location ? `მდებარეობა: ${deviceInfo.location}` : ''}
+დრო: ${loginTime}
 
-      Device: ${deviceInfo.deviceName}
-      Device Type: ${deviceInfo.deviceType}
-      ${deviceInfo.browser ? `Browser: ${deviceInfo.browser}` : ''}
-      IP Address: ${deviceInfo.ipAddress}
-      ${deviceInfo.location ? `Location: ${deviceInfo.location}` : ''}
-      Time: ${new Date().toLocaleString()}
+თუ ეს თქვენ იყავით, შეგიძლიათ უგულებელყოთ ეს შეტყობინება. თუ ამ აქტივობას ვერ ცნობთ, გთხოვთ დაუყოვნებლივ შეცვალოთ პაროლი.
 
-      If this was you, you can safely ignore this email. If you don't recognize this activity, please secure your account immediately by changing your password.
+${BRAND.name} გუნდი
     `;
 
     return this.sendEmail({
       to: email,
-      subject: 'New Device Login - Course Platform',
+      subject: `ახალი მოწყობილობიდან შესვლა - ${BRAND.name}`,
       html,
       text,
+      templateType: 'new_device_login',
+      metadata: { deviceName: deviceInfo.deviceName, ipAddress: deviceInfo.ipAddress },
     });
   }
 
@@ -438,40 +628,32 @@ export class EmailService {
   ): Promise<boolean> {
     const messageUrl = `${getFrontendUrl()}/admin/messages/${messageId}`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .message-box { background: #fff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #4F46E5; }
-            .button { display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: #ffffff; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>New Student Message</h2>
-            <p>Hi ${adminName},</p>
-            <p>You have received a new message from <strong>${studentName}</strong>:</p>
-            <div class="message-box">
-              <p><strong>Subject:</strong> ${subject}</p>
-              <p>${messagePreview}...</p>
-            </div>
-            <a href="${messageUrl}" class="button">View & Reply</a>
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${adminName}</strong>,</p>
+
+      <p>მიიღეთ ახალი შეტყობინება <strong>${studentName}</strong>-სგან:</p>
+
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>თემა:</strong> ${subject}</p>
+        <p style="margin: 0; color: ${BRAND.colors.gray[700]};">${messagePreview}...</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${messageUrl}" class="button">შეტყობინების ნახვა და პასუხი</a>
+      </div>
     `;
+
+    const html = createEmailTemplate({
+      title: 'ახალი შეტყობინება',
+      subtitle: `${studentName}-სგან`,
+      headerIcon: '💬',
+      headerGradient: 'primary',
+      content,
+    });
 
     return this.sendEmail({
       to: adminEmail,
-      subject: `New Message: ${subject} - Course Platform`,
+      subject: `ახალი შეტყობინება: ${subject} - ${BRAND.name}`,
       html,
       templateType: 'new_message_admin',
       metadata: { messageId, studentName },
@@ -492,41 +674,34 @@ export class EmailService {
   ): Promise<boolean> {
     const messageUrl = `${getFrontendUrl()}/dashboard/messages/${messageId}`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .message-box { background: #fff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10B981; }
-            .button { display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: #ffffff; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>You Have a New Reply</h2>
-            <p>Hi ${studentName},</p>
-            <p><strong>${adminName}</strong> has replied to your message:</p>
-            <div class="message-box">
-              <p><strong>Re: ${messageSubject}</strong></p>
-              <p>${replyPreview}...</p>
-            </div>
-            <a href="${messageUrl}" class="button">View Full Reply</a>
-            <div class="footer">
-              <p>You're receiving this email because you have a message in Course Platform.</p>
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+      <p><strong>${adminName}</strong> უპასუხა თქვენს შეტყობინებას:</p>
+
+      <div class="success-box">
+        <p style="margin: 0 0 10px 0;"><strong>Re: ${messageSubject}</strong></p>
+        <p style="margin: 0; color: ${BRAND.colors.gray[700]};">${replyPreview}...</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${messageUrl}" class="button">სრული პასუხის ნახვა</a>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">ეს შეტყობინება გამოგეგზავნათ, რადგან თქვენ გაქვთ მიმოწერა ${BRAND.name}-ზე.</p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'მიიღეთ პასუხი',
+      subtitle: 'თქვენს შეტყობინებაზე',
+      headerIcon: '✉️',
+      headerGradient: 'success',
+      content,
+    });
 
     return this.sendEmail({
       to: studentEmail,
-      subject: `Re: ${messageSubject} - Course Platform`,
+      subject: `Re: ${messageSubject} - ${BRAND.name}`,
       html,
       templateType: 'message_reply',
       userId,
@@ -546,39 +721,32 @@ export class EmailService {
   ): Promise<boolean> {
     const courseUrl = `${getFrontendUrl()}/courses`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .success-box { background: #D1FAE5; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10B981; }
-            .button { display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: #ffffff; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>Your Review Has Been Published!</h2>
-            <p>Hi ${name},</p>
-            <div class="success-box">
-              <p>Your review for <strong>${courseName}</strong> has been approved and is now visible to other students.</p>
-            </div>
-            <p>Thank you for sharing your feedback! Your insights help other students make informed decisions about their learning journey.</p>
-            <a href="${courseUrl}" class="button">View Courses</a>
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <div class="success-box">
+        <p style="margin: 0;"><strong>✅ თქვენი შეფასება გამოქვეყნდა!</strong></p>
+        <p style="margin: 10px 0 0 0;">თქვენი შეფასება კურსზე <strong>„${courseName}"</strong> დამტკიცდა და ახლა ხილულია სხვა სტუდენტებისთვის.</p>
+      </div>
+
+      <p>მადლობა თქვენი გამოხმაურებისთვის! თქვენი აზრი ეხმარება სხვა სტუდენტებს სწავლის პროცესში სწორი გადაწყვეტილების მიღებაში.</p>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${courseUrl}" class="button">კურსების ნახვა</a>
+      </div>
     `;
+
+    const html = createEmailTemplate({
+      title: 'შეფასება გამოქვეყნდა!',
+      subtitle: 'მადლობა თქვენი გამოხმაურებისთვის',
+      headerIcon: '⭐',
+      headerGradient: 'success',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `Your Review Has Been Published - Course Platform`,
+      subject: `შეფასება გამოქვეყნდა - ${BRAND.name}`,
       html,
       templateType: 'review_approved',
       userId,
@@ -597,40 +765,34 @@ export class EmailService {
     reviewId: string,
     userId: string
   ): Promise<boolean> {
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .info-box { background: #FEF3C7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #F59E0B; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>Review Update</h2>
-            <p>Hi ${name},</p>
-            <p>We've reviewed your submission for <strong>${courseName}</strong> and unfortunately, it couldn't be published at this time.</p>
-            <div class="info-box">
-              <p><strong>Reason:</strong></p>
-              <p>${rejectionReason}</p>
-            </div>
-            <p>You're welcome to submit a new review that meets our community guidelines. We appreciate your understanding and continued participation in our learning community.</p>
-            <div class="footer">
-              <p>If you believe this was a mistake, please contact our support team.</p>
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <p>განვიხილეთ თქვენი შეფასება კურსზე <strong>„${courseName}"</strong> და სამწუხაროდ, ამჟამად მისი გამოქვეყნება ვერ მოხერხდა.</p>
+
+      <div class="warning-box">
+        <p style="margin: 0 0 10px 0;"><strong>მიზეზი:</strong></p>
+        <p style="margin: 0;">${rejectionReason}</p>
+      </div>
+
+      <p>შეგიძლიათ დაწეროთ ახალი შეფასება, რომელიც შეესაბამება ჩვენს სათემო წესებს. მადლობა გაგებისთვის და ჩვენი სასწავლო საზოგადოებაში მონაწილეობისთვის.</p>
+
+      <div class="info-box">
+        <p style="margin: 0;">თუ მიგაჩნიათ რომ ეს შეცდომაა, გთხოვთ დაგვიკავშირდეთ: <a href="mailto:${BRAND.supportEmail}">${BRAND.supportEmail}</a></p>
+      </div>
     `;
+
+    const html = createEmailTemplate({
+      title: 'შეფასების განახლება',
+      subtitle: 'თქვენი შეფასების სტატუსი',
+      headerIcon: '📝',
+      headerGradient: 'warning',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `Review Update - Course Platform`,
+      subject: `შეფასების განახლება - ${BRAND.name}`,
       html,
       templateType: 'review_rejected',
       userId,
@@ -654,40 +816,33 @@ export class EmailService {
   ): Promise<boolean> {
     const chapterUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn?chapter=${chapterId}`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .comment-box { background: #fff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #4F46E5; }
-            .button { display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: #ffffff; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>New Reply to Your Comment</h2>
-            <p>Hi ${name},</p>
-            <p><strong>${replierName}</strong> replied to your comment in <strong>${chapterTitle}</strong> (${courseTitle}):</p>
-            <div class="comment-box">
-              <p>"${commentPreview}..."</p>
-            </div>
-            <a href="${chapterUrl}" class="button">View Discussion</a>
-            <div class="footer">
-              <p>You can manage your notification preferences in your account settings.</p>
-              <p>&copy; ${new Date().getFullYear()} Course Platform. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <p><strong>${replierName}</strong> უპასუხა თქვენს კომენტარს თავში <strong>„${chapterTitle}"</strong> (${courseTitle}):</p>
+
+      <div class="info-box">
+        <p style="margin: 0; font-style: italic; color: ${BRAND.colors.gray[700]};">"${commentPreview}..."</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${chapterUrl}" class="button">დისკუსიის ნახვა</a>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">შეტყობინებების პარამეტრების შეცვლა შეგიძლიათ თქვენი ანგარიშის პარამეტრებში.</p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'ახალი პასუხი კომენტარზე',
+      subtitle: `კურსში: ${courseTitle}`,
+      headerIcon: '💬',
+      headerGradient: 'primary',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `New Reply in ${courseTitle} - Course Platform`,
+      subject: `ახალი პასუხი: ${courseTitle} - ${BRAND.name}`,
       html,
       templateType: 'comment_reply',
       userId,
@@ -814,53 +969,37 @@ export class EmailService {
     firstName: string,
     courseTitle: string
   ): Promise<boolean> {
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .success-box { background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981; }
-            .info-box { background: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-            h2 { color: #1F2937; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h2>განაცხადი მიღებულია!</h2>
-            <p>გამარჯობა ${firstName},</p>
+    const content = `
+      <p>გამარჯობა <strong>${firstName}</strong>,</p>
 
-            <div class="success-box">
-              <p><strong>თქვენი კურსის განაცხადი წარმატებით გაიგზავნა!</strong></p>
-              <p>კურსი: <strong>${courseTitle}</strong></p>
-            </div>
+      <div class="success-box">
+        <p style="margin: 0;"><strong>✅ თქვენი კურსის განაცხადი წარმატებით გაიგზავნა!</strong></p>
+        <p style="margin: 10px 0 0 0;">კურსი: <strong>„${courseTitle}"</strong></p>
+      </div>
 
-            <div class="info-box">
-              <p><strong>შემდეგი ნაბიჯები:</strong></p>
-              <ul>
-                <li>ჩვენი გუნდი განიხილავს თქვენს განაცხადს 2-3 სამუშაო დღის განმავლობაში</li>
-                <li>დამატებითი ინფორმაციის საჭიროების შემთხვევაში დაგიკავშირდებით</li>
-                <li>განაცხადის დამტკიცების შემდეგ მიიღებთ შეტყობინებას</li>
-              </ul>
-            </div>
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>📋 შემდეგი ნაბიჯები:</strong></p>
+        <ul style="margin: 0; padding-left: 20px;">
+          <li>ჩვენი გუნდი განიხილავს თქვენს განაცხადს 2-3 სამუშაო დღის განმავლობაში</li>
+          <li>დამატებითი ინფორმაციის საჭიროების შემთხვევაში დაგიკავშირდებით</li>
+          <li>განაცხადის დამტკიცების შემდეგ მიიღებთ შეტყობინებას</li>
+        </ul>
+      </div>
 
-            <p>თუ გაქვთ კითხვები, გთხოვთ დაგვიკავშირდეთ.</p>
-
-            <div class="footer">
-              <p>პატივისცემით,<br>Course Platform გუნდი</p>
-              <p>&copy; ${new Date().getFullYear()} Course Platform. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <p>თუ გაქვთ კითხვები, გთხოვთ დაგვიკავშირდეთ: <a href="mailto:${BRAND.supportEmail}">${BRAND.supportEmail}</a></p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'განაცხადი მიღებულია!',
+      subtitle: 'მადლობა თქვენი მოთხოვნისთვის',
+      headerIcon: '📝',
+      headerGradient: 'success',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `განაცხადი მიღებულია: ${courseTitle}`,
+      subject: `განაცხადი მიღებულია: ${courseTitle} - ${BRAND.name}`,
       html,
       templateType: 'course_submission_confirmation',
       metadata: { courseTitle },
@@ -891,95 +1030,83 @@ export class EmailService {
     const filesHtml = files.length > 0
       ? files.map(f => `
           <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB;">
+            <td style="padding: 12px; border-bottom: 1px solid ${BRAND.colors.gray[200]};">
               <strong>${f.fileName}</strong>
-              <br><span style="color: #6B7280; font-size: 12px;">${formatFileSize(f.fileSize)}</span>
+              <br><span style="color: ${BRAND.colors.gray[500]}; font-size: 12px;">${formatFileSize(f.fileSize)}</span>
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid #E5E7EB; text-align: right; white-space: nowrap;">
+            <td style="padding: 12px; border-bottom: 1px solid ${BRAND.colors.gray[200]}; text-align: right; white-space: nowrap;">
               <a href="${f.filePath}"
                  target="_blank"
-                 style="background: #3B82F6; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-block; margin-right: 8px;">
+                 style="background: ${BRAND.colors.primary}; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-block; margin-right: 8px;">
                 ნახვა
               </a>
               <a href="${f.filePath}"
                  download
-                 style="background: #10B981; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-block;">
+                 style="background: ${BRAND.colors.accent}; color: white; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; display: inline-block;">
                 გადმოწერა
               </a>
             </td>
           </tr>
         `).join('')
-      : '<tr><td colspan="2" style="padding: 12px; text-align: center; color: #6B7280;">არ არის ატვირთული</td></tr>';
+      : `<tr><td colspan="2" style="padding: 12px; text-align: center; color: ${BRAND.colors.gray[500]};">არ არის ატვირთული</td></tr>`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .alert-box { background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B; }
-            .details-box { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E5E7EB; }
-            .description-box { background: #F9FAFB; padding: 15px; border-radius: 8px; margin: 10px 0; max-height: 200px; overflow-y: auto; }
-            .files-list { background: #F0FDF4; padding: 15px; border-radius: 8px; margin: 10px 0; }
-            .files-list ul { margin: 0; padding-left: 20px; }
-            .files-list li { margin: 5px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-            h2 { color: #1F2937; }
-            .label { font-weight: bold; color: #6B7280; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }
-            .value { margin-bottom: 15px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="alert-box">
-              <h2 style="margin: 0;">ახალი კურსის განაცხადი!</h2>
-            </div>
+    const content = `
+      <div class="details-card">
+        <div class="detail-row">
+          <span class="detail-label">განაცხადის ID:</span>
+          <span class="detail-value" style="font-family: monospace;">${submissionId}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ავტორი:</span>
+          <span class="detail-value">${authorName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ელ-ფოსტა:</span>
+          <span class="detail-value"><a href="mailto:${authorEmail}">${authorEmail}</a></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ტელეფონი:</span>
+          <span class="detail-value"><a href="tel:${authorPhone}">${authorPhone}</a></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">კურსი:</span>
+          <span class="detail-value"><strong>${courseTitle}</strong></span>
+        </div>
+      </div>
 
-            <div class="details-box">
-              <div class="label">განაცხადის ID</div>
-              <div class="value">${submissionId}</div>
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>კურსის აღწერა:</strong></p>
+        <p style="margin: 0; color: ${BRAND.colors.gray[700]};">${courseDescription.substring(0, 500)}${courseDescription.length > 500 ? '...' : ''}</p>
+      </div>
 
-              <div class="label">ავტორის სახელი</div>
-              <div class="value">${authorName}</div>
+      ${driveLink ? `
+      <div class="accent-box">
+        <p style="margin: 0;"><strong>📁 Drive ლინკი:</strong></p>
+        <p style="margin: 10px 0 0 0;"><a href="${driveLink}" target="_blank">${driveLink}</a></p>
+      </div>
+      ` : ''}
 
-              <div class="label">ელ-ფოსტა</div>
-              <div class="value"><a href="mailto:${authorEmail}">${authorEmail}</a></div>
+      <div class="details-card">
+        <p style="margin: 0 0 15px 0;"><strong>📎 ატვირთული ფაილები (${files.length}):</strong></p>
+        <table style="width: 100%; border-collapse: collapse;">${filesHtml}</table>
+      </div>
 
-              <div class="label">ტელეფონი</div>
-              <div class="value"><a href="tel:${authorPhone}">${authorPhone}</a></div>
-
-              <div class="label">კურსის დასახელება</div>
-              <div class="value"><strong>${courseTitle}</strong></div>
-
-              <div class="label">კურსის აღწერა</div>
-              <div class="description-box">${courseDescription.substring(0, 500)}${courseDescription.length > 500 ? '...' : ''}</div>
-
-              ${driveLink ? `
-              <div class="label">Drive ლინკი</div>
-              <div class="value"><a href="${driveLink}" target="_blank">${driveLink}</a></div>
-              ` : ''}
-
-              <div class="label">ატვირთული ფაილები (${files.length})</div>
-              <div class="files-list">
-                <table style="width: 100%; border-collapse: collapse;">${filesHtml}</table>
-              </div>
-            </div>
-
-            <p>გთხოვთ განიხილოთ განაცხადი და დაუკავშირდეთ ავტორს.</p>
-
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Course Platform Admin</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <div class="warning-box">
+        <p style="margin: 0;"><strong>⚡ მოქმედება საჭიროა:</strong> გთხოვთ განიხილოთ განაცხადი და დაუკავშირდეთ ავტორს.</p>
+      </div>
     `;
+
+    const html = createEmailTemplate({
+      title: 'ახალი კურსის განაცხადი',
+      subtitle: `${authorName}-სგან`,
+      headerIcon: '📚',
+      headerGradient: 'warning',
+      content,
+    });
 
     return this.sendEmail({
       to: adminEmail,
-      subject: `ახალი კურსის განაცხადი: ${courseTitle}`,
+      subject: `ახალი კურსის განაცხადი: ${courseTitle} - ${BRAND.name}`,
       html,
       templateType: 'course_submission_admin_notification',
       metadata: { submissionId, authorName, courseTitle },
@@ -1030,113 +1157,73 @@ export class EmailService {
       minute: '2-digit',
     });
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-            .header h2 { margin: 0; font-size: 24px; }
-            .header p { margin: 5px 0 0 0; opacity: 0.9; }
-            .section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #E5E7EB; }
-            .section-title { font-size: 14px; font-weight: bold; color: #6B7280; text-transform: uppercase; margin-bottom: 10px; border-bottom: 2px solid #4F46E5; padding-bottom: 5px; display: inline-block; }
-            .info-row { display: flex; margin-bottom: 8px; }
-            .info-label { font-weight: bold; color: #374151; min-width: 140px; }
-            .info-value { color: #1F2937; }
-            .highlight { background: #EEF2FF; padding: 15px; border-radius: 8px; border-left: 4px solid #4F46E5; }
-            .comment-box { background: #F9FAFB; padding: 15px; border-radius: 8px; font-style: italic; color: #4B5563; }
-            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-            .cta-button { display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin-top: 15px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h2>📅 ახალი ინდივიდუალური ჯავშნა</h2>
-              <p>${bookingData.courseTitle}</p>
-            </div>
+    const content = `
+      <div class="details-card">
+        <p style="margin: 0 0 15px 0; font-weight: bold; color: ${BRAND.colors.gray[500]}; text-transform: uppercase; font-size: 12px;">👤 მომხმარებლის ინფორმაცია</p>
+        <div class="detail-row">
+          <span class="detail-label">სახელი, გვარი:</span>
+          <span class="detail-value">${bookingData.firstName} ${bookingData.lastName}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ტელეფონი:</span>
+          <span class="detail-value"><a href="tel:${bookingData.phone}">${bookingData.phone}</a></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ელ-ფოსტა:</span>
+          <span class="detail-value"><a href="mailto:${bookingData.email}">${bookingData.email}</a></span>
+        </div>
+      </div>
 
-            <div class="section">
-              <div class="section-title">👤 მომხმარებლის ინფორმაცია</div>
-              <div class="info-row">
-                <span class="info-label">სახელი, გვარი:</span>
-                <span class="info-value">${bookingData.firstName} ${bookingData.lastName}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">ტელეფონი:</span>
-                <span class="info-value"><a href="tel:${bookingData.phone}">${bookingData.phone}</a></span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">ელ-ფოსტა:</span>
-                <span class="info-value"><a href="mailto:${bookingData.email}">${bookingData.email}</a></span>
-              </div>
-            </div>
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>🕐 სასურველი დრო:</strong></p>
+        <p style="margin: 0;"><strong>დღეები:</strong> ${formattedDays}</p>
+        <p style="margin: 5px 0 0 0;"><strong>საათები:</strong> ${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}</p>
+      </div>
 
-            <div class="section">
-              <div class="section-title">🕐 სასურველი დრო</div>
-              <div class="highlight">
-                <div class="info-row">
-                  <span class="info-label">დღეები:</span>
-                  <span class="info-value">${formattedDays}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">საათები:</span>
-                  <span class="info-value">${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}</span>
-                </div>
-              </div>
-            </div>
+      ${bookingData.comment ? `
+      <div class="accent-box">
+        <p style="margin: 0 0 10px 0;"><strong>💬 კომენტარი:</strong></p>
+        <p style="margin: 0; font-style: italic;">${bookingData.comment}</p>
+      </div>
+      ` : ''}
 
-            ${bookingData.comment ? `
-            <div class="section">
-              <div class="section-title">💬 კომენტარი</div>
-              <div class="comment-box">
-                ${bookingData.comment}
-              </div>
-            </div>
-            ` : ''}
+      <div class="warning-box">
+        <p style="margin: 0;"><strong>⚡ მოქმედება საჭიროა:</strong> გთხოვთ დაუკავშირდეთ მომხმარებელს რაც შეიძლება სწრაფად.</p>
+      </div>
 
-            <div class="section" style="background: #FEF3C7; border-color: #F59E0B;">
-              <p style="margin: 0; color: #92400E;">
-                <strong>⚡ მოქმედება საჭიროა:</strong> გთხოვთ დაუკავშირდეთ მომხმარებელს რაც შეიძლება სწრაფად.
-              </p>
-            </div>
-
-            <div class="footer">
-              <p>გაგზავნის თარიღი: ${submissionDate}</p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 12px; text-align: center; margin-top: 20px;">გაგზავნის თარიღი: ${submissionDate}</p>
     `;
 
+    const html = createEmailTemplate({
+      title: 'ახალი ინდივიდუალური ჯავშნა',
+      subtitle: bookingData.courseTitle,
+      headerIcon: '📅',
+      headerGradient: 'primary',
+      content,
+    });
+
     const text = `
-ახალი ინდივიდუალური ჯავშნა
+ახალი ინდივიდუალური ჯავშნა - ${BRAND.name}
 
 კურსი: ${bookingData.courseTitle}
 
 მომხმარებლის ინფორმაცია:
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 სახელი: ${bookingData.firstName} ${bookingData.lastName}
 ტელეფონი: ${bookingData.phone}
 ელ-ფოსტა: ${bookingData.email}
 
 სასურველი დრო:
-━━━━━━━━━━━━━━━━━━━━━━━━━━
 დღეები: ${formattedDays}
 საათები: ${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}
 
-${bookingData.comment ? `კომენტარი:\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n${bookingData.comment}` : ''}
+${bookingData.comment ? `კომენტარი: ${bookingData.comment}` : ''}
 
 გაგზავნის თარიღი: ${submissionDate}
     `;
 
     return this.sendEmail({
       to: adminEmail,
-      subject: `📅 ახალი ჯავშნა: ${bookingData.courseTitle}`,
+      subject: `📅 ახალი ჯავშნა: ${bookingData.courseTitle} - ${BRAND.name}`,
       html,
       text,
       templateType: 'course_booking',
@@ -1177,85 +1264,41 @@ ${bookingData.comment ? `კომენტარი:\n━━━━━━━━�
       .map(day => dayLabels[day] || day)
       .join(', ');
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #ff4d40 0%, #ed3124 100%); color: white; padding: 25px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
-            .header h2 { margin: 0; font-size: 24px; }
-            .header p { margin: 10px 0 0 0; opacity: 0.9; }
-            .success-icon { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; }
-            .section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #E5E7EB; }
-            .section-title { font-size: 14px; font-weight: bold; color: #6B7280; text-transform: uppercase; margin-bottom: 10px; }
-            .info-row { margin-bottom: 8px; }
-            .info-label { font-weight: bold; color: #374151; }
-            .info-value { color: #1F2937; }
-            .highlight { background: #FFF5F4; padding: 15px; border-radius: 8px; border-left: 4px solid #ff4d40; }
-            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-            .contact-info { background: #EFF6FF; padding: 15px; border-radius: 8px; margin-top: 15px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="success-icon">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                  <path d="M20 6L9 17l-5-5"/>
-                </svg>
-              </div>
-              <h2>განაცხადი მიღებულია!</h2>
-              <p>მადლობა დაინტერესებისთვის</p>
-            </div>
+    const content = `
+      <p>გამარჯობა <strong>${bookingData.firstName}</strong>,</p>
 
-            <p>გამარჯობა <strong>${bookingData.firstName}</strong>,</p>
+      <p>თქვენი განაცხადი ინდივიდუალური კურსის შესახებ წარმატებით მიღებულია. ჩვენი გუნდი მალე დაგიკავშირდებათ.</p>
 
-            <p>თქვენი განაცხადი ინდივიდუალური კურსის შესახებ წარმატებით მიღებულია. ჩვენი გუნდი მალე დაგიკავშირდებათ.</p>
+      <div class="accent-box">
+        <p style="margin: 0;"><strong>📚 კურსი:</strong></p>
+        <p style="margin: 10px 0 0 0; font-size: 18px;"><strong>${bookingData.courseTitle}</strong></p>
+      </div>
 
-            <div class="section">
-              <div class="section-title">📚 კურსი</div>
-              <div class="highlight">
-                <strong>${bookingData.courseTitle}</strong>
-              </div>
-            </div>
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>🕐 თქვენი სასურველი დრო:</strong></p>
+        <p style="margin: 0;"><strong>დღეები:</strong> ${formattedDays}</p>
+        <p style="margin: 5px 0 0 0;"><strong>საათები:</strong> ${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}</p>
+      </div>
 
-            <div class="section">
-              <div class="section-title">🕐 თქვენი სასურველი დრო</div>
-              <div class="info-row">
-                <span class="info-label">დღეები:</span>
-                <span class="info-value">${formattedDays}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">საათები:</span>
-                <span class="info-value">${bookingData.preferredTimeFrom} - ${bookingData.preferredTimeTo}</span>
-              </div>
-            </div>
+      <div class="details-card">
+        <p style="margin: 0 0 10px 0;"><strong>📋 შემდეგი ნაბიჯები:</strong></p>
+        <ul style="margin: 0; padding-left: 20px; color: ${BRAND.colors.gray[700]};">
+          <li>ჩვენი კონსულტანტი დაგიკავშირდებათ 24 საათის განმავლობაში</li>
+          <li>შევათანხმებთ ზუსტ განრიგს და დეტალებს</li>
+          <li>მიიღებთ ინფორმაციას გადახდის შესახებ</li>
+        </ul>
+      </div>
 
-            <div class="section">
-              <div class="section-title">📋 შემდეგი ნაბიჯები</div>
-              <ul style="margin: 0; padding-left: 20px; color: #4B5563;">
-                <li>ჩვენი კონსულტანტი დაგიკავშირდებათ 24 საათის განმავლობაში</li>
-                <li>შევათანხმებთ ზუსტ განრიგს და დეტალებს</li>
-                <li>მიიღებთ ინფორმაციას გადახდის შესახებ</li>
-              </ul>
-            </div>
-
-            <div class="contact-info">
-              <strong>გაქვთ კითხვები?</strong><br>
-              დაგვიკავშირდით: <a href="mailto:info@kursebi.online">info@kursebi.online</a>
-            </div>
-
-            <div class="footer">
-              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">გაქვთ კითხვები? დაგვიკავშირდით: <a href="mailto:${BRAND.supportEmail}">${BRAND.supportEmail}</a></p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'განაცხადი მიღებულია!',
+      subtitle: 'მადლობა დაინტერესებისთვის',
+      headerIcon: '✅',
+      headerGradient: 'accent',
+      content,
+    });
 
     const text = `
 გამარჯობა ${bookingData.firstName},
@@ -1273,15 +1316,14 @@ ${bookingData.comment ? `კომენტარი:\n━━━━━━━━�
 2. შევათანხმებთ ზუსტ განრიგს და დეტალებს
 3. მიიღებთ ინფორმაციას გადახდის შესახებ
 
-გაქვთ კითხვები? დაგვიკავშირდით: info@kursebi.online
+გაქვთ კითხვები? დაგვიკავშირდით: ${BRAND.supportEmail}
 
-პატივისცემით,
-Kursebi.online გუნდი
+${BRAND.name} გუნდი
     `;
 
     return this.sendEmail({
       to: customerEmail,
-      subject: `✅ განაცხადი მიღებულია - ${bookingData.courseTitle}`,
+      subject: `✅ განაცხადი მიღებულია - ${bookingData.courseTitle} - ${BRAND.name}`,
       html,
       text,
       templateType: 'course_booking_confirmation',
@@ -1299,43 +1341,30 @@ Kursebi.online გუნდი
     email: string,
     name: string,
     subject: string,
-    content: string,
+    emailContent: string,
     userId: string
   ): Promise<boolean> {
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .content { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h2>${subject}</h2>
-            </div>
-            <p>გამარჯობა ${name},</p>
-            <div class="content">
-              ${content.replace(/\n/g, '<br>')}
-            </div>
-            <div class="footer">
-              <p>ეს შეტყობინება გამოგზავნილია Kursebi.online ადმინისტრაციის მიერ.</p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const templateContent = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
+
+      <div class="info-box">
+        ${emailContent.replace(/\n/g, '<br>')}
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">ეს შეტყობინება გამოგზავნილია ${BRAND.name} ადმინისტრაციის მიერ.</p>
     `;
+
+    const html = createEmailTemplate({
+      title: subject,
+      subtitle: `${BRAND.name} ადმინისტრაცია`,
+      headerIcon: '📧',
+      headerGradient: 'primary',
+      content: templateContent,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `${subject} - Kursebi.online`,
+      subject: `${subject} - ${BRAND.name}`,
       html,
       templateType: 'admin_email',
       userId,
@@ -1360,72 +1389,40 @@ Kursebi.online გუნდი
     const certificateUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn`;
     const certificatesPageUrl = `${getFrontendUrl()}/dashboard/certificates`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #0e3355 0%, #1a4a7a 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
-            .header h2 { margin: 0; font-size: 28px; }
-            .header p { margin: 10px 0 0 0; opacity: 0.9; font-size: 16px; }
-            .success-icon { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 35px; }
-            .section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #E5E7EB; }
-            .course-box { background: linear-gradient(135deg, #FFF5F4 0%, #FEE2E2 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #ff4d40; margin: 20px 0; }
-            .course-title { font-size: 20px; font-weight: bold; color: #0e3355; margin: 0; }
-            .instructions { background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .instructions h3 { color: #1E40AF; margin: 0 0 15px 0; font-size: 16px; }
-            .instructions ol { margin: 0; padding-left: 20px; color: #374151; }
-            .instructions li { margin-bottom: 10px; }
-            .button { display: inline-block; background: #ff4d40; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 10px 5px; }
-            .button-secondary { background: #0e3355; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="success-icon">🎉</div>
-              <h2>გილოცავთ!</h2>
-              <p>კურსი წარმატებით დაასრულეთ</p>
-            </div>
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
 
-            <p>გამარჯობა <strong>${studentName}</strong>,</p>
+      <p>ჩვენ გვინდა გილოცოთ კურსის წარმატებით დასრულება!</p>
 
-            <p>ჩვენ გვინდა გილოცოთ კურსის წარმატებით დასრულება!</p>
+      <div class="accent-box">
+        <p style="margin: 0; font-size: 20px; font-weight: bold; color: ${BRAND.colors.primary};">„${courseTitle}"</p>
+      </div>
 
-            <div class="course-box">
-              <p class="course-title">„${courseTitle}"</p>
-            </div>
+      <div class="info-box">
+        <p style="margin: 0 0 15px 0;"><strong>📜 როგორ აიღოთ სერტიფიკატი:</strong></p>
+        <ol style="margin: 0; padding-left: 20px; color: ${BRAND.colors.gray[700]};">
+          <li style="margin-bottom: 8px;">შედით თქვენს პროფილში</li>
+          <li style="margin-bottom: 8px;">გახსენით კურსი და დააჭირეთ „სერტიფიკატის გენერაცია" ღილაკს</li>
+          <li style="margin-bottom: 8px;">შეიყვანეთ თქვენი სახელი და გვარი (როგორც გსურთ რომ გამოჩნდეს სერტიფიკატზე)</li>
+          <li>ჩამოტვირთეთ სერტიფიკატი PDF ფორმატში</li>
+        </ol>
+      </div>
 
-            <div class="instructions">
-              <h3>📜 როგორ აიღოთ სერტიფიკატი:</h3>
-              <ol>
-                <li>შედით თქვენს პროფილში</li>
-                <li>გახსენით კურსი და დააჭირეთ „სერტიფიკატის გენერაცია" ღილაკს</li>
-                <li>შეიყვანეთ თქვენი სახელი და გვარი (როგორც გსურთ რომ გამოჩნდეს სერტიფიკატზე)</li>
-                <li>ჩამოტვირთეთ სერტიფიკატი PDF ფორმატში</li>
-              </ol>
-            </div>
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${certificateUrl}" class="button">სერტიფიკატის აღება</a>
+        <a href="${certificatesPageUrl}" class="button button-secondary">ჩემი სერტიფიკატები</a>
+      </div>
 
-            <div style="text-align: center; margin: 25px 0;">
-              <a href="${certificateUrl}" class="button">სერტიფიკატის აღება</a>
-              <a href="${certificatesPageUrl}" class="button button-secondary">ჩემი სერტიფიკატები</a>
-            </div>
-
-            <p style="color: #6B7280; font-size: 14px;">სერტიფიკატი დაადასტურებს თქვენს კვალიფიკაციას და შეგიძლიათ გაუზიაროთ დამსაქმებლებს ან სოციალურ ქსელებში.</p>
-
-            <div class="footer">
-              <p>მადლობა რომ სწავლობთ ჩვენთან!</p>
-              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">სერტიფიკატი დაადასტურებს თქვენს კვალიფიკაციას და შეგიძლიათ გაუზიაროთ დამსაქმებლებს ან სოციალურ ქსელებში.</p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'გილოცავთ!',
+      subtitle: 'კურსი წარმატებით დაასრულეთ',
+      headerIcon: '🎉',
+      headerGradient: 'success',
+      content,
+    });
 
     const text = `
 გილოცავთ, ${studentName}!
@@ -1442,12 +1439,12 @@ Kursebi.online გუნდი
 ჩემი სერტიფიკატები: ${certificatesPageUrl}
 
 მადლობა რომ სწავლობთ ჩვენთან!
-Kursebi.online გუნდი
+${BRAND.name} გუნდი
     `;
 
     return this.sendEmail({
       to: email,
-      subject: `🎉 გილოცავთ! კურსი "${courseTitle}" დასრულებულია`,
+      subject: `🎉 გილოცავთ! კურსი "${courseTitle}" დასრულებულია - ${BRAND.name}`,
       html,
       text,
       templateType: 'course_completion',
@@ -1484,88 +1481,48 @@ Kursebi.online გუნდი
       console.log('✅ Certificate PDF generated successfully');
     } catch (pdfError) {
       console.error('Failed to generate certificate PDF:', pdfError);
-      // Continue without attachment if PDF generation fails
     }
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #0e3355 0%, #1a4a7a 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
-            .header h2 { margin: 0; font-size: 28px; }
-            .certificate-icon { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 35px; }
-            .certificate-preview { background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 3px solid #0e3355; border-radius: 12px; padding: 25px; margin: 20px 0; text-align: center; position: relative; }
-            .certificate-preview::before { content: ''; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; border: 1px solid #0e3355; border-radius: 8px; opacity: 0.3; }
-            .cert-title { font-size: 14px; color: #6B7280; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
-            .cert-name { font-size: 24px; font-weight: bold; color: #0e3355; margin: 10px 0; }
-            .cert-course { font-size: 16px; color: #374151; margin: 10px 0; }
-            .cert-number { font-size: 12px; color: #9CA3AF; font-family: monospace; margin-top: 15px; }
-            .score-badge { display: inline-block; background: linear-gradient(135deg, #ff4d40 0%, #ed3124 100%); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin: 15px 0; }
-            .button { display: inline-block; background: #ff4d40; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 10px 5px; }
-            .button-secondary { background: #0e3355; }
-            .features { display: flex; justify-content: space-around; margin: 20px 0; text-align: center; }
-            .feature { flex: 1; padding: 10px; }
-            .feature-icon { font-size: 24px; margin-bottom: 5px; }
-            .feature-text { font-size: 12px; color: #6B7280; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="certificate-icon">📜</div>
-              <h2>სერტიფიკატი მზადაა!</h2>
-            </div>
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
 
-            <p>გამარჯობა <strong>${studentName}</strong>,</p>
+      <p>თქვენი სერტიფიკატი წარმატებით შეიქმნა და მზადაა ჩამოსატვირთად!</p>
 
-            <p>თქვენი სერტიფიკატი წარმატებით შეიქმნა და მზადაა ჩამოსატვირთად!</p>
+      <div class="details-card" style="text-align: center; border: 2px solid ${BRAND.colors.primary};">
+        <p style="margin: 0; font-size: 12px; color: ${BRAND.colors.gray[500]}; text-transform: uppercase; letter-spacing: 2px;">სერტიფიკატი</p>
+        <p style="margin: 15px 0; font-size: 22px; font-weight: bold; color: ${BRAND.colors.primary};">${studentName}</p>
+        <p style="margin: 10px 0; color: ${BRAND.colors.gray[700]};">„${courseTitle}"</p>
+        <p style="margin: 15px 0;">
+          <span style="display: inline-block; background: ${BRAND.colors.accent}; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold;">${Math.round(score)}%</span>
+        </p>
+        <p style="margin: 15px 0 0 0; font-size: 12px; color: ${BRAND.colors.gray[500]}; font-family: monospace;">ID: ${certificateNumber}</p>
+      </div>
 
-            <div class="certificate-preview">
-              <div class="cert-title">სერტიფიკატი</div>
-              <div class="cert-name">${studentName}</div>
-              <div class="cert-course">„${courseTitle}"</div>
-              <div class="score-badge">${Math.round(score)}%</div>
-              <div class="cert-number">ID: ${certificateNumber}</div>
-            </div>
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${certificateUrl}" class="button">სერტიფიკატის ნახვა</a>
+        <a href="${certificatesPageUrl}" class="button button-secondary">ჩემი სერტიფიკატები</a>
+      </div>
 
-            <div style="text-align: center; margin: 25px 0;">
-              <a href="${certificateUrl}" class="button">სერტიფიკატის ნახვა</a>
-              <a href="${certificatesPageUrl}" class="button button-secondary">ჩემი სერტიფიკატები</a>
-            </div>
+      <div class="info-box" style="text-align: center;">
+        <p style="margin: 0;">
+          <span style="display: inline-block; margin: 0 15px;">📥 PDF ჩამოტვირთვა</span>
+          <span style="display: inline-block; margin: 0 15px;">🔗 გაზიარება</span>
+          <span style="display: inline-block; margin: 0 15px;">✓ ვერიფიცირებული</span>
+        </p>
+      </div>
 
-            <div class="features">
-              <div class="feature">
-                <div class="feature-icon">📥</div>
-                <div class="feature-text">PDF ჩამოტვირთვა</div>
-              </div>
-              <div class="feature">
-                <div class="feature-icon">🔗</div>
-                <div class="feature-text">გაზიარება</div>
-              </div>
-              <div class="feature">
-                <div class="feature-icon">✓</div>
-                <div class="feature-text">ვერიფიცირებული</div>
-              </div>
-            </div>
-
-            <p style="color: #6B7280; font-size: 14px; text-align: center;">
-              სერტიფიკატი შეგიძლიათ გაუზიაროთ LinkedIn-ზე, CV-ში ან დამსაქმებლებს.
-            </p>
-
-            <div class="footer">
-              <p>გისურვებთ წარმატებებს!</p>
-              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px; text-align: center;">
+        სერტიფიკატი შეგიძლიათ გაუზიაროთ LinkedIn-ზე, CV-ში ან დამსაქმებლებს.
+      </p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'სერტიფიკატი მზადაა!',
+      subtitle: 'წარმატებული დასრულება',
+      headerIcon: '📜',
+      headerGradient: 'primary',
+      content,
+    });
 
     const text = `
 გამარჯობა ${studentName},
@@ -1582,7 +1539,7 @@ Kursebi.online გუნდი
 სერტიფიკატი შეგიძლიათ გაუზიაროთ LinkedIn-ზე, CV-ში ან დამსაქმებლებს.
 
 გისურვებთ წარმატებებს!
-Kursebi.online გუნდი
+${BRAND.name} გუნდი
     `;
 
     // Prepare attachments
@@ -1596,7 +1553,7 @@ Kursebi.online გუნდი
 
     return this.sendEmail({
       to: email,
-      subject: `📜 სერტიფიკატი მზადაა - "${courseTitle}"`,
+      subject: `📜 სერტიფიკატი მზადაა - "${courseTitle}" - ${BRAND.name}`,
       html,
       text,
       templateType: 'certificate_ready',
@@ -1622,73 +1579,46 @@ Kursebi.online გუნდი
   ): Promise<boolean> {
     const dashboardUrl = `${getFrontendUrl()}/dashboard/refunds`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 25px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
-            .header h2 { margin: 0; font-size: 24px; }
-            .header-icon { font-size: 40px; margin-bottom: 10px; }
-            .info-box { background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B; }
-            .details { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E5E7EB; }
-            .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
-            .detail-row:last-child { border-bottom: none; }
-            .detail-label { color: #6B7280; }
-            .detail-value { font-weight: bold; color: #1F2937; }
-            .button { display: inline-block; background: #F59E0B; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="header-icon">📝</div>
-              <h2>მოთხოვნა მიღებულია</h2>
-            </div>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
 
-            <p>გამარჯობა <strong>${name}</strong>,</p>
+      <div class="warning-box">
+        <p style="margin: 0;"><strong>თქვენი თანხის დაბრუნების მოთხოვნა მიღებულია და განხილვის პროცესშია.</strong></p>
+      </div>
 
-            <div class="info-box">
-              <p><strong>თქვენი თანხის დაბრუნების მოთხოვნა მიღებულია და განხილვის პროცესშია.</strong></p>
-            </div>
+      <div class="details-card">
+        <div class="detail-row">
+          <span class="detail-label">კურსი:</span>
+          <span class="detail-value">${courseTitle}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">მოთხოვნილი თანხა:</span>
+          <span class="detail-value">${requestedAmount.toFixed(2)} ₾</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">სტატუსი:</span>
+          <span class="detail-value" style="color: ${BRAND.colors.warning};">განხილვის პროცესში</span>
+        </div>
+      </div>
 
-            <div class="details">
-              <div class="detail-row">
-                <span class="detail-label">კურსი:</span>
-                <span class="detail-value">${courseTitle}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">მოთხოვნილი თანხა:</span>
-                <span class="detail-value">${requestedAmount.toFixed(2)} ₾</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">სტატუსი:</span>
-                <span class="detail-value" style="color: #F59E0B;">განხილვის პროცესში</span>
-              </div>
-            </div>
+      <p>ჩვენი გუნდი განიხილავს თქვენს მოთხოვნას და მალე მიიღებთ შეტყობინებას.</p>
 
-            <p>ჩვენი გუნდი განიხილავს თქვენს მოთხოვნას და მალე მიიღებთ შეტყობინებას.</p>
-
-            <div style="text-align: center;">
-              <a href="${dashboardUrl}" class="button">მოთხოვნის ნახვა</a>
-            </div>
-
-            <div class="footer">
-              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${dashboardUrl}" class="button">მოთხოვნის ნახვა</a>
+      </div>
     `;
+
+    const html = createEmailTemplate({
+      title: 'მოთხოვნა მიღებულია',
+      subtitle: 'თანხის დაბრუნების მოთხოვნა',
+      headerIcon: '📝',
+      headerGradient: 'warning',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `მოთხოვნა მიღებულია - ${courseTitle}`,
+      subject: `მოთხოვნა მიღებულია - ${courseTitle} - ${BRAND.name}`,
       html,
       templateType: 'refund_request_received',
       userId,
@@ -1708,78 +1638,50 @@ Kursebi.online გუნდი
   ): Promise<boolean> {
     const dashboardUrl = `${getFrontendUrl()}/dashboard/refunds`;
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 25px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
-            .header h2 { margin: 0; font-size: 24px; }
-            .header-icon { font-size: 40px; margin-bottom: 10px; }
-            .success-box { background: #EDE9FE; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8B5CF6; }
-            .details { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E5E7EB; }
-            .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
-            .detail-row:last-child { border-bottom: none; }
-            .detail-label { color: #6B7280; }
-            .detail-value { font-weight: bold; color: #1F2937; }
-            .info-note { background: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; color: #4B5563; }
-            .button { display: inline-block; background: #8B5CF6; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="header-icon">✅</div>
-              <h2>მოთხოვნა დადასტურებულია</h2>
-            </div>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
 
-            <p>გამარჯობა <strong>${name}</strong>,</p>
+      <div class="success-box">
+        <p style="margin: 0;"><strong>✅ თქვენი თანხის დაბრუნების მოთხოვნა დადასტურდა!</strong></p>
+        <p style="margin: 10px 0 0 0;">თანხის დაბრუნების პროცესი დაიწყო და მალე მიიღებთ თანხას თქვენს ანგარიშზე.</p>
+      </div>
 
-            <div class="success-box">
-              <p><strong>თქვენი თანხის დაბრუნების მოთხოვნა დადასტურდა!</strong></p>
-              <p>თანხის დაბრუნების პროცესი დაიწყო და მალე მიიღებთ თანხას თქვენს ანგარიშზე.</p>
-            </div>
+      <div class="details-card">
+        <div class="detail-row">
+          <span class="detail-label">კურსი:</span>
+          <span class="detail-value">${courseTitle}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">დასაბრუნებელი თანხა:</span>
+          <span class="detail-value" style="color: ${BRAND.colors.success};">${amount.toFixed(2)} ₾</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">სტატუსი:</span>
+          <span class="detail-value" style="color: ${BRAND.colors.primary};">მუშავდება</span>
+        </div>
+      </div>
 
-            <div class="details">
-              <div class="detail-row">
-                <span class="detail-label">კურსი:</span>
-                <span class="detail-value">${courseTitle}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">დასაბრუნებელი თანხა:</span>
-                <span class="detail-value" style="color: #059669;">${amount.toFixed(2)} ₾</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">სტატუსი:</span>
-                <span class="detail-value" style="color: #8B5CF6;">მუშავდება</span>
-              </div>
-            </div>
+      <div class="info-box">
+        <p style="margin: 0;"><strong>ℹ️ რას ნიშნავს "მუშავდება"?</strong></p>
+        <p style="margin: 10px 0 0 0;">თანხის დაბრუნების მოთხოვნა გაიგზავნა ბანკში. თანხა თქვენს ანგარიშზე დაბრუნდება რამდენიმე სამუშაო დღის განმავლობაში.</p>
+      </div>
 
-            <div class="info-note">
-              <strong>ℹ️ რას ნიშნავს "მუშავდება"?</strong><br>
-              თანხის დაბრუნების მოთხოვნა გაიგზავნა ბანკში. თანხა თქვენს ანგარიშზე დაბრუნდება რამდენიმე სამუშაო დღის განმავლობაში.
-            </div>
-
-            <div style="text-align: center;">
-              <a href="${dashboardUrl}" class="button">სტატუსის ნახვა</a>
-            </div>
-
-            <div class="footer">
-              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${dashboardUrl}" class="button">სტატუსის ნახვა</a>
+      </div>
     `;
+
+    const html = createEmailTemplate({
+      title: 'მოთხოვნა დადასტურდა',
+      subtitle: 'თანხის დაბრუნება მუშავდება',
+      headerIcon: '✅',
+      headerGradient: 'primary',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `მოთხოვნა დადასტურდა - ${courseTitle}`,
+      subject: `მოთხოვნა დადასტურდა - ${courseTitle} - ${BRAND.name}`,
       html,
       templateType: 'refund_approved',
       userId,
@@ -1797,77 +1699,48 @@ Kursebi.online გუნდი
     amount: number,
     userId: string
   ): Promise<boolean> {
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .header { background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 25px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
-            .header h2 { margin: 0; font-size: 24px; }
-            .header-icon { font-size: 40px; margin-bottom: 10px; }
-            .success-box { background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981; text-align: center; }
-            .refund-amount { font-size: 32px; font-weight: bold; color: #059669; margin: 10px 0; }
-            .details { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #E5E7EB; }
-            .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
-            .detail-row:last-child { border-bottom: none; }
-            .detail-label { color: #6B7280; }
-            .detail-value { font-weight: bold; color: #1F2937; }
-            .info-note { background: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; color: #4B5563; }
-            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="header-icon">💰</div>
-              <h2>თანხა დაბრუნებულია!</h2>
-            </div>
+    const content = `
+      <p>გამარჯობა <strong>${name}</strong>,</p>
 
-            <p>გამარჯობა <strong>${name}</strong>,</p>
+      <div class="success-box" style="text-align: center;">
+        <p style="margin: 0;">თქვენი თანხის დაბრუნება წარმატებით დასრულდა!</p>
+        <p style="margin: 15px 0; font-size: 32px; font-weight: bold; color: ${BRAND.colors.success};">${amount.toFixed(2)} ₾</p>
+      </div>
 
-            <div class="success-box">
-              <p>თქვენი თანხის დაბრუნება წარმატებით დასრულდა!</p>
-              <p class="refund-amount">${amount.toFixed(2)} ₾</p>
-            </div>
+      <div class="details-card">
+        <div class="detail-row">
+          <span class="detail-label">კურსი:</span>
+          <span class="detail-value">${courseTitle}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">დაბრუნებული თანხა:</span>
+          <span class="detail-value" style="color: ${BRAND.colors.success};">${amount.toFixed(2)} ₾</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">სტატუსი:</span>
+          <span class="detail-value" style="color: ${BRAND.colors.success};">დასრულებული ✓</span>
+        </div>
+      </div>
 
-            <div class="details">
-              <div class="detail-row">
-                <span class="detail-label">კურსი:</span>
-                <span class="detail-value">${courseTitle}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">დაბრუნებული თანხა:</span>
-                <span class="detail-value" style="color: #059669;">${amount.toFixed(2)} ₾</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">სტატუსი:</span>
-                <span class="detail-value" style="color: #10B981;">დასრულებული ✓</span>
-              </div>
-            </div>
+      <div class="info-box">
+        <p style="margin: 0;"><strong>📝 შენიშვნა:</strong></p>
+        <p style="margin: 10px 0 0 0;">თანხა უკვე გაიგზავნა თქვენს ანგარიშზე. ბანკის მიხედვით, თანხის ასახვას შეიძლება დასჭირდეს 1-5 სამუშაო დღე.</p>
+      </div>
 
-            <div class="info-note">
-              <strong>📝 შენიშვნა:</strong><br>
-              თანხა უკვე გაიგზავნა თქვენს ანგარიშზე. ბანკის მიხედვით, თანხის ასახვას შეიძლება დასჭირდეს 1-5 სამუშაო დღე.
-            </div>
-
-            <p>თუ გაქვთ კითხვები, მოგვწერეთ: <a href="mailto:info@kursebi.online">info@kursebi.online</a></p>
-
-            <div class="footer">
-              <p>მადლობა რომ გვენდობით!</p>
-              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
-              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">თუ გაქვთ კითხვები, მოგვწერეთ: <a href="mailto:${BRAND.supportEmail}">${BRAND.supportEmail}</a></p>
     `;
+
+    const html = createEmailTemplate({
+      title: 'თანხა დაბრუნებულია!',
+      subtitle: 'წარმატებით დასრულდა',
+      headerIcon: '💰',
+      headerGradient: 'success',
+      content,
+    });
 
     return this.sendEmail({
       to: email,
-      subject: `💰 თანხა დაბრუნებულია - ${courseTitle}`,
+      subject: `💰 თანხა დაბრუნებულია - ${courseTitle} - ${BRAND.name}`,
       html,
       templateType: 'refund_completed',
       userId,
