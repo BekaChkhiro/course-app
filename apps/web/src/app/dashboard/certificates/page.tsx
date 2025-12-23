@@ -1,100 +1,267 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import toast from 'react-hot-toast';
 import StudentLayout from '@/components/student/StudentLayout';
 import { studentApiClient, Certificate } from '@/lib/api/studentApi';
+import { X, Download, Loader2 } from 'lucide-react';
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ka-GE', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const months = [
+    'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი',
+    'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
+  ];
+  const d = new Date(date);
+  return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()}`;
 }
 
-function CertificateCard({ certificate }: { certificate: Certificate }) {
+interface CertificateViewModalProps {
+  certificate: Certificate;
+  onClose: () => void;
+}
+
+function CertificateViewModal({ certificate, onClose }: CertificateViewModalProps) {
+  const certificateRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!certificateRef.current) return;
+
+    setIsDownloading(true);
+
+    try {
+      const canvas = await html2canvas(certificateRef.current, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`certificate-${certificate.certificateNumber}.pdf`);
+      toast.success('PDF ჩამოიტვირთა');
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      toast.error('PDF ჩამოტვირთვა ვერ მოხერხდა');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-      {/* Certificate Preview */}
-      <div className="relative h-36 sm:h-48 bg-primary-900 p-4 sm:p-6">
-        <div className="absolute inset-0 bg-black bg-opacity-10" />
-        <div className="relative text-white">
-          <div className="flex items-center justify-between mb-2 sm:mb-4">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-              <span className="font-semibold text-xs sm:text-base">სერტიფიკატი</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+          <h3 className="font-semibold text-gray-900">სერტიფიკატი</h3>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isDownloading}
+              className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 disabled:opacity-50 transition-colors text-sm font-medium"
+            >
+              {isDownloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{isDownloading ? 'იტვირთება...' : 'PDF'}</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Certificate Content */}
+        <div className="overflow-auto p-3 sm:p-6 bg-gray-100 flex-1">
+          <div
+            ref={certificateRef}
+            className="bg-white shadow-xl mx-auto min-h-[400px] sm:min-h-0"
+            style={{ aspectRatio: window?.innerWidth < 640 ? '1/1.2' : '1.414/1', maxWidth: '800px' }}
+          >
+            {/* Certificate Design */}
+            <div className="relative w-full h-full flex flex-col p-4 sm:p-0" style={{ background: 'linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%)' }}>
+
+              {/* Elegant outer border */}
+              <div className="absolute inset-2 sm:inset-4 border-2 border-primary-900/30 hidden sm:block" />
+              <div className="absolute inset-3 sm:inset-5 border border-primary-900/20 hidden sm:block" />
+
+              {/* Corner ornaments - hidden on mobile */}
+              <div className="hidden sm:block absolute top-8 left-8 w-14 h-14">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
+                  <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
+                </svg>
+              </div>
+              <div className="hidden sm:block absolute top-8 right-8 w-14 h-14 rotate-90">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
+                  <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
+                </svg>
+              </div>
+              <div className="hidden sm:block absolute bottom-8 left-8 w-14 h-14 -rotate-90">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
+                  <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
+                </svg>
+              </div>
+              <div className="hidden sm:block absolute bottom-8 right-8 w-14 h-14 rotate-180">
+                <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
+                  <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
+                </svg>
+              </div>
+
+              {/* Main Content */}
+              <div className="relative flex-1 flex flex-col items-center justify-center text-center z-10 px-4 sm:px-12 py-6 sm:py-10">
+
+                {/* Logo */}
+                <div className="mb-3 sm:mb-4">
+                  <img
+                    src="/kursebi-logo.png"
+                    alt="Kursebi.online"
+                    className="h-10 sm:h-12 w-auto mx-auto"
+                  />
+                </div>
+
+                {/* Title */}
+                <div className="mb-4 sm:mb-5">
+                  <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-wider" style={{ color: '#0e3355' }}>
+                    სერტიფიკატი
+                  </h1>
+                </div>
+
+                {/* Decorative divider */}
+                <div className="flex items-center gap-2 mb-4 sm:mb-5">
+                  <div className="w-12 sm:w-16 h-px bg-gradient-to-r from-transparent to-accent-500" />
+                  <svg className="w-4 h-4 text-accent-500" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                  <div className="w-12 sm:w-16 h-px bg-gradient-to-l from-transparent to-accent-500" />
+                </div>
+
+                {/* Recipient text */}
+                <p className="text-gray-500 text-xs mb-2 italic">ეს სერტიფიკატი გადაეცემა</p>
+
+                {/* Student Name */}
+                <h2 className="text-xl sm:text-2xl font-serif font-bold mb-3 px-2" style={{ color: '#0e3355' }}>
+                  {certificate.studentName}
+                </h2>
+
+                {/* Underline decoration */}
+                <div className="w-40 sm:w-48 h-0.5 bg-gradient-to-r from-transparent via-accent-500 to-transparent mb-4" />
+
+                {/* Course completion text */}
+                <p className="text-gray-500 text-xs mb-2">წარმატებით დაასრულა კურსი</p>
+
+                {/* Course Name */}
+                <h3 className="text-base sm:text-lg font-semibold text-primary-800 mb-4 max-w-xs sm:max-w-md px-2 leading-snug">
+                  „{certificate.courseName}"
+                </h3>
+
+                {/* Score Badge */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-accent-50 to-accent-100 border border-accent-200 rounded-full">
+                    <svg className="w-4 h-4 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <span className="text-sm font-bold text-accent-700">
+                      {Math.round(Number(certificate.score))}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Date and Certificate Info */}
+                <div className="flex flex-col items-center gap-1.5 text-xs text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500">თარიღი:</span>
+                    <span className="font-medium text-gray-600">{formatDate(certificate.issuedAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500">ID:</span>
+                    <span className="font-mono text-gray-600 text-[11px]">{certificate.certificateNumber}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <h3 className="text-sm sm:text-lg font-bold line-clamp-2 mb-1 sm:mb-2">{certificate.courseName}</h3>
-          <p className="text-xs sm:text-sm text-white text-opacity-80 line-clamp-1">
-            გადაეცა: {certificate.studentName}
-          </p>
-        </div>
-        {/* Decorative elements */}
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-16 sm:h-16 border-2 border-white border-opacity-20 rounded-full" />
-        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 w-5 h-5 sm:w-8 sm:h-8 border-2 border-white border-opacity-20 rounded-full" />
-      </div>
-
-      {/* Certificate Details */}
-      <div className="p-3 sm:p-4">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm mb-3 sm:mb-4">
-          <div>
-            <p className="text-gray-500">ქულა</p>
-            <p className="font-medium text-gray-900">{Math.round(Number(certificate.score))}%</p>
-          </div>
-          <div>
-            <p className="text-gray-500">გაცემის თარიღი</p>
-            <p className="font-medium text-gray-900">{formatDate(certificate.issuedAt)}</p>
-          </div>
-        </div>
-
-        <div className="mb-3 sm:mb-4">
-          <p className="text-[10px] sm:text-xs text-gray-400">სერტიფიკატის ID</p>
-          <p className="text-xs sm:text-sm font-mono text-gray-600 truncate">{certificate.certificateNumber}</p>
-        </div>
-
-        <div className="flex gap-2">
-          {certificate.pdfUrl && (
-            <a
-              href={certificate.pdfUrl}
-              download
-              className="flex-1 inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors text-xs sm:text-sm font-medium"
-            >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              ჩამოტვირთვა
-            </a>
-          )}
-          <button
-            onClick={() => {
-              // Would open share modal or copy link
-              if (navigator.share) {
-                navigator.share({
-                  title: `სერტიფიკატი - ${certificate.courseName}`,
-                  text: `დავასრულე ${certificate.courseName} კურსი ${Math.round(Number(certificate.score))}% შედეგით!`,
-                  url: window.location.href,
-                });
-              } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert('ბმული კოპირებულია!');
-              }
-            }}
-            className="px-3 sm:px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-xs sm:text-sm font-medium"
-          >
-            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
   );
 }
 
+function CertificateCard({ certificate, onView }: { certificate: Certificate; onView: () => void }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all group">
+      {/* Header */}
+      <div className="p-4 sm:p-5 border-b border-gray-100">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-50 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 mb-1">
+              {certificate.courseName}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">
+              {certificate.studentName}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Details */}
+      <div className="p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">ქულა</span>
+          <span className="font-medium text-gray-900">{Math.round(Number(certificate.score))}%</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">თარიღი</span>
+          <span className="text-gray-700">{formatDate(certificate.issuedAt)}</span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+        <button
+          onClick={onView}
+          className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-primary-900 text-white rounded-lg hover:bg-primary-800 transition-colors text-sm font-medium"
+        >
+          ნახვა
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function CertificatesPage() {
+  const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['certificates'],
     queryFn: studentApiClient.getCertificates,
@@ -135,7 +302,11 @@ export default function CertificatesPage() {
         {!isLoading && !error && certificates.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {certificates.map((certificate) => (
-              <CertificateCard key={certificate.id} certificate={certificate} />
+              <CertificateCard
+                key={certificate.id}
+                certificate={certificate}
+                onView={() => setSelectedCertificate(certificate)}
+              />
             ))}
           </div>
         )}
@@ -164,6 +335,14 @@ export default function CertificatesPage() {
           </div>
         )}
       </div>
+
+      {/* Certificate View Modal */}
+      {selectedCertificate && (
+        <CertificateViewModal
+          certificate={selectedCertificate}
+          onClose={() => setSelectedCertificate(null)}
+        />
+      )}
     </StudentLayout>
   );
 }

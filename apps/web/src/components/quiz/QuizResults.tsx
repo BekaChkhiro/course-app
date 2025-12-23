@@ -217,11 +217,12 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
           // Don't show retry if passed
           if (passed) return null;
 
-          // Check if max attempts reached
-          const maxAttempts = attempt.quiz?.maxAttempts ?? 3;
+          // Check if max attempts reached (null means unlimited)
+          const maxAttempts = attempt.quiz?.maxAttempts;
           const attemptsUsed = attempt.attemptNumber || 1;
+          const isUnlimited = maxAttempts === null || maxAttempts === undefined;
 
-          if (attemptsUsed >= maxAttempts) {
+          if (!isUnlimited && attemptsUsed >= maxAttempts) {
             return (
               <div className="text-center p-4 bg-red-50 rounded-xl">
                 <p className="text-sm text-red-700 font-medium">მცდელობები ამოიწურა</p>
@@ -238,7 +239,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                 className="w-full flex items-center justify-center gap-2 py-3 bg-accent-600 text-white rounded-xl font-medium hover:bg-accent-700 transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
-                თავიდან ცდა ({attemptsUsed} / {maxAttempts})
+                თავიდან ცდა ({isUnlimited ? attemptsUsed : `${attemptsUsed} / ${maxAttempts}`})
               </button>
             );
           }
@@ -371,7 +372,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
         </div>
         <p className="text-xs text-gray-400 text-center">
           გამსვლელი ქულა: {attempt.quiz?.passingScore}% • მცდელობა #{attempt.attemptNumber}
-          {attempt.quiz?.maxAttempts && ` / ${attempt.quiz.maxAttempts}`}
+          {attempt.quiz?.maxAttempts != null && ` / ${attempt.quiz.maxAttempts}`}
         </p>
       </div>
 

@@ -1343,9 +1343,28 @@ export default function CourseLearningPage() {
             onQuizComplete={(attempt: QuizAttempt) => {
               setCompletedAttemptId(attempt.id);
               setQuizMode('results');
-              // If quiz is passed, auto-mark chapter as complete
+              // If quiz is passed, auto-mark chapter as complete and go to next chapter
               if (attempt.passed && activeChapterId) {
                 markCompleteMutation.mutate(activeChapterId);
+                // Find next chapter and navigate to it
+                const currentIndex = chapters.findIndex((c) => c.id === activeChapterId);
+                if (currentIndex >= 0 && currentIndex < chapters.length - 1) {
+                  const nextChapter = chapters[currentIndex + 1];
+                  toast.success('თავი დასრულებულია! გადახვედით შემდეგ თავზე');
+                  // Small delay to show success message before navigating
+                  setTimeout(() => {
+                    setActiveChapterId(nextChapter.id);
+                    setQuizMode('start');
+                    setCompletedAttemptId(null);
+                  }, 1500);
+                } else {
+                  // Last chapter completed
+                  if (courseData?.data?.finalExam) {
+                    toast.success('ყველა თავი დასრულებულია! შეგიძლიათ დაიწყოთ საფინალო გამოცდა', { duration: 4000 });
+                  } else {
+                    toast.success('გილოცავთ! კურსი დასრულებულია');
+                  }
+                }
               }
               // Invalidate both chapter and course queries to reflect completion
               queryClient.invalidateQueries({ queryKey: ['chapterForLearning', activeChapterId] });
@@ -1429,10 +1448,14 @@ export default function CourseLearningPage() {
           <CourseCompletionModal
             isOpen={showCompletionModal}
             onClose={() => setShowCompletionModal(false)}
+            courseId={courseData.data.course.id}
             courseTitle={courseData.data.course.title}
             completedChapters={courseData.data.progress.completedChapters}
             totalChapters={courseData.data.progress.totalChapters}
             certificate={courseData.data.certificate}
+            onCertificateGenerated={() => {
+              queryClient.invalidateQueries({ queryKey: ['courseForLearning', slug] });
+            }}
           />
         )}
       </div>

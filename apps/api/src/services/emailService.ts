@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { PrismaClient } from '@prisma/client';
+import { generateCertificatePDF } from './certificatePdfService';
 
 const prisma = new PrismaClient();
 
@@ -16,6 +17,12 @@ const getResend = () => {
 const getFromEmail = () => process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const getFrontendUrl = () => process.env.FRONTEND_URL || 'http://localhost:3000';
 
+interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+}
+
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -24,6 +31,7 @@ interface SendEmailOptions {
   templateType?: string;
   userId?: string;
   metadata?: any;
+  attachments?: EmailAttachment[];
 }
 
 export class EmailService {
@@ -31,7 +39,7 @@ export class EmailService {
    * Send a generic email and log it
    */
   static async sendEmail(options: SendEmailOptions): Promise<boolean> {
-    const { to, subject, html, templateType, userId, metadata } = options;
+    const { to, subject, html, templateType, userId, metadata, attachments } = options;
     const resendClient = getResend();
 
     if (!resendClient) {
@@ -45,6 +53,7 @@ export class EmailService {
           to: options.to,
           subject: options.subject,
           html: options.html,
+          attachments: attachments?.map(a => ({ filename: a.filename, size: a.content.length })),
         });
         // Log to database even in dev mode
         if (templateType) {
@@ -56,12 +65,24 @@ export class EmailService {
     }
 
     try {
-      const { data, error } = await resendClient.emails.send({
+      // Prepare email payload
+      const emailPayload: any = {
         from: getFromEmail(),
         to: options.to,
         subject: options.subject,
         html: options.html,
-      });
+      };
+
+      // Add attachments if provided
+      if (attachments && attachments.length > 0) {
+        emailPayload.attachments = attachments.map(att => ({
+          filename: att.filename,
+          content: att.content,
+          contentType: att.contentType || 'application/pdf',
+        }));
+      }
+
+      const { data, error } = await resendClient.emails.send(emailPayload);
 
       if (error) {
         console.error('Resend email error:', error);
@@ -1319,6 +1340,269 @@ Kursebi.online გუნდი
       templateType: 'admin_email',
       userId,
       metadata: { subject },
+    });
+  }
+
+  // ==========================================
+  // COURSE COMPLETION & CERTIFICATE EMAILS
+  // ==========================================
+
+  /**
+   * Send course completion email when student finishes a course
+   */
+  static async sendCourseCompletionEmail(
+    email: string,
+    studentName: string,
+    courseTitle: string,
+    courseSlug: string,
+    userId: string
+  ): Promise<boolean> {
+    const certificateUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn`;
+    const certificatesPageUrl = `${getFrontendUrl()}/dashboard/certificates`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .header { background: linear-gradient(135deg, #0e3355 0%, #1a4a7a 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
+            .header h2 { margin: 0; font-size: 28px; }
+            .header p { margin: 10px 0 0 0; opacity: 0.9; font-size: 16px; }
+            .success-icon { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+            .section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #E5E7EB; }
+            .course-box { background: linear-gradient(135deg, #FFF5F4 0%, #FEE2E2 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #ff4d40; margin: 20px 0; }
+            .course-title { font-size: 20px; font-weight: bold; color: #0e3355; margin: 0; }
+            .instructions { background: #EFF6FF; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .instructions h3 { color: #1E40AF; margin: 0 0 15px 0; font-size: 16px; }
+            .instructions ol { margin: 0; padding-left: 20px; color: #374151; }
+            .instructions li { margin-bottom: 10px; }
+            .button { display: inline-block; background: #ff4d40; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 10px 5px; }
+            .button-secondary { background: #0e3355; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="success-icon">🎉</div>
+              <h2>გილოცავთ!</h2>
+              <p>კურსი წარმატებით დაასრულეთ</p>
+            </div>
+
+            <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+            <p>ჩვენ გვინდა გილოცოთ კურსის წარმატებით დასრულება!</p>
+
+            <div class="course-box">
+              <p class="course-title">„${courseTitle}"</p>
+            </div>
+
+            <div class="instructions">
+              <h3>📜 როგორ აიღოთ სერტიფიკატი:</h3>
+              <ol>
+                <li>შედით თქვენს პროფილში</li>
+                <li>გახსენით კურსი და დააჭირეთ „სერტიფიკატის გენერაცია" ღილაკს</li>
+                <li>შეიყვანეთ თქვენი სახელი და გვარი (როგორც გსურთ რომ გამოჩნდეს სერტიფიკატზე)</li>
+                <li>ჩამოტვირთეთ სერტიფიკატი PDF ფორმატში</li>
+              </ol>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="${certificateUrl}" class="button">სერტიფიკატის აღება</a>
+              <a href="${certificatesPageUrl}" class="button button-secondary">ჩემი სერტიფიკატები</a>
+            </div>
+
+            <p style="color: #6B7280; font-size: 14px;">სერტიფიკატი დაადასტურებს თქვენს კვალიფიკაციას და შეგიძლიათ გაუზიაროთ დამსაქმებლებს ან სოციალურ ქსელებში.</p>
+
+            <div class="footer">
+              <p>მადლობა რომ სწავლობთ ჩვენთან!</p>
+              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
+              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+გილოცავთ, ${studentName}!
+
+კურსი წარმატებით დაასრულეთ: "${courseTitle}"
+
+როგორ აიღოთ სერტიფიკატი:
+1. შედით თქვენს პროფილში
+2. გახსენით კურსი და დააჭირეთ „სერტიფიკატის გენერაცია" ღილაკს
+3. შეიყვანეთ თქვენი სახელი და გვარი
+4. ჩამოტვირთეთ სერტიფიკატი PDF ფორმატში
+
+სერტიფიკატის აღება: ${certificateUrl}
+ჩემი სერტიფიკატები: ${certificatesPageUrl}
+
+მადლობა რომ სწავლობთ ჩვენთან!
+Kursebi.online გუნდი
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `🎉 გილოცავთ! კურსი "${courseTitle}" დასრულებულია`,
+      html,
+      text,
+      templateType: 'course_completion',
+      userId,
+      metadata: { courseTitle, courseSlug },
+    });
+  }
+
+  /**
+   * Send certificate ready email when certificate is generated
+   */
+  static async sendCertificateReadyEmail(
+    email: string,
+    studentName: string,
+    courseTitle: string,
+    certificateNumber: string,
+    certificateId: string,
+    score: number,
+    userId: string
+  ): Promise<boolean> {
+    const certificateUrl = `${getFrontendUrl()}/dashboard/certificates/${certificateId}`;
+    const certificatesPageUrl = `${getFrontendUrl()}/dashboard/certificates`;
+
+    // Generate PDF certificate
+    let pdfBuffer: Buffer | null = null;
+    try {
+      pdfBuffer = await generateCertificatePDF({
+        studentName,
+        courseTitle,
+        certificateNumber,
+        issuedAt: new Date(),
+        score,
+      });
+      console.log('✅ Certificate PDF generated successfully');
+    } catch (pdfError) {
+      console.error('Failed to generate certificate PDF:', pdfError);
+      // Continue without attachment if PDF generation fails
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+            .container { background: #f9f9f9; padding: 30px; border-radius: 10px; }
+            .header { background: linear-gradient(135deg, #0e3355 0%, #1a4a7a 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; text-align: center; }
+            .header h2 { margin: 0; font-size: 28px; }
+            .certificate-icon { width: 70px; height: 70px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+            .certificate-preview { background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 3px solid #0e3355; border-radius: 12px; padding: 25px; margin: 20px 0; text-align: center; position: relative; }
+            .certificate-preview::before { content: ''; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; border: 1px solid #0e3355; border-radius: 8px; opacity: 0.3; }
+            .cert-title { font-size: 14px; color: #6B7280; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+            .cert-name { font-size: 24px; font-weight: bold; color: #0e3355; margin: 10px 0; }
+            .cert-course { font-size: 16px; color: #374151; margin: 10px 0; }
+            .cert-number { font-size: 12px; color: #9CA3AF; font-family: monospace; margin-top: 15px; }
+            .score-badge { display: inline-block; background: linear-gradient(135deg, #ff4d40 0%, #ed3124 100%); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; margin: 15px 0; }
+            .button { display: inline-block; background: #ff4d40; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 10px 5px; }
+            .button-secondary { background: #0e3355; }
+            .features { display: flex; justify-content: space-around; margin: 20px 0; text-align: center; }
+            .feature { flex: 1; padding: 10px; }
+            .feature-icon { font-size: 24px; margin-bottom: 5px; }
+            .feature-text { font-size: 12px; color: #6B7280; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="certificate-icon">📜</div>
+              <h2>სერტიფიკატი მზადაა!</h2>
+            </div>
+
+            <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+            <p>თქვენი სერტიფიკატი წარმატებით შეიქმნა და მზადაა ჩამოსატვირთად!</p>
+
+            <div class="certificate-preview">
+              <div class="cert-title">სერტიფიკატი</div>
+              <div class="cert-name">${studentName}</div>
+              <div class="cert-course">„${courseTitle}"</div>
+              <div class="score-badge">${Math.round(score)}%</div>
+              <div class="cert-number">ID: ${certificateNumber}</div>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="${certificateUrl}" class="button">სერტიფიკატის ნახვა</a>
+              <a href="${certificatesPageUrl}" class="button button-secondary">ჩემი სერტიფიკატები</a>
+            </div>
+
+            <div class="features">
+              <div class="feature">
+                <div class="feature-icon">📥</div>
+                <div class="feature-text">PDF ჩამოტვირთვა</div>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">🔗</div>
+                <div class="feature-text">გაზიარება</div>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">✓</div>
+                <div class="feature-text">ვერიფიცირებული</div>
+              </div>
+            </div>
+
+            <p style="color: #6B7280; font-size: 14px; text-align: center;">
+              სერტიფიკატი შეგიძლიათ გაუზიაროთ LinkedIn-ზე, CV-ში ან დამსაქმებლებს.
+            </p>
+
+            <div class="footer">
+              <p>გისურვებთ წარმატებებს!</p>
+              <p>პატივისცემით,<br><strong>Kursebi.online გუნდი</strong></p>
+              <p>&copy; ${new Date().getFullYear()} Kursebi.online. ყველა უფლება დაცულია.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+გამარჯობა ${studentName},
+
+თქვენი სერტიფიკატი მზადაა!
+
+კურსი: "${courseTitle}"
+ქულა: ${Math.round(score)}%
+სერტიფიკატის ID: ${certificateNumber}
+
+სერტიფიკატის ნახვა და ჩამოტვირთვა: ${certificateUrl}
+ჩემი სერტიფიკატები: ${certificatesPageUrl}
+
+სერტიფიკატი შეგიძლიათ გაუზიაროთ LinkedIn-ზე, CV-ში ან დამსაქმებლებს.
+
+გისურვებთ წარმატებებს!
+Kursebi.online გუნდი
+    `;
+
+    // Prepare attachments
+    const attachments = pdfBuffer ? [
+      {
+        filename: `certificate-${certificateNumber}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      }
+    ] : undefined;
+
+    return this.sendEmail({
+      to: email,
+      subject: `📜 სერტიფიკატი მზადაა - "${courseTitle}"`,
+      html,
+      text,
+      templateType: 'certificate_ready',
+      userId,
+      metadata: { courseTitle, certificateNumber, certificateId, score },
+      attachments,
     });
   }
 

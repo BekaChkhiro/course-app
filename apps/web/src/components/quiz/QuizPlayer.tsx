@@ -80,10 +80,10 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onViewResul
         setPassedAttemptId(passedAttempt.id);
       }
 
-      // Calculate attempts info
+      // Calculate attempts info (null means unlimited)
       const completedAttempts = attempts.filter((a: any) => a.status === 'COMPLETED' || a.status === 'TIME_EXPIRED');
-      const maxAttempts = quizResponse.data.maxAttempts ?? 3;
-      setAttemptsInfo({ used: completedAttempts.length, max: maxAttempts });
+      const maxAttempts = quizResponse.data.maxAttempts;
+      setAttemptsInfo({ used: completedAttempts.length, max: maxAttempts ?? Infinity });
 
       setLoading(false);
     } catch (error) {
@@ -382,7 +382,9 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onViewResul
                 მცდელობები
               </span>
               <span className={`text-sm font-medium ${maxAttemptsReached ? 'text-red-700' : 'text-blue-700'}`}>
-                {attemptsInfo.used} / {attemptsInfo.max}
+                {attemptsInfo.max === Infinity
+                  ? attemptsInfo.used
+                  : `${attemptsInfo.used} / ${attemptsInfo.max}`}
               </span>
             </div>
             {maxAttemptsReached && (

@@ -6,6 +6,8 @@ import {
   getChapterForLearning,
   getTransactionHistory,
   getCertificates,
+  getCertificateById,
+  generateCertificate,
   getPreferences,
   updatePreferences,
   saveNote,
@@ -51,6 +53,8 @@ router.get('/transactions', getTransactionHistory);
 
 // Certificates
 router.get('/certificates', getCertificates);
+router.get('/certificates/:certificateId', getCertificateById);
+router.post('/certificates/generate', generateCertificate);
 
 // User Preferences
 router.get('/preferences', getPreferences);

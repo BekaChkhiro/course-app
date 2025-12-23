@@ -526,6 +526,23 @@ export const studentApiClient = {
     return response.data;
   },
 
+  getCertificateById: async (certificateId: string): Promise<{
+    success: boolean;
+    data: Certificate;
+  }> => {
+    const response = await studentApi.get(`/certificates/${certificateId}`);
+    return response.data;
+  },
+
+  generateCertificate: async (courseId: string, studentName: string): Promise<{
+    success: boolean;
+    data: Certificate;
+    message?: string;
+  }> => {
+    const response = await studentApi.post('/certificates/generate', { courseId, studentName });
+    return response.data;
+  },
+
   // Preferences
   getPreferences: async (): Promise<{
     success: boolean;

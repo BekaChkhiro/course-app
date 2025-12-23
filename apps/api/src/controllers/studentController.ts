@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../config/database';
 import r2Service from '../services/r2.service';
+import { EmailService } from '../services/emailService';
 
 /**
  * Get student dashboard data
@@ -528,6 +529,7 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
         select: {
           id: true,
           certificateNumber: true,
+          studentName: true,
           issuedAt: true,
           pdfUrl: true,
         },
@@ -893,6 +895,214 @@ export const getCertificates = async (req: AuthRequest, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get certificates',
+    });
+  }
+};
+
+/**
+ * Get certificate by ID
+ */
+export const getCertificateById = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { certificateId } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    const certificate = await prisma.certificate.findFirst({
+      where: {
+        id: certificateId,
+        userId,
+      },
+    });
+
+    if (!certificate) {
+      return res.status(404).json({
+        success: false,
+        message: 'Certificate not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: certificate,
+    });
+  } catch (error) {
+    console.error('Get certificate by id error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get certificate',
+    });
+  }
+};
+
+/**
+ * Generate certificate with custom name
+ */
+export const generateCertificate = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { courseId, studentName } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+    }
+
+    if (!courseId || !studentName) {
+      return res.status(400).json({
+        success: false,
+        message: 'courseId and studentName are required',
+      });
+    }
+
+    // Check if user has completed all chapters and passed final exam
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        versions: {
+          where: { isActive: true },
+          include: {
+            chapters: true,
+            finalExams: true,
+          },
+        },
+      },
+    });
+
+    if (!course || !course.versions[0]) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found',
+      });
+    }
+
+    const currentVersion = course.versions[0];
+    const chapters = currentVersion.chapters;
+    const finalExam = currentVersion.finalExams?.[0];
+
+    // Check all chapters are completed
+    const completedChapters = await prisma.progress.count({
+      where: {
+        userId,
+        chapterId: { in: chapters.map(c => c.id) },
+        isCompleted: true,
+      },
+    });
+
+    if (completedChapters < chapters.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'ყველა თავი უნდა იყოს დასრულებული',
+      });
+    }
+
+    // Check final exam is passed (if exists)
+    if (finalExam) {
+      const passedAttempt = await prisma.quizAttempt.findFirst({
+        where: {
+          userId,
+          quizId: finalExam.id,
+          passed: true,
+        },
+      });
+
+      if (!passedAttempt) {
+        return res.status(400).json({
+          success: false,
+          message: 'საფინალო გამოცდა უნდა იყოს ჩაბარებული',
+        });
+      }
+
+      // Check if certificate already exists
+      const existingCertificate = await prisma.certificate.findFirst({
+        where: {
+          userId,
+          courseId,
+        },
+      });
+
+      if (existingCertificate) {
+        // Update existing certificate with new name
+        const updatedCertificate = await prisma.certificate.update({
+          where: { id: existingCertificate.id },
+          data: { studentName },
+        });
+
+        return res.json({
+          success: true,
+          data: updatedCertificate,
+          message: 'სერტიფიკატი განახლდა',
+        });
+      }
+
+      // Generate new certificate
+      const certificateNumber = `CERT-${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(7)
+        .toUpperCase()}`;
+
+      const certificate = await prisma.certificate.create({
+        data: {
+          attemptId: passedAttempt.id,
+          userId,
+          courseId,
+          quizId: finalExam.id,
+          certificateNumber,
+          studentName,
+          courseName: course.title,
+          quizTitle: finalExam.title,
+          score: passedAttempt.score || 0,
+          completionDate: passedAttempt.completedAt || new Date(),
+        },
+      });
+
+      // Send certificate ready email
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        });
+
+        if (user?.email) {
+          await EmailService.sendCertificateReadyEmail(
+            user.email,
+            studentName,
+            course.title,
+            certificateNumber,
+            certificate.id,
+            Number(passedAttempt.score) || 0,
+            userId
+          );
+        }
+      } catch (emailError) {
+        console.error('Failed to send certificate email:', emailError);
+        // Don't throw - email failure shouldn't affect certificate generation
+      }
+
+      return res.json({
+        success: true,
+        data: certificate,
+        message: 'სერტიფიკატი შეიქმნა',
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: 'კურსს არ აქვს საფინალო გამოცდა',
+    });
+  } catch (error) {
+    console.error('Generate certificate error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate certificate',
     });
   }
 };

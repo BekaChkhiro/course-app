@@ -1,5 +1,6 @@
 import { prisma } from '../config/database';
 import { QuizType, QuestionType, QuizAttemptStatus } from '@prisma/client';
+import { EmailService } from './emailService';
 
 interface CreateQuizData {
   title: string;
@@ -312,18 +313,19 @@ class QuizService {
       throw new Error('ALREADY_PASSED');
     }
 
-    // Check max attempts (default to 3 if not set)
-    const maxAttempts = quiz.maxAttempts ?? 3;
-    const existingAttempts = await prisma.quizAttempt.count({
-      where: {
-        userId,
-        quizId,
-        status: { in: ['COMPLETED', 'TIME_EXPIRED'] },
-      },
-    });
+    // Check max attempts (null means unlimited)
+    if (quiz.maxAttempts !== null) {
+      const existingAttempts = await prisma.quizAttempt.count({
+        where: {
+          userId,
+          quizId,
+          status: { in: ['COMPLETED', 'TIME_EXPIRED'] },
+        },
+      });
 
-    if (existingAttempts >= maxAttempts) {
-      throw new Error('Maximum attempts reached');
+      if (existingAttempts >= quiz.maxAttempts) {
+        throw new Error('Maximum attempts reached');
+      }
     }
 
     // Check for existing in-progress attempt
@@ -589,6 +591,7 @@ class QuizService {
         timeRemaining,
       },
       include: {
+        quiz: true,
         responses: {
           include: {
             question: {
@@ -609,16 +612,16 @@ class QuizService {
       await this.markChapterCompleted(attempt.userId, attempt.quizId);
     }
 
-    // Generate certificate if applicable
-    if (passed && attempt.quiz.generateCertificate) {
-      // Check if all chapters in the course are completed
-      const allChaptersCompleted = await this.checkAllChaptersCompleted(
-        attempt.userId,
-        attempt.quizId
-      );
+    // Note: Certificate generation is now handled manually via the CourseCompletionModal
+    // where the user can enter their preferred name for the certificate
 
-      if (allChaptersCompleted) {
-        await this.generateCertificate(completedAttempt);
+    // Send course completion email if this is a final exam that was passed
+    if (passed && completedAttempt.quiz.courseVersionId) {
+      try {
+        await this.sendCourseCompletionEmail(attempt.userId, completedAttempt.quiz.courseVersionId);
+      } catch (emailError) {
+        console.error('Failed to send course completion email:', emailError);
+        // Don't throw - email failure shouldn't affect quiz completion
       }
     }
 
@@ -839,6 +842,37 @@ class QuizService {
         isCompleted: true,
       },
     });
+  }
+
+  /**
+   * Send course completion email to the user
+   */
+  private async sendCourseCompletionEmail(userId: string, courseVersionId: string) {
+    // Get user and course info
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.email) return;
+
+    const courseVersion = await prisma.courseVersion.findUnique({
+      where: { id: courseVersionId },
+      include: {
+        course: true,
+      },
+    });
+
+    if (!courseVersion || !courseVersion.course) return;
+
+    const studentName = user.name ? `${user.name} ${user.surname || ''}`.trim() : user.email;
+
+    await EmailService.sendCourseCompletionEmail(
+      user.email,
+      studentName,
+      courseVersion.course.title,
+      courseVersion.course.slug,
+      userId
+    );
   }
 
   /**
