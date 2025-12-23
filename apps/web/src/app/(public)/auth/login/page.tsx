@@ -25,6 +25,27 @@ export default function LoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: '' }));
     clearError();
+    setResendSuccess(false);
+    setResendError(null);
+  };
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail || isResendingEmail) return;
+
+    setIsResendingEmail(true);
+    setResendError(null);
+    setResendSuccess(false);
+
+    try {
+      await authApi.resendVerificationByEmail(unverifiedEmail);
+      setResendSuccess(true);
+    } catch (err: any) {
+      setResendError(
+        err.response?.data?.message || 'ვერიფიკაციის მეილის გაგზავნა ვერ მოხერხდა'
+      );
+    } finally {
+      setIsResendingEmail(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -93,7 +114,81 @@ export default function LoginPage() {
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-            {error && errorCode === 'DEVICE_LIMIT_REACHED' ? (
+            {/* Email Not Verified Error */}
+            {error && errorCode === 'EMAIL_NOT_VERIFIED' ? (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-amber-800">
+                      ელ-ფოსტა არ არის დადასტურებული
+                    </h3>
+                    <p className="mt-1 text-sm text-amber-700">
+                      შესვლამდე გთხოვთ დაადასტუროთ თქვენი ელ-ფოსტა. შეამოწმეთ თქვენი საფოსტო ყუთი
+                      {unverifiedEmail && (
+                        <span className="font-medium"> ({unverifiedEmail})</span>
+                      )}
+                    </p>
+
+                    {/* Success Message */}
+                    {resendSuccess && (
+                      <div className="mt-3 p-2 bg-green-100 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700 flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          ვერიფიკაციის ბმული გაიგზავნა!
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Resend Error */}
+                    {resendError && (
+                      <div className="mt-3 p-2 bg-red-100 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-700">{resendError}</p>
+                      </div>
+                    )}
+
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={isResendingEmail || resendSuccess}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isResendingEmail ? (
+                          <>
+                            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            იგზავნება...
+                          </>
+                        ) : resendSuccess ? (
+                          <>
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            გაიგზავნა
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            ვერიფიკაციის ბმულის ხელახლა გაგზავნა
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : error && errorCode === 'DEVICE_LIMIT_REACHED' ? (
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-0.5">
