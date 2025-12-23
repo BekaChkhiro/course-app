@@ -1,14 +1,4 @@
 import Bull, { Queue, Job } from 'bull';
-import Redis from 'ioredis';
-
-interface QueueConfig {
-  redis: {
-    host: string;
-    port: number;
-    password?: string;
-    db?: number;
-  };
-}
 
 interface VideoProcessingJobData {
   videoId: string;
@@ -33,78 +23,84 @@ interface VideoMetadataJobData {
 }
 
 class QueueService {
-  private videoProcessingQueue: Queue<VideoProcessingJobData>;
-  private thumbnailQueue: Queue<ThumbnailGenerationJobData>;
-  private metadataQueue: Queue<VideoMetadataJobData>;
-  private config: QueueConfig;
+  private videoProcessingQueue: Queue<VideoProcessingJobData> | null = null;
+  private thumbnailQueue: Queue<ThumbnailGenerationJobData> | null = null;
+  private metadataQueue: Queue<VideoMetadataJobData> | null = null;
+  private initialized = false;
 
   constructor() {
-    // Redis configuration
-    this.config = {
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD || undefined,
-        db: parseInt(process.env.REDIS_DB || '0'),
-      },
-    };
+    this.initialize();
+  }
 
-    // Create Redis client
-    const redisClient = new Redis({
-      host: this.config.redis.host,
-      port: this.config.redis.port,
-      password: this.config.redis.password,
-      db: this.config.redis.db,
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-    });
+  private initialize(): void {
+    const redisUrl = process.env.REDIS_URL || process.env.REDIS_PRIVATE_URL;
 
-    // Initialize queues
-    this.videoProcessingQueue = new Bull<VideoProcessingJobData>(
-      'video-processing',
-      {
-        redis: this.config.redis,
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
+    if (!redisUrl) {
+      console.log('ℹ️ QueueService: Redis not configured, queues disabled');
+      return;
+    }
+
+    try {
+      // Initialize queues with Redis URL
+      this.videoProcessingQueue = new Bull<VideoProcessingJobData>(
+        'video-processing',
+        redisUrl,
+        {
+          defaultJobOptions: {
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 2000,
+            },
+            removeOnComplete: false,
+            removeOnFail: false,
           },
-          removeOnComplete: false,
-          removeOnFail: false,
-        },
-      }
-    );
+        }
+      );
 
-    this.thumbnailQueue = new Bull<ThumbnailGenerationJobData>(
-      'thumbnail-generation',
-      {
-        redis: this.config.redis,
-        defaultJobOptions: {
-          attempts: 2,
-          backoff: {
-            type: 'fixed',
-            delay: 5000,
+      this.thumbnailQueue = new Bull<ThumbnailGenerationJobData>(
+        'thumbnail-generation',
+        redisUrl,
+        {
+          defaultJobOptions: {
+            attempts: 2,
+            backoff: {
+              type: 'fixed',
+              delay: 5000,
+            },
           },
-        },
-      }
-    );
+        }
+      );
 
-    this.metadataQueue = new Bull<VideoMetadataJobData>('video-metadata', {
-      redis: this.config.redis,
-      defaultJobOptions: {
-        attempts: 2,
-      },
-    });
+      this.metadataQueue = new Bull<VideoMetadataJobData>(
+        'video-metadata',
+        redisUrl,
+        {
+          defaultJobOptions: {
+            attempts: 2,
+          },
+        }
+      );
 
-    // Set up event listeners
-    this.setupEventListeners();
+      // Set up event listeners
+      this.setupEventListeners();
+      this.initialized = true;
+      console.log('✅ QueueService: Initialized with Redis');
+    } catch (error) {
+      console.log('⚠️ QueueService: Failed to initialize:', error);
+    }
+  }
+
+  isAvailable(): boolean {
+    return this.initialized && this.videoProcessingQueue !== null;
   }
 
   /**
    * Setup event listeners for all queues
    */
   private setupEventListeners(): void {
+    if (!this.videoProcessingQueue || !this.thumbnailQueue || !this.metadataQueue) return;
+
     // Video processing queue events
     this.videoProcessingQueue.on('completed', (job: Job) => {
       console.log(`Video processing job ${job.id} completed`);
@@ -143,7 +139,8 @@ class QueueService {
   async addVideoProcessingJob(
     data: VideoProcessingJobData,
     priority?: number
-  ): Promise<Job<VideoProcessingJobData>> {
+  ): Promise<Job<VideoProcessingJobData> | null> {
+    if (!this.videoProcessingQueue) return null;
     return this.videoProcessingQueue.add(data, {
       priority: priority || 1,
       jobId: `video-${data.videoId}`,
@@ -155,7 +152,8 @@ class QueueService {
    */
   async addThumbnailGenerationJob(
     data: ThumbnailGenerationJobData
-  ): Promise<Job<ThumbnailGenerationJobData>> {
+  ): Promise<Job<ThumbnailGenerationJobData> | null> {
+    if (!this.thumbnailQueue) return null;
     return this.thumbnailQueue.add(data, {
       jobId: `thumbnail-${data.videoId}`,
     });
@@ -166,7 +164,8 @@ class QueueService {
    */
   async addMetadataExtractionJob(
     data: VideoMetadataJobData
-  ): Promise<Job<VideoMetadataJobData>> {
+  ): Promise<Job<VideoMetadataJobData> | null> {
+    if (!this.metadataQueue) return null;
     return this.metadataQueue.add(data, {
       jobId: `metadata-${data.videoId}`,
     });
@@ -191,6 +190,8 @@ class QueueService {
         : queueName === 'thumbnail-generation'
         ? this.thumbnailQueue
         : this.metadataQueue;
+
+    if (!queue) return null;
 
     const job = await queue.getJob(jobId);
     if (!job) return null;
@@ -221,6 +222,8 @@ class QueueService {
         ? this.thumbnailQueue
         : this.metadataQueue;
 
+    if (!queue) return;
+
     const job = await queue.getJob(jobId);
     if (job) {
       await job.remove();
@@ -240,6 +243,8 @@ class QueueService {
         : queueName === 'thumbnail-generation'
         ? this.thumbnailQueue
         : this.metadataQueue;
+
+    if (!queue) return [];
 
     const jobs = await Promise.all(
       statuses.map((status) => queue.getJobs([status]))
@@ -262,6 +267,8 @@ class QueueService {
         ? this.thumbnailQueue
         : this.metadataQueue;
 
+    if (!queue) return;
+
     await queue.clean(grace, 'completed');
     await queue.clean(grace, 'failed');
   }
@@ -279,6 +286,8 @@ class QueueService {
         ? this.thumbnailQueue
         : this.metadataQueue;
 
+    if (!queue) return;
+
     await queue.pause();
   }
 
@@ -295,21 +304,23 @@ class QueueService {
         ? this.thumbnailQueue
         : this.metadataQueue;
 
+    if (!queue) return;
+
     await queue.resume();
   }
 
   /**
    * Get queue for processing
    */
-  getVideoProcessingQueue(): Queue<VideoProcessingJobData> {
+  getVideoProcessingQueue(): Queue<VideoProcessingJobData> | null {
     return this.videoProcessingQueue;
   }
 
-  getThumbnailQueue(): Queue<ThumbnailGenerationJobData> {
+  getThumbnailQueue(): Queue<ThumbnailGenerationJobData> | null {
     return this.thumbnailQueue;
   }
 
-  getMetadataQueue(): Queue<VideoMetadataJobData> {
+  getMetadataQueue(): Queue<VideoMetadataJobData> | null {
     return this.metadataQueue;
   }
 
@@ -317,9 +328,9 @@ class QueueService {
    * Close all queues
    */
   async close(): Promise<void> {
-    await this.videoProcessingQueue.close();
-    await this.thumbnailQueue.close();
-    await this.metadataQueue.close();
+    if (this.videoProcessingQueue) await this.videoProcessingQueue.close();
+    if (this.thumbnailQueue) await this.thumbnailQueue.close();
+    if (this.metadataQueue) await this.metadataQueue.close();
   }
 }
 
