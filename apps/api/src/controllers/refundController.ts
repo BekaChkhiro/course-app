@@ -172,6 +172,7 @@ export const getMyRefundRequests = async (req: AuthRequest, res: Response) => {
       success: true,
       data: refundRequests.map((r) => ({
         id: r.id,
+        purchaseId: r.purchaseId,
         status: r.status,
         reason: r.reason,
         requestedAmount: r.requestedAmount,

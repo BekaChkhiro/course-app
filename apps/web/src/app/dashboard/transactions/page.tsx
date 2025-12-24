@@ -111,9 +111,9 @@ export default function TransactionsPage() {
     }
   };
 
-  // Check if transaction has refund request
+  // Check if transaction has refund request (by purchaseId, not course.id)
   const getRefundForTransaction = (transaction: Transaction): RefundRequest | undefined => {
-    return myRefundRequests?.find((r) => r.course.id === transaction.course.id);
+    return myRefundRequests?.find((r) => r.purchaseId === transaction.id);
   };
 
   const transactions = data?.data.transactions || [];
