@@ -76,6 +76,15 @@ export const createVersion = async (req: Request, res: Response) => {
       copyFromVersionId
     } = req.body;
 
+    // Validate required fields
+    if (!courseId) {
+      return res.status(400).json({ error: 'courseId is required' });
+    }
+
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ error: 'ვერსიის სათაური აუცილებელია' });
+    }
+
     // Verify course exists
     const course = await prisma.course.findUnique({
       where: { id: courseId }
@@ -98,10 +107,10 @@ export const createVersion = async (req: Request, res: Response) => {
       courseId,
       version: newVersionNumber,
       title,
-      description,
-      changelog,
-      upgradePriceType,
-      upgradePriceValue,
+      description: description || '',
+      changelog: changelog || null,
+      upgradePriceType: upgradePriceType || null,
+      upgradePriceValue: upgradePriceValue || null,
       status: 'DRAFT',
       isActive: false
     };
