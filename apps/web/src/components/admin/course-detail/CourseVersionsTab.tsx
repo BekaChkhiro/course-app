@@ -272,30 +272,30 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       ასლი
                     </button>
                   )}
+                  {version.status === 'PUBLISHED' && !version.isActive && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleActivate(version);
+                      }}
+                      disabled={activateMutation.isPending}
+                      className="px-2 py-1.5 bg-blue-100 text-blue-700 text-xs rounded-lg flex items-center gap-1"
+                    >
+                      <CheckCircle2 className="w-3 h-3" />
+                    </button>
+                  )}
                   {!version.isActive && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleActivate(version);
-                        }}
-                        disabled={activateMutation.isPending}
-                        className="px-2 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-lg flex items-center gap-1"
-                      >
-                        <CheckCircle2 className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleDelete(version);
-                        }}
-                        className="p-1.5 hover:bg-red-100 rounded text-red-600"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(version);
+                      }}
+                      className="p-1.5 hover:bg-red-100 rounded text-red-600"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
               </Link>
@@ -334,7 +334,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                   </button>
                 )}
 
-                {!version.isActive && (
+                {version.status === 'PUBLISHED' && !version.isActive && (
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -342,7 +342,7 @@ export default function CourseVersionsTab({ courseId }: CourseVersionsTabProps) 
                       handleActivate(version);
                     }}
                     disabled={activateMutation.isPending}
-                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-accent-600 hover:bg-accent-700 text-white text-xs sm:text-sm rounded-lg flex items-center gap-1 sm:gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm rounded-lg flex items-center gap-1 sm:gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="აქტიურის გახდომა"
                   >
                     <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />

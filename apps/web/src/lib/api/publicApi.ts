@@ -31,9 +31,9 @@ export const publicApi = {
     return data.data;
   },
 
-  // Get popular courses for homepage
-  async getPopularCourses(limit: number = 6) {
-    const response = await fetch(`${API_URL}/api/public/courses?sort=popular&limit=${limit}`, {
+  // Get featured courses for homepage
+  async getFeaturedCourses(limit: number = 6) {
+    const response = await fetch(`${API_URL}/api/public/courses/featured?limit=${limit}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -42,9 +42,14 @@ export const publicApi = {
 
     const data = await response.json();
     if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch popular courses');
+      throw new Error(data.message || 'Failed to fetch featured courses');
     }
     return data.data?.courses || [];
+  },
+
+  // Backwards compatible popular courses helper (falls back to featured selection)
+  async getPopularCourses(limit: number = 6) {
+    return this.getFeaturedCourses(limit);
   },
 
   // Get single course by slug

@@ -383,12 +383,56 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // Get the requested version ID from query params (for version switching)
+    const requestedVersionId = req.query.versionId as string | undefined;
+
+    // Get all versions the user has access to
+    const userVersionAccess = await prisma.userVersionAccess.findMany({
+      where: {
+        userId,
+        courseVersion: { courseId: course.id },
+        isActive: true,
+      },
+      include: {
+        courseVersion: {
+          select: {
+            id: true,
+            version: true,
+            title: true,
+            _count: { select: { chapters: true } },
+          },
+        },
+      },
+      orderBy: { courseVersion: { version: 'asc' } },
+    });
+
+    // Build accessible versions list
+    const accessibleVersions = userVersionAccess.map((access) => ({
+      id: access.courseVersion.id,
+      version: access.courseVersion.version,
+      title: access.courseVersion.title,
+      chaptersCount: access.courseVersion._count.chapters,
+      grantedAt: access.grantedAt,
+    }));
+
+    // Determine which version to load
+    // Priority: 1. Requested version (if user has access), 2. Purchased version, 3. Active version
+    let selectedVersionId = purchase.courseVersionId;
+
+    if (requestedVersionId) {
+      // Check if user has access to the requested version
+      const hasAccess = accessibleVersions.some((v) => v.id === requestedVersionId);
+      if (hasAccess) {
+        selectedVersionId = requestedVersionId;
+      }
+    }
+
     // Get the version the user purchased (or active version for legacy purchases)
     let userVersion;
-    if (purchase.courseVersionId) {
+    if (selectedVersionId) {
       // User has a specific version they purchased
       userVersion = await prisma.courseVersion.findUnique({
-        where: { id: purchase.courseVersionId },
+        where: { id: selectedVersionId },
         include: {
           chapters: {
             orderBy: { order: 'asc' },
@@ -586,6 +630,7 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
           : null,
         certificate,
         upgradeInfo, // ახალი ვერსიის ინფორმაცია თუ ხელმისაწვდომია
+        accessibleVersions, // ყველა ვერსია რომელზეც მომხმარებელს აქვს წვდომა
       },
     });
   } catch (error) {
@@ -963,56 +1008,88 @@ export const generateCertificate = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Check if user has completed all chapters and passed final exam
+    // Check if user has completed all chapters and passed final exam (in any version)
     const course = await prisma.course.findUnique({
       where: { id: courseId },
       include: {
         versions: {
-          where: { isActive: true },
           include: {
             chapters: true,
             finalExams: true,
           },
+          orderBy: { version: 'desc' },
         },
       },
     });
 
-    if (!course || !course.versions[0]) {
+    if (!course || course.versions.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Course not found',
       });
     }
 
-    const currentVersion = course.versions[0];
-    const chapters = currentVersion.chapters;
-    const finalExam = currentVersion.finalExams?.[0];
-
-    // Check all chapters are completed
-    const completedChapters = await prisma.progress.count({
+    // Get user's accessible versions
+    const userVersionAccess = await prisma.userVersionAccess.findMany({
       where: {
         userId,
-        chapterId: { in: chapters.map(c => c.id) },
-        isCompleted: true,
+        courseVersion: { courseId },
+        isActive: true,
       },
+      select: { courseVersionId: true },
     });
 
-    if (completedChapters < chapters.length) {
+    const accessibleVersionIds = userVersionAccess.map((uva) => uva.courseVersionId);
+
+    // Get the version with completed chapters (use highest version with complete progress)
+    let completedVersion = null;
+    for (const version of course.versions) {
+      if (!accessibleVersionIds.includes(version.id)) continue;
+
+      const completedChapters = await prisma.progress.count({
+        where: {
+          userId,
+          chapterId: { in: version.chapters.map((c) => c.id) },
+          isCompleted: true,
+        },
+      });
+
+      if (completedChapters >= version.chapters.length) {
+        completedVersion = version;
+        break;
+      }
+    }
+
+    if (!completedVersion) {
       return res.status(400).json({
         success: false,
         message: 'ყველა თავი უნდა იყოს დასრულებული',
       });
     }
 
-    // Check final exam is passed (if exists)
-    if (finalExam) {
-      const passedAttempt = await prisma.quizAttempt.findFirst({
-        where: {
-          userId,
-          quizId: finalExam.id,
-          passed: true,
-        },
-      });
+    // Get all final exams from all versions of this course
+    const allFinalExamIds = course.versions
+      .flatMap((v) => v.finalExams)
+      .map((fe) => fe.id);
+
+    // Check if final exam is passed in any version
+    const passedAttempt = await prisma.quizAttempt.findFirst({
+      where: {
+        userId,
+        quizId: { in: allFinalExamIds },
+        passed: true,
+      },
+      orderBy: { completedAt: 'desc' },
+      include: {
+        quiz: true,
+      },
+    });
+
+    // Get the final exam for reference (from completed version or latest)
+    const referenceExam = completedVersion.finalExams?.[0];
+
+    if (referenceExam || allFinalExamIds.length > 0) {
+      // Course has final exam - check if passed in any version
 
       if (!passedAttempt) {
         return res.status(400).json({
@@ -1054,11 +1131,11 @@ export const generateCertificate = async (req: AuthRequest, res: Response) => {
           attemptId: passedAttempt.id,
           userId,
           courseId,
-          quizId: finalExam.id,
+          quizId: passedAttempt.quiz.id,
           certificateNumber,
           studentName,
           courseName: course.title,
-          quizTitle: finalExam.title,
+          quizTitle: passedAttempt.quiz.title,
           score: passedAttempt.score || 0,
           completionDate: passedAttempt.completedAt || new Date(),
         },

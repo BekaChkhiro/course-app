@@ -206,7 +206,8 @@ export const updateCourse = async (req: Request, res: Response) => {
       metaTitle,
       metaDescription,
       metaKeywords,
-      status
+      status,
+      isFeatured,
     } = req.body;
 
     const existingCourse = await prisma.course.findUnique({
@@ -267,7 +268,11 @@ export const updateCourse = async (req: Request, res: Response) => {
         ...(metaTitle !== undefined && { metaTitle }),
         ...(metaDescription !== undefined && { metaDescription }),
         ...(metaKeywords !== undefined && { metaKeywords }),
-        ...(status && { status: status as CourseStatus })
+        ...(status && { status: status as CourseStatus }),
+        ...(typeof isFeatured === 'boolean' && {
+          isFeatured,
+          featuredAt: isFeatured ? new Date() : null,
+        }),
       },
       include: {
         category: true,

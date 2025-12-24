@@ -18,8 +18,16 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
     title: version.title,
     description: version.description || '',
     changelog: version.changelog || '',
-    upgradePrice: version.upgradePrice?.toString() || '',
-    discountPercentage: version.discountPercentage?.toString() || ''
+    upgradePriceType: version.upgradePriceType || 'FIXED',
+    upgradePriceValue: version.upgradePriceValue?.toString() || '',
+    upgradeDiscountStartDate: version.upgradeDiscountStartDate
+      ? new Date(version.upgradeDiscountStartDate).toISOString().slice(0, 16)
+      : '',
+    upgradeDiscountEndDate: version.upgradeDiscountEndDate
+      ? new Date(version.upgradeDiscountEndDate).toISOString().slice(0, 16)
+      : '',
+    upgradeDiscountType: version.upgradeDiscountType || 'FIXED',
+    upgradeDiscountValue: version.upgradeDiscountValue?.toString() || '',
   });
 
   const queryClient = useQueryClient();
@@ -122,39 +130,101 @@ export default function VersionInfoTab({ version, courseId }: VersionInfoTabProp
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upgrade ფასი (₾)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.upgradePrice}
-              onChange={(e) => setFormData({ ...formData, upgradePrice: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
-              placeholder="0.00"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              წინა ვერსიის მომხმარებლებისთვის განახლების ფასი
-            </p>
+        {/* Upgrade Price Section */}
+        <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+          <h4 className="font-medium text-gray-900">განახლების ფასი</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ფასის ტიპი
+              </label>
+              <select
+                value={formData.upgradePriceType}
+                onChange={(e) => setFormData({ ...formData, upgradePriceType: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              >
+                <option value="FIXED">ფიქსირებული (₾)</option>
+                <option value="PERCENTAGE">პროცენტული (%)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {formData.upgradePriceType === 'FIXED' ? 'ფასი (₾)' : 'პროცენტი (%)'}
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.upgradePriceValue}
+                onChange={(e) => setFormData({ ...formData, upgradePriceValue: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+                placeholder={formData.upgradePriceType === 'FIXED' ? '0.00' : '0'}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                წინა ვერსიის მომხმარებლებისთვის განახლების ფასი
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Promotional Discount Section */}
+        <div className="border border-gray-200 rounded-lg p-4 space-y-4">
+          <h4 className="font-medium text-gray-900">პრომო ფასდაკლების პერიოდი</h4>
+          <p className="text-xs text-gray-500 -mt-2">
+            დროში შეზღუდული ფასდაკლება upgrade-ისთვის
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                დაწყების თარიღი
+              </label>
+              <input
+                type="datetime-local"
+                value={formData.upgradeDiscountStartDate}
+                onChange={(e) => setFormData({ ...formData, upgradeDiscountStartDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                დასრულების თარიღი
+              </label>
+              <input
+                type="datetime-local"
+                value={formData.upgradeDiscountEndDate}
+                onChange={(e) => setFormData({ ...formData, upgradeDiscountEndDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ფასდაკლება (%)
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.discountPercentage}
-              onChange={(e) => setFormData({ ...formData, discountPercentage: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
-              placeholder="0"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              განახლების ფასდაკლება
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                ფასდაკლების ტიპი
+              </label>
+              <select
+                value={formData.upgradeDiscountType}
+                onChange={(e) => setFormData({ ...formData, upgradeDiscountType: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              >
+                <option value="FIXED">ფიქსირებული (₾)</option>
+                <option value="PERCENTAGE">პროცენტული (%)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {formData.upgradeDiscountType === 'FIXED' ? 'ფასდაკლებული ფასი (₾)' : 'ფასდაკლება (%)'}
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.upgradeDiscountValue}
+                onChange={(e) => setFormData({ ...formData, upgradeDiscountValue: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+                placeholder={formData.upgradeDiscountType === 'FIXED' ? '0.00' : '0'}
+              />
+            </div>
           </div>
         </div>
 

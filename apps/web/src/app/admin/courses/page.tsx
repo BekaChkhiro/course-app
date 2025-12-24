@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { Plus, Edit, Copy, Trash2, Download, MoreVertical, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Copy, Trash2, Download, ChevronRight, Star } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import DataTable from '@/components/ui/DataTable';
 import Modal, { ModalFooter } from '@/components/ui/Modal';
@@ -26,6 +26,7 @@ type Course = {
   category: { id: string; name: string };
   createdAt: string;
   _count: { purchases: number; reviews: number };
+  isFeatured: boolean;
 };
 
 export default function CoursesPage() {
@@ -89,6 +90,18 @@ export default function CoursesPage() {
     duplicateMutation.mutate({ id: course.id, title, slug });
   };
 
+  const toggleFeaturedMutation = useMutation({
+    mutationFn: ({ id, isFeatured }: { id: string; isFeatured: boolean }) =>
+      courseApi.update(id, { isFeatured }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success(variables.isFeatured ? 'დამატებულია პოპულარულ ბლოკში' : 'ამოღებულია პოპულარული ბლოკიდან');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'სტატუსის ცვლილება ვერ მოხერხდა');
+    }
+  });
+
   const handleExport = async () => {
     try {
       const response = await courseApi.exportCSV();
@@ -147,6 +160,26 @@ export default function CoursesPage() {
       accessorKey: '_count.purchases',
       header: 'ჩარიცხვები',
       cell: ({ row }) => row.original._count.purchases
+    },
+    {
+      id: 'featured',
+      header: 'პოპულარულში',
+      cell: ({ row }) => {
+        const isFeatured = row.original.isFeatured;
+        return (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFeaturedMutation.mutate({ id: row.original.id, isFeatured: !isFeatured });
+            }}
+            className={`p-1 rounded transition-colors ${isFeatured ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-gray-600'}`}
+            title={isFeatured ? 'პოპულარული ბლოკიდან ამოშლა' : 'პოპულარულ ბლოკში დამატება'}
+            disabled={toggleFeaturedMutation.isLoading}
+          >
+            <Star className="w-4 h-4" fill={isFeatured ? 'currentColor' : 'none'} />
+          </button>
+        );
+      }
     },
     {
       accessorKey: 'createdAt',

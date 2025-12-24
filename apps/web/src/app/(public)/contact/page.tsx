@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { publicApi } from '@/lib/api/publicApi';
+import FAQSection from '@/components/public/FAQSection';
 
 interface ContactFormData {
   name: string;
@@ -42,8 +43,8 @@ export default function ContactPage() {
         </svg>
       ),
       title: 'ელ-ფოსტა',
-      value: 'info@eduplatform.ge',
-      href: 'mailto:info@eduplatform.ge',
+      value: 'info@kursebi.online',
+      href: 'mailto:info@kursebi.online',
     },
     {
       icon: (
@@ -52,38 +53,8 @@ export default function ContactPage() {
         </svg>
       ),
       title: 'ტელეფონი',
-      value: '+995 555 123 456',
-      href: 'tel:+995555123456',
-    },
-    {
-      icon: (
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-      title: 'მისამართი',
-      value: 'თბილისი, საქართველო',
-      href: null,
-    },
-  ];
-
-  const faqs = [
-    {
-      question: 'როგორ შევიძინო კურსი?',
-      answer: 'კურსის შესაძენად საჭიროა რეგისტრაცია პლატფორმაზე. შემდეგ შეგიძლიათ აირჩიოთ სასურველი კურსი და გადაიხადოთ ონლაინ.',
-    },
-    {
-      question: 'რა მოხდება თუ კურსი არ მომეწონა?',
-      answer: 'გთავაზობთ 7 დღიან გარანტიას. თუ კურსი არ გამოგადგათ, შეგიძლიათ მოითხოვოთ თანხის დაბრუნება.',
-    },
-    {
-      question: 'რამდენ ხანს გრძელდება კურსზე წვდომა?',
-      answer: 'კურსის შეძენის შემდეგ გექნებათ შეუზღუდავი წვდომა მთელი სიცოცხლის განმავლობაში.',
-    },
-    {
-      question: 'ვიღებ სერტიფიკატს კურსის დასრულების შემდეგ?',
-      answer: 'დიახ, კურსის წარმატებით დასრულების შემდეგ მიიღებთ ციფრულ სერტიფიკატს.',
+      value: '+995 596 89 91 91',
+      href: 'tel:+995596899191',
     },
   ];
 
@@ -256,26 +227,6 @@ export default function ContactPage() {
                   </div>
                 ))}
               </div>
-
-              {/* Working Hours */}
-              <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
-                <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-3 sm:mb-4">სამუშაო საათები</h3>
-                <div className="space-y-2 text-xs sm:text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">ორშაბათი - პარასკევი</span>
-                    <span className="font-medium text-gray-900">10:00 - 19:00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">შაბათი</span>
-                    <span className="font-medium text-gray-900">11:00 - 17:00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">კვირა</span>
-                    <span className="font-medium text-gray-900">დასვენება</span>
-                  </div>
-                </div>
-              </div>
-
               {/* Social Links */}
               <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
                 <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-3 sm:mb-4">გამოგვყევი</h3>
@@ -302,39 +253,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-6 sm:mb-10 lg:mb-12">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
-            <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">პასუხები გავრცელებულ კითხვებზე</p>
-          </div>
-
-          <div className="space-y-2 sm:space-y-4">
-            {faqs.map((faq, index) => (
-              <details
-                key={index}
-                className="group bg-white rounded-xl sm:rounded-2xl shadow-sm"
-              >
-                <summary className="flex items-center justify-between p-4 sm:p-6 cursor-pointer list-none">
-                  <h3 className="font-medium text-sm sm:text-base text-gray-900 pr-2">{faq.question}</h3>
-                  <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 group-open:rotate-180 transition-transform flex-shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-                  <p className="text-sm sm:text-base text-gray-600">{faq.answer}</p>
-                </div>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FAQSection />
     </div>
   );
 }

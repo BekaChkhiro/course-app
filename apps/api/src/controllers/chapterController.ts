@@ -393,3 +393,253 @@ export const getChapterVideos = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch chapter videos' });
   }
 };
+
+// ==========================================
+// CHAPTER LINKING FOR VERSION UPGRADES
+// ==========================================
+
+// Link a chapter to its original (from previous version)
+export const linkChapter = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { originalChapterId } = req.body;
+
+    // Validate that the chapter exists
+    const chapter = await prisma.chapter.findUnique({
+      where: { id },
+      include: { courseVersion: true },
+    });
+
+    if (!chapter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chapter not found',
+      });
+    }
+
+    // If originalChapterId is provided, validate it exists and belongs to an older version
+    if (originalChapterId) {
+      const originalChapter = await prisma.chapter.findUnique({
+        where: { id: originalChapterId },
+        include: { courseVersion: true },
+      });
+
+      if (!originalChapter) {
+        return res.status(404).json({
+          success: false,
+          message: 'Original chapter not found',
+        });
+      }
+
+      // Ensure both chapters belong to the same course
+      if (originalChapter.courseVersion.courseId !== chapter.courseVersion.courseId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Chapters must belong to the same course',
+        });
+      }
+
+      // Ensure original is from an older version
+      if (originalChapter.courseVersion.version >= chapter.courseVersion.version) {
+        return res.status(400).json({
+          success: false,
+          message: 'Original chapter must be from an older version',
+        });
+      }
+    }
+
+    // Update the chapter with the originalChapterId
+    const updatedChapter = await prisma.chapter.update({
+      where: { id },
+      data: { originalChapterId: originalChapterId || null },
+      include: {
+        originalChapter: {
+          select: { id: true, title: true },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      message: originalChapterId ? 'Chapter linked successfully' : 'Chapter link removed',
+      data: updatedChapter,
+    });
+  } catch (error) {
+    console.error('Link chapter error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to link chapter',
+    });
+  }
+};
+
+// Get chapters with linking status for a version
+export const getVersionChaptersWithLinks = async (req: Request, res: Response) => {
+  try {
+    const { versionId } = req.params;
+
+    const version = await prisma.courseVersion.findUnique({
+      where: { id: versionId },
+      select: {
+        id: true,
+        version: true,
+        courseId: true,
+      },
+    });
+
+    if (!version) {
+      return res.status(404).json({
+        success: false,
+        message: 'Version not found',
+      });
+    }
+
+    // Get chapters with their original chapter info
+    const chapters = await prisma.chapter.findMany({
+      where: { courseVersionId: versionId },
+      select: {
+        id: true,
+        title: true,
+        order: true,
+        originalChapterId: true,
+        originalChapter: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { order: 'asc' },
+    });
+
+    // Get previous version chapters for dropdown options
+    const previousVersion = await prisma.courseVersion.findFirst({
+      where: {
+        courseId: version.courseId,
+        version: { lt: version.version },
+      },
+      orderBy: { version: 'desc' },
+      include: {
+        chapters: {
+          select: {
+            id: true,
+            title: true,
+            order: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        chapters,
+        previousVersionChapters: previousVersion?.chapters || [],
+        previousVersionNumber: previousVersion?.version || null,
+      },
+    });
+  } catch (error) {
+    console.error('Get version chapters with links error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get chapters',
+    });
+  }
+};
+
+// Auto-link chapters between versions based on title matching
+export const autoLinkVersionChapters = async (req: Request, res: Response) => {
+  try {
+    const { versionId } = req.params;
+
+    const version = await prisma.courseVersion.findUnique({
+      where: { id: versionId },
+      select: {
+        id: true,
+        version: true,
+        courseId: true,
+      },
+    });
+
+    if (!version) {
+      return res.status(404).json({
+        success: false,
+        message: 'Version not found',
+      });
+    }
+
+    // Get previous version
+    const previousVersion = await prisma.courseVersion.findFirst({
+      where: {
+        courseId: version.courseId,
+        version: { lt: version.version },
+      },
+      orderBy: { version: 'desc' },
+      include: {
+        chapters: {
+          select: { id: true, title: true },
+        },
+      },
+    });
+
+    if (!previousVersion) {
+      return res.status(400).json({
+        success: false,
+        message: 'No previous version found',
+      });
+    }
+
+    // Get unlinked chapters in current version
+    const unlinkedChapters = await prisma.chapter.findMany({
+      where: {
+        courseVersionId: versionId,
+        originalChapterId: null,
+      },
+      select: { id: true, title: true },
+    });
+
+    // Create a map for quick lookup
+    const prevChapterMap = new Map(
+      previousVersion.chapters.map((c) => [c.title.toLowerCase().trim(), c.id])
+    );
+
+    // Link chapters by exact title match
+    let linkedCount = 0;
+    const linkedChapters: { id: string; title: string; linkedTo: string }[] = [];
+
+    for (const chapter of unlinkedChapters) {
+      const normalizedTitle = chapter.title.toLowerCase().trim();
+      const matchingOriginalId = prevChapterMap.get(normalizedTitle);
+
+      if (matchingOriginalId) {
+        await prisma.chapter.update({
+          where: { id: chapter.id },
+          data: { originalChapterId: matchingOriginalId },
+        });
+        linkedCount++;
+        linkedChapters.push({
+          id: chapter.id,
+          title: chapter.title,
+          linkedTo: matchingOriginalId,
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Auto-linked ${linkedCount} chapters`,
+      data: {
+        linkedCount,
+        linkedChapters,
+        unlinkedCount: unlinkedChapters.length - linkedCount,
+      },
+    });
+  } catch (error) {
+    console.error('Auto-link chapters error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to auto-link chapters',
+    });
+  }
+};

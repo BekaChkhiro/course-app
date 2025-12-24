@@ -12,6 +12,7 @@ import QuizResults from '@/components/quiz/QuizResults';
 import CourseCompletionModal from '@/components/student/learning/CourseCompletionModal';
 import FinalExamSection from '@/components/student/learning/FinalExamSection';
 import FinalExamIntro from '@/components/student/learning/FinalExamIntro';
+import UpgradeFloatingCard from '@/components/student/learning/UpgradeFloatingCard';
 import VideoPlayer from '@/components/student/VideoPlayer';
 import { QuizAttempt, quizAttemptApi } from '@/lib/api/quizApi';
 import toast from 'react-hot-toast';
@@ -921,6 +922,9 @@ export default function CourseLearningPage() {
   const [finalExamMode, setFinalExamMode] = useState<'idle' | 'playing' | 'results'>('idle');
   const [finalExamAttemptId, setFinalExamAttemptId] = useState<string | null>(null);
 
+  // Upgrade state
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
   // Fetch course data
   const { data: courseData, isLoading: isCourseLoading, error: courseError } = useQuery({
     queryKey: ['courseForLearning', slug],
@@ -1162,7 +1166,8 @@ export default function CourseLearningPage() {
 
   // Handle upgrade button click
   const handleUpgrade = async () => {
-    if (!upgradeInfo) return;
+    if (!upgradeInfo || isUpgrading) return;
+    setIsUpgrading(true);
     try {
       const result = await studentApiClient.initiateUpgrade(
         course.id,
@@ -1172,41 +1177,24 @@ export default function CourseLearningPage() {
         window.location.href = result.data.redirectUrl;
       } else {
         toast.error(result.message || 'განახლების დაწყება ვერ მოხერხდა');
+        setIsUpgrading(false);
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'განახლების დაწყება ვერ მოხერხდა');
+      setIsUpgrading(false);
     }
   };
 
   return (
     <div className="h-screen bg-gray-50 overflow-hidden">
-      {/* Upgrade Banner */}
+      {/* Upgrade Floating Card */}
       {upgradeInfo && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-accent-600 text-white px-4 py-3 shadow-lg">
-          <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 rounded-full p-1.5">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-sm">
-                  ახალი ვერსია ხელმისაწვდომია! v{upgradeInfo.currentVersionNumber} → v{upgradeInfo.availableVersionNumber}
-                </p>
-                <p className="text-xs text-white/90">
-                  {upgradeInfo.availableVersionTitle}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleUpgrade}
-              className="px-4 py-1.5 bg-white text-accent-600 rounded-lg text-sm font-medium hover:bg-accent-50 transition-colors"
-            >
-              განახლება {upgradeInfo.upgradePrice > 0 && `- ${upgradeInfo.upgradePrice.toFixed(2)} ₾`}
-            </button>
-          </div>
-        </div>
+        <UpgradeFloatingCard
+          upgradeInfo={upgradeInfo}
+          courseSlug={slug}
+          onUpgrade={handleUpgrade}
+          isUpgrading={isUpgrading}
+        />
       )}
 
       {/* Chapter Sidebar */}
@@ -1241,7 +1229,7 @@ export default function CourseLearningPage() {
 
       {/* Mobile Header */}
       {isMobile && (
-        <div className={`fixed left-0 right-0 bg-white border-b border-gray-200 z-40 px-4 py-3 ${upgradeInfo ? 'top-12' : 'top-0'}`}>
+        <div className="fixed left-0 right-0 bg-white border-b border-gray-200 z-40 px-4 py-3 top-0">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setMobileSidebarOpen(true)}
@@ -1273,8 +1261,8 @@ export default function CourseLearningPage() {
       <div
         className={`transition-all duration-300 h-screen flex flex-col ${
           isMobile
-            ? `ml-0 ${upgradeInfo ? 'pt-28' : 'pt-16'}`
-            : `${sidebarCollapsed ? 'ml-16' : 'ml-80'} ${upgradeInfo ? 'pt-12' : ''}`
+            ? 'ml-0 pt-16'
+            : `${sidebarCollapsed ? 'ml-16' : 'ml-80'}`
         }`}
         {...(isMobile ? swipeHandlers : {})}
       >

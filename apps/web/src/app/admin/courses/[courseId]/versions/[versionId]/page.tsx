@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Info, BookOpen, Trophy } from 'lucide-react';
+import { ArrowLeft, Info, BookOpen, Trophy, Link2 } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { versionApi } from '@/lib/api/adminApi';
@@ -12,12 +12,12 @@ import Badge from '@/components/ui/Badge';
 import CourseChaptersTab from '@/components/admin/course-detail/CourseChaptersTab';
 import VersionInfoTab from '@/components/admin/version-detail/VersionInfoTab';
 import FinalExamTab from '@/components/admin/version-detail/FinalExamTab';
+import ChapterLinkingTab from '@/components/admin/version-detail/ChapterLinkingTab';
 
-type Tab = 'info' | 'chapters' | 'finalExam';
+type Tab = 'info' | 'chapters' | 'linking' | 'finalExam';
 
 export default function VersionDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const courseId = params.courseId as string;
   const versionId = params.versionId as string;
   const [activeTab, setActiveTab] = useState<Tab>('info');
@@ -36,6 +36,7 @@ export default function VersionDetailPage() {
   const tabs = [
     { id: 'info' as Tab, label: 'ვერსიის ინფორმაცია', icon: Info },
     { id: 'chapters' as Tab, label: 'თავები', icon: BookOpen, count: version.chapters?.length || 0 },
+    { id: 'linking' as Tab, label: 'თავების დაკავშირება', icon: Link2 },
     { id: 'finalExam' as Tab, label: 'საფინალო გამოცდა', icon: Trophy }
   ];
 
@@ -87,7 +88,8 @@ export default function VersionDetailPage() {
                     <span className="hidden xs:inline">{tab.label}</span>
                     <span className="xs:hidden">
                       {tab.id === 'info' ? 'ინფო' :
-                       tab.id === 'chapters' ? 'თავები' : 'გამოცდა'}
+                       tab.id === 'chapters' ? 'თავები' :
+                       tab.id === 'linking' ? 'კავშირი' : 'გამოცდა'}
                     </span>
                     {tab.count !== undefined && (
                       <span className="px-1.5 sm:px-2 py-0.5 text-xs bg-gray-100 rounded-full">
@@ -111,6 +113,13 @@ export default function VersionDetailPage() {
             <CourseChaptersTab
               courseId={courseId}
               selectedVersionId={versionId}
+            />
+          )}
+
+          {activeTab === 'linking' && (
+            <ChapterLinkingTab
+              versionId={versionId}
+              versionNumber={version.version}
             />
           )}
 

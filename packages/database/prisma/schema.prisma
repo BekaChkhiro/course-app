@@ -78,6 +78,13 @@ enum UpgradePriceType {
   PERCENTAGE  // კურსის ფასის პროცენტი
 }
 
+enum NotificationType {
+  VERSION_UPGRADE_AVAILABLE
+  UPGRADE_DISCOUNT_ENDING
+  COURSE_UPDATED
+  GENERAL
+}
+
 enum RefundStatus {
   PENDING     // სტუდენტმა მოთხოვნა გაგზავნა
   APPROVED    // ადმინმა დაადასტურა, BOG-ში იგზავნება
@@ -129,6 +136,10 @@ model User {
   reviewResponses   ReviewResponse[]  @relation("ReviewResponses")
   moderatedReviews  Review[]          @relation("ModeratedReviews")
 
+  // Version access and notifications
+  versionAccess     UserVersionAccess[]
+  notifications     Notification[]
+
   @@index([email])
   @@index([phone])
   @@index([verificationToken])
@@ -169,6 +180,8 @@ model Course {
   categoryId  String
   authorId    String
   instructorId String?
+  isFeatured  Boolean      @default(false)
+  featuredAt  DateTime?
 
   // SEO metadata
   metaTitle       String?
@@ -189,6 +202,7 @@ model Course {
   activeVersionId String?         @unique
 
   @@index([slug])
+  @@index([isFeatured, featuredAt])
   @@index([categoryId])
   @@index([authorId])
   @@index([instructorId])
@@ -208,6 +222,12 @@ model CourseVersion {
   upgradePriceType   UpgradePriceType?           // FIXED or PERCENTAGE
   upgradePriceValue  Decimal?         @db.Decimal(10, 2) // თანხა ან პროცენტი
 
+  // Time-limited upgrade discount
+  upgradeDiscountStartDate DateTime?  // When discount period starts
+  upgradeDiscountEndDate   DateTime?  // When discount period ends
+  upgradeDiscountType      UpgradePriceType?  // Discount type during promotion
+  upgradeDiscountValue     Decimal?   @db.Decimal(10, 2)  // Promotional price/percentage
+
   status      VersionStatus @default(DRAFT)
   isActive    Boolean  @default(false)
   publishedAt DateTime?
@@ -220,6 +240,7 @@ model CourseVersion {
   progress   Progress[]
   finalExams Quiz[]     // Final exams for this version
   purchases  Purchase[] // შეძენები ამ ვერსიისთვის
+  userAccess UserVersionAccess[] // Users who have access to this version
 
   @@unique([courseId, version])
   @@index([courseId])
@@ -235,6 +256,9 @@ model Chapter {
   description     String?  @db.Text
   order           Int
   isFree          Boolean  @default(false)
+
+  // Chapter linking for progress transfer between versions
+  originalChapterId String?  // Links to original chapter in previous version
 
   // Chapter components
   videoUrl        String? // Video URL (legacy)
@@ -256,8 +280,13 @@ model Chapter {
   bookmarks     Bookmark[]
   attachments   ChapterAttachment[]
 
+  // Self-referential relation for chapter linking
+  originalChapter   Chapter?  @relation("ChapterLinking", fields: [originalChapterId], references: [id], onDelete: SetNull)
+  linkedChapters    Chapter[] @relation("ChapterLinking")
+
   @@index([courseVersionId])
   @@index([order])
+  @@index([originalChapterId])
   @@map("chapters")
 }
 
@@ -611,6 +640,7 @@ model Purchase {
 
     // Relations
     refundRequests RefundRequest[]
+    versionAccess  UserVersionAccess[]
 }
 
 model RefundRequest {
@@ -1269,6 +1299,49 @@ model EmailLog {
   @@index([status])
   @@index([createdAt])
   @@map("email_logs")
+}
+
+// ==========================================
+// VERSION ACCESS & NOTIFICATIONS
+// ==========================================
+
+model UserVersionAccess {
+  id              String        @id @default(cuid())
+  userId          String
+  courseVersionId String
+  purchaseId      String?       // Original purchase that granted access
+  grantedAt       DateTime      @default(now())
+  isActive        Boolean       @default(true)
+
+  // Relations
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseVersion CourseVersion @relation(fields: [courseVersionId], references: [id], onDelete: Cascade)
+  purchase      Purchase?     @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, courseVersionId])
+  @@index([userId])
+  @@index([courseVersionId])
+  @@map("user_version_access")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String           @db.Text
+  data        Json?            // Additional metadata (courseId, versionId, etc.)
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
 }
 
 model CommunicationAnalytics {

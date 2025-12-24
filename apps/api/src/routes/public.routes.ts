@@ -7,6 +7,35 @@ import r2Service from '../services/r2.service';
 
 const router = Router();
 
+const formatPublicCourse = (course: any) => {
+  const ratings = course.reviews.map((r: any) => r.rating);
+  const averageRating =
+    ratings.length > 0
+      ? ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length
+      : 0;
+
+  const activeVersion = course.versions[0];
+  const chapterCount = activeVersion?._count?.chapters || 0;
+  const previewChapters = activeVersion?.chapters || [];
+
+  return {
+    id: course.id,
+    title: course.title,
+    slug: course.slug,
+    shortDescription:
+      course.description?.substring(0, 200) +
+      (course.description && course.description.length > 200 ? '...' : ''),
+    thumbnail: course.thumbnail,
+    price: Number(course.price),
+    category: course.category,
+    averageRating,
+    reviewCount: course._count.reviews,
+    studentCount: course._count.purchases,
+    chapterCount,
+    previewChapters,
+  };
+};
+
 // Get published courses with filters and pagination
 router.get('/courses', async (req: Request, res: Response) => {
   try {
@@ -116,32 +145,7 @@ router.get('/courses', async (req: Request, res: Response) => {
     ]);
 
     // Calculate average rating and format response
-    const formattedCourses = courses.map((course) => {
-      const ratings = course.reviews.map((r) => r.rating);
-      const averageRating =
-        ratings.length > 0
-          ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-          : 0;
-
-      const activeVersion = course.versions[0];
-      const chapterCount = activeVersion?._count?.chapters || 0;
-      const previewChapters = activeVersion?.chapters || [];
-
-      return {
-        id: course.id,
-        title: course.title,
-        slug: course.slug,
-        shortDescription: course.description?.substring(0, 200) + (course.description && course.description.length > 200 ? '...' : ''),
-        thumbnail: course.thumbnail,
-        price: Number(course.price),
-        category: course.category,
-        averageRating,
-        reviewCount: course._count.reviews,
-        studentCount: course._count.purchases,
-        chapterCount,
-        previewChapters,
-      };
-    });
+    const formattedCourses = courses.map(formatPublicCourse);
 
     // Sort by rating if requested
     if (sort === 'rating') {
@@ -164,6 +168,64 @@ router.get('/courses', async (req: Request, res: Response) => {
       success: false,
       message: 'Failed to fetch courses',
     });
+  }
+});
+
+// Get featured courses for homepage
+router.get('/courses/featured', async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt((req.query.limit as string) || '6');
+
+    const courses = await prisma.course.findMany({
+      where: {
+        status: 'PUBLISHED',
+        isFeatured: true,
+      },
+      take: limit,
+      orderBy: [
+        { featuredAt: 'desc' },
+        { updatedAt: 'desc' },
+      ],
+      include: {
+        category: {
+          select: { id: true, name: true, slug: true },
+        },
+        _count: {
+          select: { purchases: true, reviews: true },
+        },
+        reviews: {
+          where: { status: 'APPROVED' },
+          select: { rating: true },
+        },
+        versions: {
+          where: { isActive: true },
+          include: {
+            _count: { select: { chapters: true } },
+            chapters: {
+              orderBy: { order: 'asc' },
+              take: 4,
+              select: {
+                id: true,
+                title: true,
+                order: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const formattedCourses = courses.map(formatPublicCourse);
+
+    res.json({
+      success: true,
+      data: {
+        courses: formattedCourses,
+      },
+    });
+  } catch (error) {
+    console.error('Get featured courses error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch featured courses' });
   }
 });
 
@@ -241,6 +303,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
     // Check if user is enrolled and get progress (if authenticated)
     let isEnrolled = false;
     let progressPercentage = 0;
+    let upgradeInfo = null;
 
     if (userId) {
       const purchase = await prisma.purchase.findUnique({
@@ -248,6 +311,14 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
           userId_courseId: {
             userId,
             courseId: course.id,
+          },
+        },
+        include: {
+          courseVersion: {
+            select: {
+              id: true,
+              version: true,
+            },
           },
         },
       });
@@ -271,6 +342,66 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
             });
 
             progressPercentage = Math.round((completedCount / totalChapters) * 100);
+          }
+
+          // Check if user owns an older version and upgrade is available
+          const userVersionId = purchase?.courseVersionId;
+          if (userVersionId && userVersionId !== activeVersion.id) {
+            // User has an older version, fetch upgrade info
+            const latestVersion = await prisma.courseVersion.findFirst({
+              where: { courseId: course.id, isActive: true },
+              select: {
+                id: true,
+                version: true,
+                title: true,
+                changelog: true,
+                upgradePriceType: true,
+                upgradePriceValue: true,
+                upgradeDiscountStartDate: true,
+                upgradeDiscountEndDate: true,
+                upgradeDiscountType: true,
+                upgradeDiscountValue: true,
+              },
+            });
+
+            if (latestVersion) {
+              const now = new Date();
+              let upgradePrice = 0;
+
+              // Check if discount is active
+              const hasActiveDiscount =
+                latestVersion.upgradeDiscountEndDate &&
+                now <= latestVersion.upgradeDiscountEndDate &&
+                latestVersion.upgradeDiscountValue;
+
+              if (hasActiveDiscount) {
+                // Apply discount price
+                if (latestVersion.upgradeDiscountType === 'FIXED') {
+                  upgradePrice = Number(latestVersion.upgradeDiscountValue);
+                } else if (latestVersion.upgradeDiscountType === 'PERCENTAGE') {
+                  const percentage = Number(latestVersion.upgradeDiscountValue) || 0;
+                  upgradePrice = (Number(course.price) * percentage) / 100;
+                }
+              } else {
+                // Regular upgrade price
+                if (latestVersion.upgradePriceType === 'FIXED') {
+                  upgradePrice = Number(latestVersion.upgradePriceValue) || 0;
+                } else if (latestVersion.upgradePriceType === 'PERCENTAGE') {
+                  const percentage = Number(latestVersion.upgradePriceValue) || 0;
+                  upgradePrice = (Number(course.price) * percentage) / 100;
+                }
+              }
+
+              upgradeInfo = {
+                availableVersionId: latestVersion.id,
+                availableVersionNumber: latestVersion.version,
+                availableVersionTitle: latestVersion.title,
+                upgradePrice,
+                currentVersionNumber: purchase?.courseVersion?.version || 1,
+                hasDiscount: !!hasActiveDiscount,
+                discountEndsAt: hasActiveDiscount ? latestVersion.upgradeDiscountEndDate : null,
+              };
+            }
           }
         }
       }
@@ -315,6 +446,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         totalDuration: 0, // Can be calculated if duration is stored in chapters
         isEnrolled,
         progressPercentage,
+        upgradeInfo, // ახალი ვერსიის ინფორმაცია თუ ძველი ვერსიის მფლობელია
       },
     });
   } catch (error) {

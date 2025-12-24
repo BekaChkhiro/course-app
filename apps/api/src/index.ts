@@ -31,6 +31,7 @@ import instructorRoutes from './routes/instructorRoutes'
 import mediaRoutes from './routes/media.routes'
 import adminStudentsRoutes from './routes/adminStudents.routes'
 import refundRoutes from './routes/refund.routes'
+import notificationRoutes from './routes/notificationRoutes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -158,6 +159,9 @@ app.use('/api/instructors', instructorRoutes)
 
 // Media management routes (admin only)
 app.use('/api', mediaRoutes)
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

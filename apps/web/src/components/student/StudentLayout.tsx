@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
+import NotificationsDropdown from '@/components/ui/NotificationsDropdown';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -240,6 +241,9 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
             <div className="flex-1 lg:flex-none" />
 
             <div className="flex items-center space-x-4">
+              {/* Notifications */}
+              <NotificationsDropdown />
+
               {/* Devices link */}
               <Link
                 href="/dashboard/devices"

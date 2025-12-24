@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Mail, Facebook, Linkedin, User } from 'lucide-react';
+import { Mail, Facebook, Linkedin, User, Zap, ArrowRight, Clock } from 'lucide-react';
 import { publicApi } from '@/lib/api/publicApi';
 import { studentApiClient } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
 import BuyButton from '@/components/payment/BuyButton';
 import BookingModal from '@/components/booking/BookingModal';
+import toast from 'react-hot-toast';
 
 export default function CoursePage() {
   const params = useParams();
@@ -21,6 +22,7 @@ export default function CoursePage() {
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState<string | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   const { data: course, isLoading, error } = useQuery({
     queryKey: ['course', slug],
@@ -48,6 +50,32 @@ export default function CoursePage() {
       setEnrollError(message);
     } finally {
       setIsEnrolling(false);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    if (!course?.id || !course?.upgradeInfo) return;
+
+    setIsUpgrading(true);
+    try {
+      const result = await studentApiClient.initiateUpgrade(
+        course.id,
+        course.upgradeInfo.availableVersionId
+      );
+      if (result.success && result.data?.redirectUrl) {
+        window.location.href = result.data.redirectUrl;
+      } else if (result.success && course.upgradeInfo.upgradePrice === 0) {
+        // Free upgrade - redirect to learn page
+        queryClient.invalidateQueries({ queryKey: ['course', slug] });
+        router.push(`/dashboard/courses/${course.slug}/learn`);
+        toast.success('კურსი წარმატებით განახლდა!');
+      } else {
+        toast.error(result.message || 'განახლების დაწყება ვერ მოხერხდა');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'განახლების დაწყება ვერ მოხერხდა');
+    } finally {
+      setIsUpgrading(false);
     }
   };
 
@@ -103,7 +131,57 @@ export default function CoursePage() {
         {/* CTA Button */}
         {isAuthenticated ? (
           course.isEnrolled ? (
-            course.progressPercentage === 100 ? (
+            course.upgradeInfo ? (
+              // User owns an older version - show upgrade option
+              <div className="space-y-3">
+                <div className="bg-accent-50 border border-accent-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-accent-700 mb-2">
+                    <Zap className="w-5 h-5" />
+                    <span className="font-semibold">ახალი ვერსია!</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">v{course.upgradeInfo.currentVersionNumber}</span>
+                    <ArrowRight className="w-4 h-4 text-accent-500" />
+                    <span className="font-mono bg-accent-100 text-accent-700 px-2 py-0.5 rounded font-medium">v{course.upgradeInfo.availableVersionNumber}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{course.upgradeInfo.availableVersionTitle}</p>
+                  {course.upgradeInfo.hasDiscount && course.upgradeInfo.discountEndsAt && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-amber-600">
+                      <Clock className="w-3 h-3" />
+                      <span>ფასდაკლება შეზღუდული დროით!</span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleUpgrade}
+                  disabled={isUpgrading}
+                  className="block w-full text-center bg-accent-600 text-white py-3 rounded-xl font-medium hover:bg-accent-700 transition-colors disabled:opacity-50"
+                >
+                  {isUpgrading ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      მიმდინარეობს...
+                    </span>
+                  ) : (
+                    <>
+                      განახლება
+                      {course.upgradeInfo.upgradePrice > 0 && (
+                        <span className="ml-2">{course.upgradeInfo.upgradePrice.toFixed(2)} ₾</span>
+                      )}
+                    </>
+                  )}
+                </button>
+                <Link
+                  href={`/dashboard/courses/${course.slug}/learn`}
+                  className="block w-full text-center text-gray-600 py-2 text-sm hover:text-gray-900"
+                >
+                  ან გააგრძელე ძველი ვერსია
+                </Link>
+              </div>
+            ) : course.progressPercentage === 100 ? (
               <Link
                 href={`/dashboard/courses/${course.slug}/learn`}
                 className="block w-full text-center bg-gray-600 text-white py-3 rounded-xl font-medium hover:bg-gray-700 transition-colors"
@@ -288,16 +366,6 @@ export default function CoursePage() {
             {/* Mobile Purchase Card - visible only on mobile */}
             <div className="lg:hidden mt-6 space-y-4">
               <PurchaseCard />
-              {/* Individual Booking Button */}
-              <button
-                onClick={() => setIsBookingModalOpen(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-accent-500 text-accent-500 py-3 rounded-xl font-medium hover:bg-accent-50 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>ინდივიდუალური კურსის დაჯავშნა</span>
-              </button>
             </div>
 
             {/* Content Section */}
@@ -392,6 +460,31 @@ export default function CoursePage() {
                       </div>
                     </div>
                   </div>
+                  <div className="mt-6 bg-accent-50 border border-accent-100 rounded-2xl p-4 sm:p-5">
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="w-12 h-12 rounded-xl bg-white text-accent-500 flex items-center justify-center shadow-sm">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-accent-600 uppercase tracking-wide">ინდივიდუალური სწავლება</p>
+                          <p className="text-sm text-accent-700 mt-1">დაჯავშნეთ ინდივიდუალური სესია ლექტორთან და მიიღეთ პერსონალური მხარდაჭერა.</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsBookingModalOpen(true)}
+                        className="w-full lg:w-auto flex items-center justify-center gap-2 bg-accent-500 text-white px-5 py-3 rounded-xl font-semibold shadow-md hover:bg-accent-600 transition-colors"
+                      >
+                        <span>დაჯავშნე ახლა</span>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </section>
               )}
 
@@ -415,29 +508,52 @@ export default function CoursePage() {
               {/* Course Content */}
               {course.chapters && course.chapters.length > 0 && (
                 <section className="bg-white rounded-2xl p-6 shadow-sm">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">კურსის შინაარსი</h2>
-                  <p className="text-gray-600 mb-4">
-                    {course.chapterCount} თავი • {formatDuration(course.totalDuration || 0)} ჯამური ხანგრძლივობა
-                  </p>
-                  <div className="space-y-2">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-primary-600">კურსის შინაარსი</p>
+                      <h2 className="text-2xl font-bold text-gray-900 mt-1">კურსის შინაარსი</h2>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 text-primary-900 font-medium">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        {course.chapterCount} თავი
+                      </span>
+                      {course.totalDuration && course.totalDuration > 0 && (
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-50 text-accent-600 font-medium">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {formatDuration(course.totalDuration)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-6 space-y-3">
                     {course.chapters.map((chapter: any, index: number) => (
                       <div
                         key={chapter.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-gray-100 p-4 hover:border-primary-200 hover:bg-primary-50/40 transition-colors"
                       >
-                        <div className="flex items-center space-x-3">
-                          <span className="w-8 h-8 bg-primary-100 text-primary-900 rounded-full flex items-center justify-center text-sm font-medium">
-                            {index + 1}
-                          </span>
+                        <div className="flex items-start gap-4">
+                          <div className="min-w-[3rem] px-3 h-11 rounded-xl bg-primary-50 text-primary-900 font-semibold flex items-center justify-center text-base">
+                            {String(index + 1).padStart(2, '0')}
+                          </div>
                           <div>
-                            <h3 className="font-medium text-gray-900">{chapter.title}</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{chapter.title}</h3>
                             {chapter.description && (
-                              <p className="text-sm text-gray-500">{chapter.description}</p>
+                              <p className="text-sm text-gray-600 mt-1 leading-relaxed">{chapter.description}</p>
                             )}
                           </div>
                         </div>
                         {chapter.duration && (
-                          <span className="text-sm text-gray-500">{formatDuration(chapter.duration)}</span>
+                          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-accent-100 text-accent-600 text-sm font-medium shadow-sm">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {formatDuration(chapter.duration)}
+                          </span>
                         )}
                       </div>
                     ))}
@@ -451,19 +567,9 @@ export default function CoursePage() {
           </div>
 
           {/* Right Column - Desktop Purchase Card (Sticky) */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div className="hidden lg:block lg:col-span-1 lg:pb-8">
             <div className="lg:sticky lg:top-[70px] lg:bottom-[70px] pt-0 lg:pt-[34px] space-y-4">
               <PurchaseCard />
-              {/* Individual Booking Button */}
-              <button
-                onClick={() => setIsBookingModalOpen(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-accent-500 text-accent-500 py-3 rounded-xl font-medium hover:bg-accent-50 transition-colors shadow-lg"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>ინდივიდუალური კურსის დაჯავშნა</span>
-              </button>
             </div>
           </div>
         </div>

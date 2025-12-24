@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { publicApi } from '@/lib/api/publicApi';
 import HeroSlider from '@/components/public/HeroSlider';
 import InstructorsSection from '@/components/public/InstructorsSection';
+import FAQSection from '@/components/public/FAQSection';
 
 // Hero Section
 const HeroSection = () => {
@@ -67,46 +67,19 @@ const HeroSection = () => {
   );
 };
 
-// Popular Courses Section
+// Popular Courses Section (Top 3 Grid)
 const PopularCoursesSection = () => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const { data: courses, isLoading } = useQuery({
-    queryKey: ['popular-courses'],
-    queryFn: () => publicApi.getPopularCourses(6),
+  const { data: featuredCourses, isLoading } = useQuery({
+    queryKey: ['featured-courses'],
+    queryFn: () => publicApi.getFeaturedCourses(3),
   });
 
-  const checkScrollButtons = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  useEffect(() => {
-    checkScrollButtons();
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', checkScrollButtons);
-      return () => container.removeEventListener('scroll', checkScrollButtons);
-    }
-  }, [courses]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 300;
-      const newScrollLeft = scrollContainerRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
-      scrollContainerRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
-    }
-  };
+  const displayedCourses = featuredCourses ?? [];
 
   return (
     <section className="py-10 sm:py-16 lg:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-6 sm:mb-8 lg:mb-10">
           <div>
             <h2 className="text-xl sm:text-2xl lg:text-4xl font-bold text-gray-900">პოპულარული კურსები</h2>
             <p className="mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg text-gray-600">ყველაზე მოთხოვნადი კურსები ჩვენს პლატფორმაზე</p>
@@ -123,67 +96,19 @@ const PopularCoursesSection = () => {
         </div>
 
         {isLoading ? (
-          <>
-            {/* Mobile Loading Carousel */}
-            <div className="mt-6 sm:hidden">
-              <div className="flex gap-4 overflow-hidden -mx-4 px-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[280px] bg-gray-100 rounded-xl h-[340px] animate-pulse" />
-                ))}
-              </div>
-            </div>
-            {/* Tablet/Desktop Loading Grid */}
-            <div className="mt-8 lg:mt-12 hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-gray-100 rounded-2xl h-80 animate-pulse" />
-              ))}
-            </div>
-          </>
-        ) : courses?.length ? (
-          <>
-            {/* Mobile Carousel */}
-            <div className="mt-6 sm:hidden relative -mx-4">
-              <div
-                ref={scrollContainerRef}
-                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {/* Left Spacer */}
-                <div className="flex-shrink-0 w-4 min-w-[16px]" aria-hidden="true" />
-                {courses.map((course: any) => (
-                  <div key={course.id} className="flex-shrink-0 w-[280px] snap-start">
-                    <CourseCard course={course} />
-                  </div>
-                ))}
-                {/* Right Spacer */}
-                <div className="flex-shrink-0 w-4 min-w-[16px]" aria-hidden="true" />
-              </div>
-
-              {/* Mobile Scroll Indicator */}
-              <div className="flex justify-center mt-2">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>გადაათრიეთ სანახავად</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-
-              <style jsx>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-            </div>
-
-            {/* Tablet/Desktop Grid */}
-            <div className="mt-8 lg:mt-12 hidden sm:grid grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
-              {courses.map((course: any) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-gray-100 rounded-2xl h-80 animate-pulse" />
+            ))}
+          </div>
+        ) : displayedCourses.length ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {displayedCourses.map((course: any) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
         ) : (
-          <div className="mt-6 sm:mt-12 text-center py-8 sm:py-12 bg-gray-50 rounded-xl sm:rounded-2xl">
+          <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-xl sm:rounded-2xl">
             <p className="text-sm sm:text-base text-gray-600">კურსები მალე დაემატება</p>
           </div>
         )}
@@ -305,81 +230,6 @@ const CourseCard = ({ course }: { course: any }) => {
         </div>
       </div>
     </div>
-  );
-};
-
-// FAQ Section
-const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const { data: faqs, isLoading } = useQuery({
-    queryKey: ['public-faqs'],
-    queryFn: () => publicApi.getFAQs(),
-  });
-
-  if (isLoading) {
-    return (
-      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-6 sm:mb-12">
-            <h2 className="text-xl sm:text-2xl lg:text-4xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg sm:rounded-xl h-14 sm:h-16 animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (!faqs || faqs.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-6 sm:mb-12">
-          <h2 className="text-xl sm:text-2xl lg:text-4xl font-bold text-gray-900">ხშირად დასმული კითხვები</h2>
-          <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">
-            პასუხები ყველაზე გავრცელებულ კითხვებზე
-          </p>
-        </div>
-
-        <div className="space-y-2 sm:space-y-4">
-          {faqs.map((faq: any, index: number) => (
-            <div
-              key={faq.id}
-              className="bg-white rounded-lg sm:rounded-xl shadow-sm overflow-hidden"
-            >
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex items-center justify-between p-3 sm:p-5 text-left hover:bg-gray-50 transition-colors"
-              >
-                <span className="font-medium text-sm sm:text-base text-gray-900 pr-3 sm:pr-4">{faq.question}</span>
-                <svg
-                  className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0 transition-transform ${
-                    openIndex === index ? 'rotate-180' : ''
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openIndex === index && (
-                <div className="px-3 pb-3 sm:px-5 sm:pb-5">
-                  <p className="text-sm sm:text-base text-gray-600 whitespace-pre-line">{faq.answer}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 };
 

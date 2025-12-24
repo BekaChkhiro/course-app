@@ -1,88 +1,15 @@
-import Image from 'next/image';
-import Link from 'next/link';
-
 export default function AboutPage() {
-  const stats = [
-    { value: '1,000+', label: 'სტუდენტი' },
-    { value: '50+', label: 'კურსი' },
-    { value: '20+', label: 'ინსტრუქტორი' },
-    { value: '95%', label: 'კმაყოფილება' },
-  ];
-
-  const team = [
-    {
-      name: 'გიორგი მაისურაძე',
-      role: 'დამფუძნებელი & CEO',
-      image: null,
-      bio: '10+ წლიანი გამოცდილება ტექნოლოგიების სფეროში',
-    },
-    {
-      name: 'ნინო კვარაცხელია',
-      role: 'სასწავლო დირექტორი',
-      image: null,
-      bio: 'განათლების ექსპერტი, PhD პედაგოგიკაში',
-    },
-    {
-      name: 'დავით ბერიძე',
-      role: 'ტექნიკური დირექტორი',
-      image: null,
-      bio: 'Full-stack დეველოპერი 8+ წლიანი გამოცდილებით',
-    },
-    {
-      name: 'მარიამ გელაშვილი',
-      role: 'მარკეტინგის დირექტორი',
-      image: null,
-      bio: 'ციფრული მარკეტინგის სპეციალისტი',
-    },
-  ];
-
-  const values = [
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      ),
-      title: 'ინოვაცია',
-      description: 'მუდმივად ვეძებთ ახალ მეთოდებს და ტექნოლოგიებს სწავლების პროცესის გასაუმჯობესებლად.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-      title: 'საზოგადოება',
-      description: 'ვქმნით გარემოს, სადაც სტუდენტები ერთმანეთს ეხმარებიან და იზიარებენ გამოცდილებას.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
-      title: 'ხარისხი',
-      description: 'ვთავაზობთ მხოლოდ მაღალი ხარისხის კონტენტს, რომელიც შექმნილია პროფესიონალების მიერ.',
-    },
-    {
-      icon: (
-        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-      ),
-      title: 'ეფექტურობა',
-      description: 'ჩვენი მეთოდოლოგია მიზნად ისახავს მაქსიმალური შედეგის მიღწევას მინიმალურ დროში.',
-    },
-  ];
-
   return (
     <div className="bg-white">
       {/* Hero Section */}
       <section className="relative bg-primary-900 py-10 sm:py-16 lg:py-20">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white">ჩვენ შესახებ</h1>
@@ -120,81 +47,6 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-10 sm:py-12 lg:py-16 bg-primary-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white">{stat.value}</div>
-                <div className="mt-1 sm:mt-2 text-xs sm:text-sm lg:text-base text-primary-100">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Values Section */}
-      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">ჩვენი ღირებულებები</h2>
-            <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">რა პრინციპები გვამოძრავებს</p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
-            {values.map((value, index) => (
-              <div key={index} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center text-primary-900">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8">{value.icon}</div>
-                </div>
-                <h3 className="mt-3 sm:mt-4 text-sm sm:text-lg lg:text-xl font-semibold text-gray-900">{value.title}</h3>
-                <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm lg:text-base text-gray-600">{value.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team Section */}
-      <section className="py-10 sm:py-16 lg:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">ჩვენი გუნდი</h2>
-            <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-600">პროფესიონალები, რომლებიც ზრუნავენ შენს წარმატებაზე</p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            {team.map((member, index) => (
-              <div key={index} className="text-center">
-                <div className="w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto bg-primary-900 rounded-full flex items-center justify-center">
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <h3 className="mt-3 sm:mt-4 text-sm sm:text-lg lg:text-xl font-semibold text-gray-900">{member.name}</h3>
-                <p className="text-xs sm:text-sm lg:text-base text-primary-900 font-medium">{member.role}</p>
-                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 hidden sm:block">{member.bio}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-10 sm:py-16 lg:py-20 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">გსურს შეუერთდე ჩვენს გუნდს?</h2>
-          <p className="mt-2 sm:mt-4 text-sm sm:text-base lg:text-lg text-gray-300 px-2">ვეძებთ ნიჭიერ ადამიანებს, რომლებსაც სწამთ განათლების ძალა</p>
-          <Link
-            href="/contact"
-            className="mt-5 sm:mt-8 inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-medium text-gray-900 bg-white rounded-lg sm:rounded-xl hover:bg-gray-100 transition-all"
-          >
-            დაგვიკავშირდი
-          </Link>
         </div>
       </section>
     </div>

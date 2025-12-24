@@ -22,7 +22,7 @@ function CoursesLoading() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="bg-white rounded-xl sm:rounded-2xl h-72 sm:h-80 animate-pulse" />
           ))}
@@ -50,6 +50,7 @@ function CoursesContent() {
   const [sort, setSort] = useState<SortOption>((searchParams.get('sort') as SortOption) || 'popular');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Fetch categories
   const { data: categoriesData } = useQuery({
@@ -98,6 +99,101 @@ function CoursesContent() {
     { value: 'price_high', label: 'ფასი: მაღალი' },
   ];
 
+  const hasActiveFilters = Boolean(search || selectedCategory || sort !== 'popular');
+
+  const renderCategoryFilters = () => (
+    <div className="mb-4 sm:mb-6">
+      <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">კატეგორია</h4>
+      <div className="space-y-1">
+        <button
+          onClick={() => {
+            setSelectedCategory('');
+            setPage(1);
+          }}
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+            !selectedCategory ? 'bg-primary-100 text-primary-800' : 'text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          ყველა კატეგორია
+        </button>
+        {categories
+          .filter((cat: any) => !cat.parent)
+          .map((parentCat: any) => {
+            const children = categories.filter((c: any) => c.parent?.id === parentCat.id);
+            const isParentSelected = selectedCategory === parentCat.slug;
+            const isChildSelected = children.some((c: any) => c.slug === selectedCategory);
+            const isExpanded = expandedCategories.has(parentCat.id) || isParentSelected || isChildSelected;
+
+            const toggleExpand = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              setExpandedCategories((prev) => {
+                const next = new Set(prev);
+                if (next.has(parentCat.id)) {
+                  next.delete(parentCat.id);
+                } else {
+                  next.add(parentCat.id);
+                }
+                return next;
+              });
+            };
+
+            return (
+              <div key={parentCat.id}>
+                <div className="flex items-center">
+                  {children.length > 0 && (
+                    <button onClick={toggleExpand} className="p-1 hover:bg-gray-100 rounded transition-colors">
+                      <svg
+                        className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(parentCat.slug);
+                      setPage(1);
+                    }}
+                    className={`flex-1 text-left px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isParentSelected ? 'bg-primary-100 text-primary-800' : 'text-gray-700 hover:bg-gray-100'
+                    } ${children.length === 0 ? 'ml-5' : ''}`}
+                  >
+                    {parentCat.name}
+                    <span className="text-gray-400 ml-1 font-normal">({parentCat._count?.courses || 0})</span>
+                  </button>
+                </div>
+
+                {children.length > 0 && isExpanded && (
+                  <div className="ml-5 border-l-2 border-gray-200 pl-2 space-y-1 mt-1">
+                    {children.map((child: any) => (
+                      <button
+                        key={child.id}
+                        onClick={() => {
+                          setSelectedCategory(child.slug);
+                          setPage(1);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                          selectedCategory === child.slug
+                            ? 'bg-primary-100 text-primary-800'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                      >
+                        {child.name}
+                        <span className="text-gray-400 ml-1">({child._count?.courses || 0})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* Header Section */}
@@ -134,145 +230,42 @@ function CoursesContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar Filters */}
-          <aside className="lg:w-64 flex-shrink-0">
+          <aside className="lg:w-64 flex-shrink-0 hidden lg:block">
             <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900">ფილტრები</h3>
-                {(search || selectedCategory || sort !== 'popular') && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-xs sm:text-sm text-primary-900 hover:text-primary-800"
-                  >
-                    გასუფთავება
-                  </button>
-                )}
               </div>
 
-              {/* Categories */}
-              <div className="mb-4 sm:mb-6">
-                <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">კატეგორია</h4>
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      setSelectedCategory('');
-                      setPage(1);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                      !selectedCategory
-                        ? 'bg-primary-100 text-primary-800'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    ყველა კატეგორია
-                  </button>
-                  {/* Parent categories */}
-                  {categories
-                    .filter((cat: any) => !cat.parent)
-                    .map((parentCat: any) => {
-                      const children = categories.filter((c: any) => c.parent?.id === parentCat.id);
-                      const isParentSelected = selectedCategory === parentCat.slug;
-                      const isChildSelected = children.some((c: any) => c.slug === selectedCategory);
-                      const isExpanded = expandedCategories.has(parentCat.id) || isParentSelected || isChildSelected;
+              {renderCategoryFilters()}
 
-                      const toggleExpand = (e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        setExpandedCategories(prev => {
-                          const next = new Set(prev);
-                          if (next.has(parentCat.id)) {
-                            next.delete(parentCat.id);
-                          } else {
-                            next.add(parentCat.id);
-                          }
-                          return next;
-                        });
-                      };
-
-                      return (
-                        <div key={parentCat.id}>
-                          {/* Parent category */}
-                          <div className="flex items-center">
-                            {children.length > 0 && (
-                              <button
-                                onClick={toggleExpand}
-                                className="p-1 hover:bg-gray-100 rounded transition-colors"
-                              >
-                                <svg
-                                  className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                              </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                setSelectedCategory(parentCat.slug);
-                                setPage(1);
-                              }}
-                              className={`flex-1 text-left px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                isParentSelected
-                                  ? 'bg-primary-100 text-primary-800'
-                                  : 'text-gray-700 hover:bg-gray-100'
-                              } ${children.length === 0 ? 'ml-5' : ''}`}
-                            >
-                              {parentCat.name}
-                              <span className="text-gray-400 ml-1 font-normal">({parentCat._count?.courses || 0})</span>
-                            </button>
-                          </div>
-
-                          {/* Child categories - collapsible */}
-                          {children.length > 0 && isExpanded && (
-                            <div className="ml-5 border-l-2 border-gray-200 pl-2 space-y-1 mt-1">
-                              {children.map((child: any) => (
-                                <button
-                                  key={child.id}
-                                  onClick={() => {
-                                    setSelectedCategory(child.slug);
-                                    setPage(1);
-                                  }}
-                                  className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                                    selectedCategory === child.slug
-                                      ? 'bg-primary-100 text-primary-800'
-                                      : 'text-gray-600 hover:bg-gray-100'
-                                  }`}
-                                >
-                                  {child.name}
-                                  <span className="text-gray-400 ml-1">({child._count?.courses || 0})</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-
-              {/* Sort (Mobile) */}
-              <div className="lg:hidden">
-                <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">სორტირება</h4>
-                <select
-                  value={sort}
-                  onChange={(e) => {
-                    setSort(e.target.value as SortOption);
-                    setPage(1);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <button
+                onClick={clearFilters}
+                disabled={!hasActiveFilters}
+                className="w-full mt-2 py-3 rounded-xl bg-accent-600 text-white text-sm font-semibold hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                გასუფთავება
+              </button>
             </div>
           </aside>
 
           {/* Main Content */}
           <div className="flex-1">
+            {/* Mobile Controls */}
+            <div className="lg:hidden flex items-center justify-between gap-3 mb-4">
+              <button
+                onClick={() => setMobileFiltersOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-900 shadow-sm border border-gray-200"
+              >
+                <svg className="w-5 h-5 text-primary-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M7 12h10M10 18h4" />
+                </svg>
+                ფილტრები
+              </button>
+              <span className="text-sm text-gray-600">
+                {coursesData?.total || 0} კურსი ნაპოვნია
+              </span>
+            </div>
+
             {/* Sort Bar (Desktop) */}
             <div className="hidden lg:flex items-center justify-between mb-6">
               <p className="text-gray-600">
@@ -299,14 +292,14 @@ function CoursesContent() {
 
             {/* Course Grid */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="bg-white rounded-xl sm:rounded-2xl h-72 sm:h-80 animate-pulse" />
                 ))}
               </div>
             ) : coursesData?.courses?.length ? (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 items-start">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
                   {coursesData.courses.map((course: any) => (
                     <CourseCard key={course.id} course={course} />
                   ))}
@@ -386,6 +379,86 @@ function CoursesContent() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Filters Panel */}
+      <div
+        className={`fixed inset-0 z-40 lg:hidden transition-opacity ${
+          isMobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="absolute inset-0 bg-black/50" onClick={() => setMobileFiltersOpen(false)} />
+        <div
+          className={`absolute inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl transform transition-transform duration-300 ${
+            isMobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="p-5 sm:p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">ფილტრები</h3>
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600"
+                aria-label="დახურვა"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6l12 12M6 18L18 6" />
+                </svg>
+              </button>
+            </div>
+
+            {renderCategoryFilters()}
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">სორტირება</h4>
+                <div className="flex flex-wrap gap-2">
+                  {sortOptions.map((option) => {
+                    const isActive = sort === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          setSort(option.value as SortOption);
+                          setPage(1);
+                        }}
+                        className={`px-4 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-primary-900 border-primary-900 text-white'
+                            : 'bg-white border-gray-300 text-gray-600'
+                        }`}
+                        aria-pressed={isActive}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    clearFilters();
+                    setMobileFiltersOpen(false);
+                  }}
+                  className="flex-1 py-3 rounded-xl border border-gray-300 text-sm font-medium text-gray-700"
+                >
+                  გასუფთავება
+                </button>
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-accent-600 text-white text-sm font-semibold"
+                >
+                  გაფილტვრა
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

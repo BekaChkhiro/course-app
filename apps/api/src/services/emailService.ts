@@ -1762,4 +1762,287 @@ ${BRAND.name} გუნდი
     // Redirect to new method
     return this.sendRefundCompletedEmail(email, name, courseTitle, amount, userId);
   }
+
+  // ==========================================
+  // VERSION UPGRADE EMAILS
+  // ==========================================
+
+  /**
+   * Send notification when a new course version is available for upgrade
+   */
+  static async sendVersionUpgradeAvailableEmail(
+    email: string,
+    studentName: string,
+    courseTitle: string,
+    courseSlug: string,
+    oldVersion: number,
+    newVersion: number,
+    upgradePrice: number,
+    discountEndDate: Date | null,
+    changelogSummary: string,
+    userId: string
+  ): Promise<boolean> {
+    const courseUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn`;
+
+    const discountSection = discountEndDate
+      ? `
+      <div class="warning-box">
+        <p style="margin: 0;"><strong>⏰ შეზღუდული შეთავაზება!</strong></p>
+        <p style="margin: 10px 0 0 0;">
+          ფასდაკლებით განახლება ხელმისაწვდომია <strong>${discountEndDate.toLocaleDateString('ka-GE', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}</strong>-მდე.
+        </p>
+      </div>
+      `
+      : '';
+
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+      <p>კარგი ამბავია! კურსის <strong>„${courseTitle}"</strong> ახალი ვერსია უკვე ხელმისაწვდომია!</p>
+
+      <div class="accent-box">
+        <p style="margin: 0;">
+          <span style="color: ${BRAND.colors.gray[500]};">თქვენი ვერსია:</span>
+          <span style="font-weight: bold;">v${oldVersion}</span>
+          <span style="margin: 0 10px;">→</span>
+          <span style="color: ${BRAND.colors.gray[500]};">ახალი ვერსია:</span>
+          <span style="font-weight: bold; color: ${BRAND.colors.accent};">v${newVersion}</span>
+        </p>
+        <p style="margin: 15px 0 0 0; font-size: 24px; font-weight: bold; color: ${BRAND.colors.primary};">
+          განახლების ფასი: ${upgradePrice.toFixed(2)} ₾
+        </p>
+      </div>
+
+      ${discountSection}
+
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>📝 რა შეიცვალა:</strong></p>
+        <p style="margin: 0; color: ${BRAND.colors.gray[700]};">${changelogSummary}</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${courseUrl}" class="button">განახლების ნახვა</a>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px;">
+        თქვენ გაქვთ წვდომა ძველ ვერსიაზე (v${oldVersion}) და შეგიძლიათ გააგრძელოთ სწავლა.
+        განახლების შემთხვევაში, თქვენი პროგრესი ავტომატურად გადავა ახალ ვერსიაზე.
+      </p>
+    `;
+
+    const html = createEmailTemplate({
+      title: 'ახალი ვერსია ხელმისაწვდომია!',
+      subtitle: courseTitle,
+      headerIcon: '🚀',
+      headerGradient: 'accent',
+      content,
+    });
+
+    const text = `
+გამარჯობა ${studentName},
+
+კურსის "${courseTitle}" ახალი ვერსია (v${newVersion}) უკვე ხელმისაწვდომია!
+
+თქვენი ვერსია: v${oldVersion}
+ახალი ვერსია: v${newVersion}
+განახლების ფასი: ${upgradePrice.toFixed(2)} ₾
+
+${discountEndDate ? `ფასდაკლება მოქმედებს ${discountEndDate.toLocaleDateString('ka-GE')}-მდე.` : ''}
+
+რა შეიცვალა:
+${changelogSummary}
+
+განახლების ნახვა: ${courseUrl}
+
+${BRAND.name} გუნდი
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `🚀 ახალი ვერსია: "${courseTitle}" v${newVersion} - ${BRAND.name}`,
+      html,
+      text,
+      templateType: 'version_upgrade_available',
+      userId,
+      metadata: { courseTitle, courseSlug, oldVersion, newVersion, upgradePrice },
+    });
+  }
+
+  /**
+   * Send notification when version upgrade is completed successfully
+   */
+  static async sendVersionUpgradeCompleteEmail(
+    email: string,
+    studentName: string,
+    courseTitle: string,
+    courseSlug: string,
+    newVersion: number,
+    transferredChaptersCount: number,
+    userId: string
+  ): Promise<boolean> {
+    const courseUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn`;
+
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+      <div class="success-box" style="text-align: center;">
+        <p style="margin: 0; font-size: 18px;"><strong>✅ კურსის განახლება წარმატებით დასრულდა!</strong></p>
+        <p style="margin: 15px 0 0 0; font-size: 24px; font-weight: bold; color: ${BRAND.colors.primary};">
+          „${courseTitle}" v${newVersion}
+        </p>
+      </div>
+
+      <div class="details-card">
+        <div class="detail-row">
+          <span class="detail-label">კურსი:</span>
+          <span class="detail-value">${courseTitle}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ახალი ვერსია:</span>
+          <span class="detail-value">v${newVersion}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">გადატანილი პროგრესი:</span>
+          <span class="detail-value" style="color: ${BRAND.colors.success};">${transferredChaptersCount} თავი ✓</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <p style="margin: 0;"><strong>ℹ️ რა მოხდა?</strong></p>
+        <ul style="margin: 10px 0 0 0; padding-left: 20px; color: ${BRAND.colors.gray[700]};">
+          <li>თქვენ მიიღეთ წვდომა ახალ ვერსიაზე</li>
+          <li>თქვენი პროგრესი ძველი ვერსიიდან გადავიდა ახალზე</li>
+          <li>ძველ ვერსიაზე წვდომა კვლავ შენარჩუნებულია</li>
+        </ul>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${courseUrl}" class="button">სწავლის გაგრძელება</a>
+      </div>
+    `;
+
+    const html = createEmailTemplate({
+      title: 'განახლება წარმატებულია!',
+      subtitle: 'სიამოვნებით გისურვებთ სწავლას',
+      headerIcon: '🎉',
+      headerGradient: 'success',
+      content,
+    });
+
+    const text = `
+გამარჯობა ${studentName},
+
+კურსის განახლება წარმატებით დასრულდა!
+
+კურსი: "${courseTitle}"
+ახალი ვერსია: v${newVersion}
+გადატანილი პროგრესი: ${transferredChaptersCount} თავი
+
+რა მოხდა:
+- თქვენ მიიღეთ წვდომა ახალ ვერსიაზე
+- თქვენი პროგრესი ძველი ვერსიიდან გადავიდა ახალზე
+- ძველ ვერსიაზე წვდომა კვლავ შენარჩუნებულია
+
+სწავლის გაგრძელება: ${courseUrl}
+
+${BRAND.name} გუნდი
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `🎉 განახლება წარმატებულია: "${courseTitle}" v${newVersion} - ${BRAND.name}`,
+      html,
+      text,
+      templateType: 'version_upgrade_complete',
+      userId,
+      metadata: { courseTitle, courseSlug, newVersion, transferredChaptersCount },
+    });
+  }
+
+  /**
+   * Send reminder when upgrade discount is about to expire
+   */
+  static async sendUpgradeDiscountEndingEmail(
+    email: string,
+    studentName: string,
+    courseTitle: string,
+    courseSlug: string,
+    currentVersion: number,
+    newVersion: number,
+    discountPrice: number,
+    regularPrice: number,
+    hoursRemaining: number,
+    userId: string
+  ): Promise<boolean> {
+    const courseUrl = `${getFrontendUrl()}/dashboard/courses/${courseSlug}/learn`;
+    const savings = regularPrice - discountPrice;
+
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+      <div class="warning-box" style="text-align: center;">
+        <p style="margin: 0; font-size: 20px;">⏰ <strong>ფასდაკლება იწურება!</strong></p>
+        <p style="margin: 10px 0 0 0; font-size: 32px; font-weight: bold; color: ${BRAND.colors.warning};">
+          ${hoursRemaining} საათი დარჩა
+        </p>
+      </div>
+
+      <p>კურსის <strong>„${courseTitle}"</strong> განახლების ფასდაკლება მალე იწურება!</p>
+
+      <div class="details-card" style="text-align: center; border: 2px solid ${BRAND.colors.accent};">
+        <p style="margin: 0; color: ${BRAND.colors.gray[500]};">v${currentVersion} → v${newVersion}</p>
+        <p style="margin: 10px 0;">
+          <span style="text-decoration: line-through; color: ${BRAND.colors.gray[500]}; font-size: 16px;">${regularPrice.toFixed(2)} ₾</span>
+        </p>
+        <p style="margin: 0; font-size: 32px; font-weight: bold; color: ${BRAND.colors.accent};">${discountPrice.toFixed(2)} ₾</p>
+        <p style="margin: 10px 0 0 0; color: ${BRAND.colors.success};">დაზოგეთ ${savings.toFixed(2)} ₾!</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${courseUrl}" class="button">ახლავე განახლება</a>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px; text-align: center;">
+        ფასდაკლების ვადის ამოწურვის შემდეგ, განახლების ფასი იქნება ${regularPrice.toFixed(2)} ₾.
+      </p>
+    `;
+
+    const html = createEmailTemplate({
+      title: 'ფასდაკლება მალე იწურება!',
+      subtitle: courseTitle,
+      headerIcon: '⏰',
+      headerGradient: 'warning',
+      content,
+    });
+
+    const text = `
+გამარჯობა ${studentName},
+
+კურსის "${courseTitle}" განახლების ფასდაკლება მალე იწურება!
+
+დარჩა: ${hoursRemaining} საათი
+
+ვერსია: v${currentVersion} → v${newVersion}
+ფასდაკლებით: ${discountPrice.toFixed(2)} ₾ (ნაცვლად ${regularPrice.toFixed(2)} ₾)
+დაზოგეთ: ${savings.toFixed(2)} ₾
+
+ახლავე განახლება: ${courseUrl}
+
+${BRAND.name} გუნდი
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `⏰ ${hoursRemaining}სთ დარჩა! "${courseTitle}" ფასდაკლება იწურება - ${BRAND.name}`,
+      html,
+      text,
+      templateType: 'upgrade_discount_ending',
+      userId,
+      metadata: { courseTitle, courseSlug, currentVersion, newVersion, discountPrice, regularPrice, hoursRemaining },
+    });
+  }
 }

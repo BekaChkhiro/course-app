@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { VersionNotificationService } from '../services/versionNotificationService';
 
 const prisma = new PrismaClient();
 
@@ -197,32 +198,46 @@ export const updateVersion = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Version not found' });
     }
 
-    // If activating this version, deactivate all other versions of the course
+    // Build update data
+    const updateData = {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(changelog !== undefined && { changelog }),
+      ...(upgradePriceType !== undefined && { upgradePriceType }),
+      ...(upgradePriceValue !== undefined && { upgradePriceValue }),
+      ...(isActive !== undefined && { isActive }),
+      ...(publishedAt !== undefined && { publishedAt })
+    };
+
+    // If activating this version, use transaction to prevent race conditions
+    let version;
     if (isActive === true && !existingVersion.isActive) {
-      await prisma.courseVersion.updateMany({
-        where: {
-          courseId: existingVersion.courseId,
-          id: { not: id }
-        },
-        data: { isActive: false }
+      version = await prisma.$transaction(async (tx) => {
+        await tx.courseVersion.updateMany({
+          where: {
+            courseId: existingVersion.courseId,
+            id: { not: id }
+          },
+          data: { isActive: false }
+        });
+
+        return tx.courseVersion.update({
+          where: { id },
+          data: updateData,
+          include: {
+            _count: { select: { chapters: true, progress: true } }
+          }
+        });
+      });
+    } else {
+      version = await prisma.courseVersion.update({
+        where: { id },
+        data: updateData,
+        include: {
+          _count: { select: { chapters: true, progress: true } }
+        }
       });
     }
-
-    const version = await prisma.courseVersion.update({
-      where: { id },
-      data: {
-        ...(title && { title }),
-        ...(description && { description }),
-        ...(changelog !== undefined && { changelog }),
-        ...(upgradePriceType !== undefined && { upgradePriceType }),
-        ...(upgradePriceValue !== undefined && { upgradePriceValue }),
-        ...(isActive !== undefined && { isActive }),
-        ...(publishedAt !== undefined && { publishedAt })
-      },
-      include: {
-        _count: { select: { chapters: true, progress: true } }
-      }
-    });
 
     res.json({
       message: 'Version updated successfully',
@@ -305,25 +320,28 @@ export const setActiveVersion = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Version not found' });
     }
 
-    // Deactivate all other versions of this course
-    await prisma.courseVersion.updateMany({
-      where: {
-        courseId: version.courseId,
-        id: { not: id }
-      },
-      data: { isActive: false }
-    });
+    // Use transaction to prevent race conditions
+    const activeVersion = await prisma.$transaction(async (tx) => {
+      // Deactivate all other versions of this course
+      await tx.courseVersion.updateMany({
+        where: {
+          courseId: version.courseId,
+          id: { not: id }
+        },
+        data: { isActive: false }
+      });
 
-    // Activate this version
-    const activeVersion = await prisma.courseVersion.update({
-      where: { id },
-      data: {
-        isActive: true,
-        publishedAt: version.publishedAt || new Date()
-      },
-      include: {
-        _count: { select: { chapters: true, progress: true } }
-      }
+      // Activate this version
+      return tx.courseVersion.update({
+        where: { id },
+        data: {
+          isActive: true,
+          publishedAt: version.publishedAt || new Date()
+        },
+        include: {
+          _count: { select: { chapters: true, progress: true } }
+        }
+      });
     });
 
     res.json({
@@ -365,27 +383,42 @@ export const publishVersion = async (req: Request, res: Response) => {
       });
     }
 
-    // Deactivate all other versions of this course
-    await prisma.courseVersion.updateMany({
-      where: {
-        courseId: version.courseId,
-        id: { not: id }
-      },
-      data: { isActive: false }
+    // Use transaction to prevent race conditions
+    const publishedVersion = await prisma.$transaction(async (tx) => {
+      // Deactivate all other versions of this course
+      await tx.courseVersion.updateMany({
+        where: {
+          courseId: version.courseId,
+          id: { not: id }
+        },
+        data: { isActive: false }
+      });
+
+      // Publish and activate this version
+      return tx.courseVersion.update({
+        where: { id },
+        data: {
+          status: 'PUBLISHED',
+          isActive: true,
+          publishedAt: new Date()
+        },
+        include: {
+          _count: { select: { chapters: true, progress: true } }
+        }
+      });
     });
 
-    // Publish and activate this version
-    const publishedVersion = await prisma.courseVersion.update({
-      where: { id },
-      data: {
-        status: 'PUBLISHED',
-        isActive: true,
-        publishedAt: new Date()
-      },
-      include: {
-        _count: { select: { chapters: true, progress: true } }
-      }
-    });
+    // Notify existing students about the new version (async, don't wait)
+    VersionNotificationService.notifyExistingStudents(version.courseId, id)
+      .then((result) => {
+        console.log(`Version publish notifications sent: ${result.notifiedCount} users, ${result.emailsSent} emails`);
+        if (result.errors.length > 0) {
+          console.warn('Notification errors:', result.errors);
+        }
+      })
+      .catch((error) => {
+        console.error('Error sending version publish notifications:', error);
+      });
 
     res.json({
       message: 'ვერსია გამოქვეყნდა და აქტიურია',

@@ -9,7 +9,10 @@ import {
   reorderChapters,
   bulkDeleteChapters,
   toggleChapterFree,
-  getChapterVideos
+  getChapterVideos,
+  linkChapter,
+  getVersionChaptersWithLinks,
+  autoLinkVersionChapters
 } from '../controllers/chapterController';
 
 const router = express.Router();
@@ -28,5 +31,10 @@ router.post('/reorder', reorderChapters);
 router.post('/bulk/delete', bulkDeleteChapters);
 router.patch('/:id/toggle-free', toggleChapterFree);
 router.get('/:id/videos', getChapterVideos);
+
+// Chapter linking routes (for progress transfer between versions)
+router.put('/:id/link', linkChapter);
+router.get('/version/:versionId/links', getVersionChaptersWithLinks);
+router.post('/version/:versionId/auto-link', autoLinkVersionChapters);
 
 export default router;

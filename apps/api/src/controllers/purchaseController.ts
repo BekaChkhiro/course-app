@@ -1,8 +1,10 @@
 import { Response, Request } from 'express'
 import { prisma } from '../config/database'
+import redis from '../config/redis'
 import { AuthRequest } from '../middleware/auth'
 import { bogService } from '../services/bog.service'
 import { v4 as uuidv4 } from 'uuid'
+import { ProgressTransferService } from '../services/progressTransferService'
 
 /**
  * გადახდის პროცესის დაწყება
@@ -220,12 +222,52 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
 
     console.log(`📩 Processing order: ${externalOrderId}, status: ${order_status?.key}`)
 
-    // Purchase-ის მოძიება
-    const purchase = await prisma.purchase.findFirst({
-      where: {
-        OR: [{ bogOrderId }, { externalOrderId }],
-      },
-    })
+    // Check if this is an upgrade payment
+    const isUpgradePayment = externalOrderId?.startsWith('UPGRADE-')
+    let upgradeIntent: any = null
+    let purchase: any = null
+
+    if (isUpgradePayment) {
+      // Get upgrade intent from Redis
+      if (redis) {
+        const intentData = await redis.get(`upgrade:${externalOrderId}`)
+        if (intentData) {
+          upgradeIntent = JSON.parse(intentData)
+          console.log(`📩 Found upgrade intent for ${externalOrderId}`)
+        }
+      }
+
+      // If not in Redis, try to find in paymentDetails (fallback)
+      if (!upgradeIntent) {
+        const purchaseWithIntent = await prisma.purchase.findFirst({
+          where: {
+            paymentDetails: {
+              path: ['pendingOrderId'],
+              equals: externalOrderId,
+            },
+          },
+        })
+        if (purchaseWithIntent?.paymentDetails) {
+          const details = purchaseWithIntent.paymentDetails as any
+          upgradeIntent = details.pendingUpgrade
+          console.log(`📩 Found upgrade intent in database fallback`)
+        }
+      }
+
+      if (upgradeIntent) {
+        // Find the original purchase
+        purchase = await prisma.purchase.findUnique({
+          where: { id: upgradeIntent.purchaseId },
+        })
+      }
+    } else {
+      // Regular purchase - find by order ID
+      purchase = await prisma.purchase.findFirst({
+        where: {
+          OR: [{ bogOrderId }, { externalOrderId }],
+        },
+      })
+    }
 
     if (!purchase) {
       console.error('❌ Purchase not found for order:', externalOrderId)
@@ -250,25 +292,100 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
         newStatus = 'PENDING'
     }
 
-    // Purchase-ის განახლება
-    await prisma.purchase.update({
-      where: { id: purchase.id },
-      data: {
-        status: newStatus,
-        bogOrderId,
-        transactionId: payment_detail?.transaction_id,
-        paymentMethod: payment_detail?.transfer_method?.key,
-        paymentDetails: body,
-        paidAt: newStatus === 'COMPLETED' ? new Date() : null,
-      },
-    })
+    // For upgrade payments, update the purchase with new version info on success
+    if (isUpgradePayment && upgradeIntent && newStatus === 'COMPLETED') {
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: {
+          courseVersionId: upgradeIntent.targetVersionId,
+          amount: upgradeIntent.amount,
+          finalAmount: upgradeIntent.finalAmount,
+          isUpgrade: true,
+          promoCodeId: upgradeIntent.promoCodeId,
+          bogOrderId,
+          transactionId: payment_detail?.transaction_id,
+          paymentMethod: payment_detail?.transfer_method?.key,
+          paymentDetails: body,
+          paidAt: new Date(),
+        },
+      })
+
+      // Clean up Redis entry
+      if (redis) {
+        await redis.del(`upgrade:${externalOrderId}`)
+      }
+
+      console.log(`✅ Upgrade completed: ${purchase.id} → version ${upgradeIntent.targetVersionId}`)
+    } else if (isUpgradePayment && upgradeIntent && newStatus === 'FAILED') {
+      // Clean up Redis entry on failure too
+      if (redis) {
+        await redis.del(`upgrade:${externalOrderId}`)
+      }
+      console.log(`❌ Upgrade payment failed for ${externalOrderId}`)
+      return res.status(200).json({ received: true })
+    } else {
+      // Regular purchase update
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: {
+          status: newStatus,
+          bogOrderId,
+          transactionId: payment_detail?.transaction_id,
+          paymentMethod: payment_detail?.transfer_method?.key,
+          paymentDetails: body,
+          paidAt: newStatus === 'COMPLETED' ? new Date() : null,
+        },
+      })
+    }
 
     // პრომო კოდის გამოყენების დათვლა
-    if (newStatus === 'COMPLETED' && purchase.promoCodeId) {
+    const promoCodeId = isUpgradePayment && upgradeIntent ? upgradeIntent.promoCodeId : purchase.promoCodeId
+    if (newStatus === 'COMPLETED' && promoCodeId) {
       await prisma.promoCode.update({
-        where: { id: purchase.promoCodeId },
+        where: { id: promoCodeId },
         data: { usedCount: { increment: 1 } },
       })
+    }
+
+    // Create UserVersionAccess for successful purchase/upgrade
+    const versionId = isUpgradePayment && upgradeIntent ? upgradeIntent.targetVersionId : purchase.courseVersionId
+    if (newStatus === 'COMPLETED' && versionId) {
+      try {
+        // Create access record for the purchased version
+        await prisma.userVersionAccess.upsert({
+          where: {
+            userId_courseVersionId: {
+              userId: purchase.userId,
+              courseVersionId: versionId,
+            },
+          },
+          create: {
+            userId: purchase.userId,
+            courseVersionId: versionId,
+            purchaseId: purchase.id,
+          },
+          update: {
+            isActive: true,
+            purchaseId: purchase.id,
+          },
+        })
+
+        // If this is an upgrade, transfer progress from old version
+        if (isUpgradePayment && upgradeIntent && upgradeIntent.originalVersionId) {
+          // Transfer progress from previous version to new version
+          const transferResult = await ProgressTransferService.transferProgress(
+            purchase.userId,
+            upgradeIntent.originalVersionId,
+            versionId
+          )
+          console.log(`✅ Progress transferred: ${transferResult.transferredCount} chapters`)
+        }
+
+        console.log(`✅ UserVersionAccess created for user ${purchase.userId}, version ${versionId}`)
+      } catch (accessError) {
+        console.error('❌ Error creating UserVersionAccess:', accessError)
+        // Don't fail the callback, just log the error
+      }
     }
 
     // Refund-ის შემთხვევაში RefundRequest-ის განახლება
@@ -618,13 +735,33 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // Calculate upgrade price
+    // Calculate upgrade price (check for time-limited discount first)
     let upgradePrice = 0
-    if (targetVersion.upgradePriceType === 'FIXED') {
-      upgradePrice = Number(targetVersion.upgradePriceValue) || 0
-    } else if (targetVersion.upgradePriceType === 'PERCENTAGE') {
-      const percentage = Number(targetVersion.upgradePriceValue) || 0
-      upgradePrice = (Number(existingPurchase.course.price) * percentage) / 100
+    let isDiscountActive = false
+    const now = new Date()
+
+    // Check if promotional discount is active
+    if (
+      targetVersion.upgradeDiscountEndDate &&
+      now <= targetVersion.upgradeDiscountEndDate &&
+      targetVersion.upgradeDiscountValue &&
+      (!targetVersion.upgradeDiscountStartDate || now >= targetVersion.upgradeDiscountStartDate)
+    ) {
+      isDiscountActive = true
+      if (targetVersion.upgradeDiscountType === 'FIXED') {
+        upgradePrice = Number(targetVersion.upgradeDiscountValue)
+      } else if (targetVersion.upgradeDiscountType === 'PERCENTAGE') {
+        const percentage = Number(targetVersion.upgradeDiscountValue)
+        upgradePrice = (Number(existingPurchase.course.price) * percentage) / 100
+      }
+    } else {
+      // Use regular upgrade price
+      if (targetVersion.upgradePriceType === 'FIXED') {
+        upgradePrice = Number(targetVersion.upgradePriceValue) || 0
+      } else if (targetVersion.upgradePriceType === 'PERCENTAGE') {
+        const percentage = Number(targetVersion.upgradePriceValue) || 0
+        upgradePrice = (Number(existingPurchase.course.price) * percentage) / 100
+      }
     }
 
     if (upgradePrice <= 0) {
@@ -665,33 +802,40 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
     const apiUrl = process.env.API_URL || 'http://localhost:4000'
     const appUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000'
 
-    // Create a new purchase record for the upgrade
-    // Note: We use upsert in case there's already a pending upgrade
-    const upgradePurchase = await prisma.purchase.upsert({
-      where: {
-        userId_courseId: { userId, courseId },
-      },
-      create: {
-        userId,
-        courseId,
-        courseVersionId: targetVersionId,
-        amount: upgradePrice,
-        finalAmount,
-        status: 'PENDING',
-        externalOrderId,
-        promoCodeId: promoCodeRecord?.id,
-        isUpgrade: true,
-      },
-      update: {
-        courseVersionId: targetVersionId,
-        amount: upgradePrice,
-        finalAmount,
-        status: 'PENDING',
-        externalOrderId,
-        promoCodeId: promoCodeRecord?.id,
-        isUpgrade: true,
-      },
-    })
+    // Store upgrade intent in Redis (don't modify Purchase table until payment completes)
+    // This prevents losing the user's original COMPLETED purchase
+    const upgradeIntent = {
+      userId,
+      courseId,
+      purchaseId: existingPurchase.id,
+      originalVersionId: existingPurchase.courseVersionId,
+      targetVersionId,
+      amount: upgradePrice,
+      finalAmount,
+      promoCodeId: promoCodeRecord?.id || null,
+      createdAt: new Date().toISOString(),
+    }
+
+    if (redis) {
+      // Store in Redis with 24 hour expiry
+      await redis.setex(
+        `upgrade:${externalOrderId}`,
+        24 * 60 * 60, // 24 hours
+        JSON.stringify(upgradeIntent)
+      )
+    } else {
+      // Fallback: Store in database with a temporary field
+      // For now, we'll add to paymentDetails of the existing purchase
+      await prisma.purchase.update({
+        where: { id: existingPurchase.id },
+        data: {
+          paymentDetails: {
+            pendingUpgrade: upgradeIntent,
+            pendingOrderId: externalOrderId,
+          },
+        },
+      })
+    }
 
     // Create BOG order
     const bogOrder = await bogService.createOrder({
@@ -707,11 +851,25 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
       language: 'ka',
     })
 
-    // Save BOG Order ID
-    await prisma.purchase.update({
-      where: { id: upgradePurchase.id },
-      data: { bogOrderId: bogOrder.id },
-    })
+    // Store BOG Order ID with upgrade intent
+    if (redis) {
+      const updatedIntent = { ...upgradeIntent, bogOrderId: bogOrder.id }
+      await redis.setex(
+        `upgrade:${externalOrderId}`,
+        24 * 60 * 60,
+        JSON.stringify(updatedIntent)
+      )
+    } else {
+      await prisma.purchase.update({
+        where: { id: existingPurchase.id },
+        data: {
+          paymentDetails: {
+            pendingUpgrade: { ...upgradeIntent, bogOrderId: bogOrder.id },
+            pendingOrderId: externalOrderId,
+          },
+        },
+      })
+    }
 
     console.log(`✅ Upgrade payment initiated for course ${existingPurchase.course.slug}, version ${targetVersion.version}, order: ${externalOrderId}`)
 
@@ -723,6 +881,8 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
         amount: finalAmount,
         originalAmount: upgradePrice,
         discount: discountAmount,
+        isPromotionalDiscount: isDiscountActive,
+        discountEndsAt: isDiscountActive ? targetVersion.upgradeDiscountEndDate : null,
         targetVersion: {
           id: targetVersion.id,
           version: targetVersion.version,
