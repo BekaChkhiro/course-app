@@ -697,6 +697,7 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
 
     // Check if user has access (purchased or free chapter)
     if (!video.chapter.isFree) {
+      // Check for any completed purchase on the course
       const purchase = await prisma.purchase.findFirst({
         where: {
           userId,
@@ -705,7 +706,26 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
         },
       });
 
-      if (!purchase) {
+      // Also check UserVersionAccess for this specific version
+      const versionAccess = await prisma.userVersionAccess.findUnique({
+        where: {
+          userId_courseVersionId: {
+            userId,
+            courseVersionId: video.chapter.courseVersionId,
+          },
+        },
+      });
+
+      console.log('[getSecureVideoUrl] Access check:', {
+        userId,
+        courseId,
+        courseVersionId: video.chapter.courseVersionId,
+        hasPurchase: !!purchase,
+        hasVersionAccess: !!versionAccess,
+        isFree: video.chapter.isFree,
+      });
+
+      if (!purchase && !versionAccess) {
         return res.status(403).json({
           success: false,
           message: 'You do not have access to this video',

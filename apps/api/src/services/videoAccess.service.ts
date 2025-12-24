@@ -238,7 +238,20 @@ class VideoAccessService {
         },
       });
 
-      return !!purchase;
+      if (purchase) {
+        return true;
+      }
+
+      // Check if user has version access (via upgrade or other means)
+      const versionAccess = await prisma.userVersionAccess.findFirst({
+        where: {
+          userId,
+          courseVersion: { courseId },
+          isActive: true,
+        },
+      });
+
+      return !!versionAccess;
     } catch (error) {
       console.error('Verify user access error:', error);
       return false;

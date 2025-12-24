@@ -514,7 +514,11 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    const hasNewerVersion = latestActiveVersion && latestActiveVersion.id !== userVersion.id;
+    // Only show upgrade if user doesn't already have access to the latest version
+    const userHasLatestVersion = latestActiveVersion
+      ? accessibleVersions.some((v) => v.id === latestActiveVersion.id)
+      : true;
+    const hasNewerVersion = latestActiveVersion && !userHasLatestVersion;
 
     // Get user progress for all chapters
     const progress = await prisma.progress.findMany({
@@ -691,7 +695,7 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Check if user has access to this course (any completed purchase)
+    // Check if user has access to this course (any completed purchase or version access)
     const purchase = await prisma.purchase.findFirst({
       where: {
         userId,
@@ -700,8 +704,18 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
       },
     });
 
-    // Allow access if free chapter or purchased
-    if (!chapter.isFree && !purchase) {
+    // Also check UserVersionAccess for this specific version
+    const versionAccess = await prisma.userVersionAccess.findUnique({
+      where: {
+        userId_courseVersionId: {
+          userId,
+          courseVersionId: chapter.courseVersionId,
+        },
+      },
+    });
+
+    // Allow access if free chapter, purchased, or has version access
+    if (!chapter.isFree && !purchase && !versionAccess) {
       return res.status(403).json({
         success: false,
         message: 'You do not have access to this chapter',

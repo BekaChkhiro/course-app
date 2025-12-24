@@ -599,14 +599,26 @@ function ChapterContent({
     setPreviewFile(null);
   };
 
-  // Fetch secure video URL
+  // Check if video has ID (Video record exists) or just hlsMasterUrl
+  const hasVideoId = !!chapter.video?.id;
+  const isYouTube = chapter.video?.hlsMasterUrl?.includes('youtube.com') || chapter.video?.hlsMasterUrl?.includes('youtu.be');
+  const isR2PublicUrl = chapter.video?.hlsMasterUrl?.includes('r2.dev');
+
+  // Fetch secure video URL only if video has ID
   const { data: secureVideoData, isLoading: isSecureUrlLoading } = useQuery({
     queryKey: ['secureVideoUrl', chapter.video?.id],
     queryFn: () => studentApiClient.getSecureVideoUrl(chapter.video!.id),
-    enabled: !!chapter.video?.id && activeTab === 'video' && !chapter.video.hlsMasterUrl?.includes('youtube.com') && !chapter.video.hlsMasterUrl?.includes('youtu.be'),
+    enabled: hasVideoId && activeTab === 'video' && !isYouTube,
     staleTime: 30 * 60 * 1000, // 30 minutes (URL expires in 2 hours)
     refetchOnWindowFocus: false,
   });
+
+  // Determine video URL to use
+  const videoUrl = hasVideoId
+    ? secureVideoData?.data?.url
+    : isR2PublicUrl
+      ? chapter.video?.hlsMasterUrl
+      : null;
 
   // Check if there are any files
   const hasFiles =
@@ -704,7 +716,7 @@ function ChapterContent({
           <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 230px)' }}>
             {chapter.video.hlsMasterUrl ? (
               // Check if it's a YouTube URL
-              chapter.video.hlsMasterUrl.includes('youtube.com') || chapter.video.hlsMasterUrl.includes('youtu.be') ? (
+              isYouTube ? (
                 <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-h-full">
                   <iframe
                     className="w-full h-full"
@@ -714,22 +726,22 @@ function ChapterContent({
                     allowFullScreen
                   />
                 </div>
-              ) : isSecureUrlLoading ? (
-                // Loading secure URL
+              ) : hasVideoId && isSecureUrlLoading ? (
+                // Loading secure URL (only for videos with ID)
                 <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[1200px] flex items-center justify-center text-white">
                   <div className="text-center">
                     <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
                     <p>ვიდეო იტვირთება...</p>
                   </div>
                 </div>
-              ) : secureVideoData?.data?.url ? (
-                // Use secure proxy URL (never exposes real video URL)
+              ) : videoUrl ? (
+                // Use video URL (secure proxy or R2 public URL)
                 <div className="w-full max-w-[1200px]">
                   <VideoPlayer
-                    src={secureVideoData.data.url}
+                    src={videoUrl}
                     title={chapter.title}
                     initialTime={progress.lastPosition || 0}
-                    watermark={secureVideoData.data.watermark}
+                    watermark={secureVideoData?.data?.watermark}
                     onProgress={() => {
                       // Optional: Save progress to backend periodically
                     }}
