@@ -145,6 +145,14 @@ export interface ChapterProgress {
   };
 }
 
+export interface AccessibleVersion {
+  id: string;
+  version: number;
+  title: string;
+  chaptersCount: number;
+  grantedAt: string;
+}
+
 export interface CourseForLearning {
   course: {
     id: string;
@@ -185,6 +193,7 @@ export interface CourseForLearning {
   certificate: {
     id: string;
     certificateNumber: string;
+    studentName?: string;
     issuedAt: string;
     pdfUrl: string | null;
   } | null;
@@ -195,7 +204,10 @@ export interface CourseForLearning {
     changelog: string | null;
     upgradePrice: number;
     currentVersionNumber: number;
+    hasDiscount?: boolean;
+    discountEndsAt?: string | null;
   } | null;
+  accessibleVersions: AccessibleVersion[];
 }
 
 export interface ChapterAttachment {
@@ -267,6 +279,8 @@ export interface Transaction {
   status: string;
   paymentId: string | null;
   purchasedAt: string;
+  isUpgrade: boolean;
+  paidAt: string | null;
 }
 
 export interface Certificate {
@@ -479,9 +493,11 @@ export const studentApiClient = {
 
   // Course for Learning
   getCourseForLearning: async (
-    courseSlug: string
+    courseSlug: string,
+    versionId?: string
   ): Promise<{ success: boolean; data: CourseForLearning }> => {
-    const response = await studentApi.get(`/courses/${courseSlug}/learn`);
+    const params = versionId ? { versionId } : undefined;
+    const response = await studentApi.get(`/courses/${courseSlug}/learn`, { params });
     return response.data;
   },
 

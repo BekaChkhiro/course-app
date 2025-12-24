@@ -697,16 +697,15 @@ export const getSecureVideoUrl = async (req: AuthRequest, res: Response) => {
 
     // Check if user has access (purchased or free chapter)
     if (!video.chapter.isFree) {
-      const purchase = await prisma.purchase.findUnique({
+      const purchase = await prisma.purchase.findFirst({
         where: {
-          userId_courseId: {
-            userId,
-            courseId,
-          },
+          userId,
+          courseId,
+          status: 'COMPLETED',
         },
       });
 
-      if (!purchase || purchase.status !== 'COMPLETED') {
+      if (!purchase) {
         return res.status(403).json({
           success: false,
           message: 'You do not have access to this video',

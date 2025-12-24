@@ -46,10 +46,11 @@ export class ReviewService {
     completionPercentage: number;
     hasExistingReview: boolean;
   }> {
-    // Check if user has purchased the course
-    const purchase = await prisma.purchase.findUnique({
+    // Check if user has purchased the course (any completed purchase)
+    const purchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: { userId, courseId },
+        userId,
+        courseId,
         status: 'COMPLETED',
       },
     });

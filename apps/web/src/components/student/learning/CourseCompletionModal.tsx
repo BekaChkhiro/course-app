@@ -18,7 +18,7 @@ interface CourseCompletionModalProps {
   certificate?: {
     id: string;
     certificateNumber: string;
-    studentName: string;
+    studentName?: string;
     issuedAt: string;
     pdfUrl: string | null;
   } | null;
@@ -56,7 +56,9 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
   useEffect(() => {
     if (certificate) {
       setGeneratedCertificate(certificate);
-      setStudentName(certificate.studentName);
+      if (certificate.studentName) {
+        setStudentName(certificate.studentName);
+      }
     }
   }, [certificate]);
 

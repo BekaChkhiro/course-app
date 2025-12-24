@@ -13,6 +13,7 @@ import CourseCompletionModal from '@/components/student/learning/CourseCompletio
 import FinalExamSection from '@/components/student/learning/FinalExamSection';
 import FinalExamIntro from '@/components/student/learning/FinalExamIntro';
 import UpgradeFloatingCard from '@/components/student/learning/UpgradeFloatingCard';
+import VersionSwitcher from '@/components/student/learning/VersionSwitcher';
 import VideoPlayer from '@/components/student/VideoPlayer';
 import { QuizAttempt, quizAttemptApi } from '@/lib/api/quizApi';
 import toast from 'react-hot-toast';
@@ -220,6 +221,9 @@ function ChapterSidebar({
   onStartFinalExam,
   onResetProgress,
   isResetting,
+  accessibleVersions,
+  currentVersionId,
+  onVersionChange,
 }: {
   chapters: ChapterProgress[];
   activeChapterId: string | null;
@@ -236,6 +240,9 @@ function ChapterSidebar({
   onStartFinalExam?: () => void;
   onResetProgress?: () => void;
   isResetting?: boolean;
+  accessibleVersions?: Array<{ id: string; version: number; title: string | null; chaptersCount: number }>;
+  currentVersionId?: string;
+  onVersionChange?: (versionId: string) => void;
 }) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const sidebarWidth = isMobile ? 'w-80' : (isCollapsed ? 'w-16' : 'w-80');
@@ -327,6 +334,20 @@ function ChapterSidebar({
                 style={{ width: `${overallProgress}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Version Switcher */}
+        {accessibleVersions && accessibleVersions.length > 1 && currentVersionId && onVersionChange && (isMobile || !isCollapsed) && (
+          <div className="px-4 py-3 border-b border-gray-200">
+            <VersionSwitcher
+              versions={accessibleVersions.map(v => ({
+                ...v,
+                isCurrent: v.id === currentVersionId,
+              }))}
+              currentVersionId={currentVersionId}
+              onVersionChange={onVersionChange}
+            />
           </div>
         )}
 
@@ -925,10 +946,13 @@ export default function CourseLearningPage() {
   // Upgrade state
   const [isUpgrading, setIsUpgrading] = useState(false);
 
+  // Version switching state
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+
   // Fetch course data
   const { data: courseData, isLoading: isCourseLoading, error: courseError } = useQuery({
-    queryKey: ['courseForLearning', slug],
-    queryFn: () => studentApiClient.getCourseForLearning(slug),
+    queryKey: ['courseForLearning', slug, selectedVersionId],
+    queryFn: () => studentApiClient.getCourseForLearning(slug, selectedVersionId || undefined),
     staleTime: 60000,
   });
 
@@ -1162,7 +1186,7 @@ export default function CourseLearningPage() {
     );
   }
 
-  const { course, progress, upgradeInfo, versionNumber } = courseData.data;
+  const { course, progress, upgradeInfo } = courseData.data;
 
   // Handle upgrade button click
   const handleUpgrade = async () => {
@@ -1214,6 +1238,12 @@ export default function CourseLearningPage() {
         onStartFinalExam={handleOpenFinalExamIntro}
         onResetProgress={() => resetProgressMutation.mutate()}
         isResetting={resetProgressMutation.isPending}
+        accessibleVersions={courseData.data.accessibleVersions}
+        currentVersionId={courseData.data.versionId}
+        onVersionChange={(versionId) => {
+          setSelectedVersionId(versionId);
+          setActiveChapterId(null); // Reset active chapter when switching versions
+        }}
       />
 
       {/* Final Exam Intro Modal */}

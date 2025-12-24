@@ -306,12 +306,12 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
     let upgradeInfo = null;
 
     if (userId) {
-      const purchase = await prisma.purchase.findUnique({
+      // Check if user has any completed purchase (original or upgrade)
+      const purchase = await prisma.purchase.findFirst({
         where: {
-          userId_courseId: {
-            userId,
-            courseId: course.id,
-          },
+          userId,
+          courseId: course.id,
+          status: 'COMPLETED',
         },
         include: {
           courseVersion: {
@@ -321,8 +321,11 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
             },
           },
         },
+        orderBy: {
+          createdAt: 'asc', // Get original purchase
+        },
       });
-      isEnrolled = purchase?.status === 'COMPLETED';
+      isEnrolled = !!purchase;
 
       // Calculate progress for enrolled users
       if (isEnrolled) {
@@ -344,8 +347,25 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
             progressPercentage = Math.round((completedCount / totalChapters) * 100);
           }
 
-          // Check if user owns an older version and upgrade is available
-          const userVersionId = purchase?.courseVersionId;
+          // Get user's current version (highest version they have access to)
+          const userVersionAccess = await prisma.userVersionAccess.findMany({
+            where: {
+              userId,
+              courseVersion: { courseId: course.id },
+              isActive: true,
+            },
+            include: {
+              courseVersion: { select: { id: true, version: true } },
+            },
+            orderBy: {
+              courseVersion: { version: 'desc' },
+            },
+            take: 1,
+          });
+
+          const userVersionId = userVersionAccess.length > 0
+            ? userVersionAccess[0].courseVersionId
+            : purchase?.courseVersionId;
           if (userVersionId && userVersionId !== activeVersion.id) {
             // User has an older version, fetch upgrade info
             const latestVersion = await prisma.courseVersion.findFirst({

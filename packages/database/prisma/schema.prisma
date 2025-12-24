@@ -631,11 +631,11 @@ model Purchase {
     courseVersion CourseVersion? @relation(fields: [courseVersionId], references: [id])
     promoCode     PromoCode?     @relation(fields: [promoCodeId], references: [id])
 
-    @@unique([userId, courseId])
     @@index([userId])
     @@index([courseId])
     @@index([status])
     @@index([bogOrderId])
+    @@index([userId, courseId])
     @@map("purchases")
 
     // Relations

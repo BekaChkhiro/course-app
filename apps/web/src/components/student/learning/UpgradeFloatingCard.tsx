@@ -7,7 +7,7 @@ interface UpgradeInfo {
   availableVersionId: string;
   availableVersionNumber: number;
   availableVersionTitle: string;
-  changelog?: string;
+  changelog?: string | null;
   upgradePrice: number;
   currentVersionNumber: number;
   hasDiscount?: boolean;

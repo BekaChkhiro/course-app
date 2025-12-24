@@ -366,17 +366,16 @@ export const getCourseForLearning = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Check if user has purchased this course
-    const purchase = await prisma.purchase.findUnique({
+    // Check if user has purchased this course (any completed purchase - original or upgrade)
+    const purchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: {
-          userId,
-          courseId: course.id,
-        },
+        userId,
+        courseId: course.id,
+        status: 'COMPLETED',
       },
     });
 
-    if (!purchase || purchase.status !== 'COMPLETED') {
+    if (!purchase) {
       return res.status(403).json({
         success: false,
         message: 'You have not purchased this course',
@@ -692,18 +691,17 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Check if user has access to this course
-    const purchase = await prisma.purchase.findUnique({
+    // Check if user has access to this course (any completed purchase)
+    const purchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: {
-          userId,
-          courseId: chapter.courseVersion.courseId,
-        },
+        userId,
+        courseId: chapter.courseVersion.courseId,
+        status: 'COMPLETED',
       },
     });
 
     // Allow access if free chapter or purchased
-    if (!chapter.isFree && (!purchase || purchase.status !== 'COMPLETED')) {
+    if (!chapter.isFree && !purchase) {
       return res.status(403).json({
         success: false,
         message: 'You do not have access to this chapter',
@@ -873,6 +871,8 @@ export const getTransactionHistory = async (req: AuthRequest, res: Response) => 
         : null,
       status: p.status,
       paymentId: p.stripePaymentId,
+      isUpgrade: p.isUpgrade,
+      paidAt: p.paidAt,
       purchasedAt: p.createdAt,
     }));
 

@@ -62,14 +62,17 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // უკვე ჩარიცხულია თუ არა
-    const existingPurchase = await prisma.purchase.findUnique({
+    // უკვე ჩარიცხულია თუ არა (check for completed original purchase)
+    const existingPurchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: { userId, courseId },
+        userId,
+        courseId,
+        isUpgrade: false,
+        status: 'COMPLETED',
       },
     })
 
-    if (existingPurchase?.status === 'COMPLETED') {
+    if (existingPurchase) {
       return res.status(400).json({
         success: false,
         message: 'თქვენ უკვე ჩარიცხული ხართ ამ კურსზე',
@@ -110,30 +113,45 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
     const apiUrl = process.env.API_URL || 'http://localhost:4000'
     const appUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000'
 
-    // Purchase შექმნა/განახლება
-    const purchase = await prisma.purchase.upsert({
+    // Check for existing pending purchase (original, not upgrade)
+    const existingPendingPurchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: { userId, courseId },
-      },
-      create: {
         userId,
         courseId,
-        courseVersionId: activeVersionId, // შესყიდვის მომენტის აქტიური ვერსია
-        amount: originalAmount,
-        finalAmount,
+        isUpgrade: false,
         status: 'PENDING',
-        externalOrderId,
-        promoCodeId: promoCodeRecord?.id,
-      },
-      update: {
-        amount: originalAmount,
-        finalAmount,
-        status: 'PENDING',
-        externalOrderId,
-        promoCodeId: promoCodeRecord?.id,
-        // არ ვაახლებთ courseVersionId-ს თუ უკვე არსებული შესყიდვაა
       },
     })
+
+    // Purchase შექმნა/განახლება
+    let purchase
+    if (existingPendingPurchase) {
+      // Update existing pending purchase
+      purchase = await prisma.purchase.update({
+        where: { id: existingPendingPurchase.id },
+        data: {
+          amount: originalAmount,
+          finalAmount,
+          externalOrderId,
+          promoCodeId: promoCodeRecord?.id,
+        },
+      })
+    } else {
+      // Create new purchase
+      purchase = await prisma.purchase.create({
+        data: {
+          userId,
+          courseId,
+          courseVersionId: activeVersionId,
+          amount: originalAmount,
+          finalAmount,
+          status: 'PENDING',
+          externalOrderId,
+          promoCodeId: promoCodeRecord?.id,
+          isUpgrade: false,
+        },
+      })
+    }
 
     // BOG-ში შეკვეთის შექმნა
     const bogOrder = await bogService.createOrder({
@@ -299,17 +317,22 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
         newStatus = 'PENDING'
     }
 
-    // For upgrade payments, update the purchase with new version info on success
+    // For upgrade payments, CREATE a NEW purchase record (don't modify the original)
+    let upgradePurchase: any = null
     if (isUpgradePayment && upgradeIntent && newStatus === 'COMPLETED') {
-      await prisma.purchase.update({
-        where: { id: purchase.id },
+      // Create a new purchase record for the upgrade
+      upgradePurchase = await prisma.purchase.create({
         data: {
+          userId: purchase.userId,
+          courseId: purchase.courseId,
           courseVersionId: upgradeIntent.targetVersionId,
           amount: upgradeIntent.amount,
           finalAmount: upgradeIntent.finalAmount,
+          status: 'COMPLETED',
           isUpgrade: true,
           promoCodeId: upgradeIntent.promoCodeId,
           bogOrderId,
+          externalOrderId,
           transactionId: payment_detail?.transaction_id,
           paymentMethod: payment_detail?.transfer_method?.key,
           paymentDetails: body,
@@ -322,7 +345,7 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
         await redis.del(`upgrade:${externalOrderId}`)
       }
 
-      console.log(`✅ Upgrade completed: ${purchase.id} → version ${upgradeIntent.targetVersionId}`)
+      console.log(`✅ Upgrade completed: new purchase ${upgradePurchase.id} for version ${upgradeIntent.targetVersionId}`)
     } else if (isUpgradePayment && upgradeIntent && newStatus === 'FAILED') {
       // Clean up Redis entry on failure too
       if (redis) {
@@ -356,6 +379,7 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
 
     // Create UserVersionAccess for successful purchase/upgrade
     const versionId = isUpgradePayment && upgradeIntent ? upgradeIntent.targetVersionId : purchase.courseVersionId
+    const purchaseIdForAccess = upgradePurchase ? upgradePurchase.id : purchase.id
     if (newStatus === 'COMPLETED' && versionId) {
       try {
         // Create access record for the purchased version
@@ -369,11 +393,11 @@ export const handleBOGCallback = async (req: Request, res: Response) => {
           create: {
             userId: purchase.userId,
             courseVersionId: versionId,
-            purchaseId: purchase.id,
+            purchaseId: purchaseIdForAccess,
           },
           update: {
             isActive: true,
-            purchaseId: purchase.id,
+            purchaseId: purchaseIdForAccess,
           },
         })
 
@@ -709,9 +733,12 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
 
     const activeVersionId = course.versions[0]?.id || null
 
-    const existingPurchase = await prisma.purchase.findUnique({
+    const existingPurchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: { userId, courseId },
+        userId,
+        courseId,
+        isUpgrade: false,
+        status: 'COMPLETED',
       },
     })
 
@@ -731,6 +758,7 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
         amount: course.price,
         finalAmount: course.price,
         status: 'COMPLETED',
+        isUpgrade: false,
       },
     })
 
@@ -767,21 +795,27 @@ export const checkEnrollment = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    const purchase = await prisma.purchase.findUnique({
+    // Find any completed purchase (original or upgrade)
+    const purchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: { userId, courseId },
+        userId,
+        courseId,
+        status: 'COMPLETED',
       },
       select: {
         id: true,
         status: true,
         createdAt: true,
       },
+      orderBy: {
+        createdAt: 'asc', // Get the original purchase date
+      },
     })
 
     return res.json({
       success: true,
       data: {
-        isEnrolled: purchase?.status === 'COMPLETED',
+        isEnrolled: !!purchase,
         purchaseStatus: purchase?.status || null,
         enrolledAt: purchase?.createdAt || null,
       },
@@ -818,10 +852,13 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // Check existing purchase
-    const existingPurchase = await prisma.purchase.findUnique({
+    // Check existing purchase (find original purchase, not an upgrade)
+    const existingPurchase = await prisma.purchase.findFirst({
       where: {
-        userId_courseId: { userId, courseId },
+        userId,
+        courseId,
+        isUpgrade: false,
+        status: 'COMPLETED',
       },
       include: {
         course: true,
@@ -829,15 +866,38 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
       },
     })
 
-    if (!existingPurchase || existingPurchase.status !== 'COMPLETED') {
+    if (!existingPurchase) {
       return res.status(400).json({
         success: false,
         message: 'კურსი არ გაქვთ შეძენილი',
       })
     }
 
-    // Check if already on the target version
-    if (existingPurchase.courseVersionId === targetVersionId) {
+    // Check if user already has access to the target version (via original purchase or previous upgrade)
+    const existingVersionAccess = await prisma.userVersionAccess.findUnique({
+      where: {
+        userId_courseVersionId: { userId, courseVersionId: targetVersionId },
+      },
+    })
+
+    if (existingVersionAccess && existingVersionAccess.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'თქვენ უკვე გაქვთ ეს ვერსია',
+      })
+    }
+
+    // Also check if there's already a completed upgrade purchase for this version
+    const existingUpgrade = await prisma.purchase.findFirst({
+      where: {
+        userId,
+        courseId,
+        courseVersionId: targetVersionId,
+        status: 'COMPLETED',
+      },
+    })
+
+    if (existingUpgrade) {
       return res.status(400).json({
         success: false,
         message: 'თქვენ უკვე გაქვთ ეს ვერსია',
@@ -930,13 +990,33 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
     const apiUrl = process.env.API_URL || 'http://localhost:4000'
     const appUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'http://localhost:3000'
 
+    // Find the user's current version (could be from original purchase or a previous upgrade)
+    const userVersionAccess = await prisma.userVersionAccess.findMany({
+      where: {
+        userId,
+        courseVersion: { courseId },
+        isActive: true,
+      },
+      include: {
+        courseVersion: true,
+      },
+      orderBy: {
+        courseVersion: { version: 'desc' },
+      },
+      take: 1,
+    })
+
+    const currentVersionId = userVersionAccess.length > 0
+      ? userVersionAccess[0].courseVersionId
+      : existingPurchase.courseVersionId
+
     // Store upgrade intent in Redis (don't modify Purchase table until payment completes)
     // This prevents losing the user's original COMPLETED purchase
     const upgradeIntent = {
       userId,
       courseId,
       purchaseId: existingPurchase.id,
-      originalVersionId: existingPurchase.courseVersionId,
+      originalVersionId: currentVersionId,
       targetVersionId,
       amount: upgradePrice,
       finalAmount,

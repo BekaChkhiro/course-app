@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { RefreshCcw, X, Loader2, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { RefreshCcw, X, Loader2, AlertCircle, CheckCircle, Clock, XCircle, ArrowUp } from 'lucide-react';
 import Link from 'next/link';
 import StudentLayout from '@/components/student/StudentLayout';
 import { studentApiClient, Transaction } from '@/lib/api/studentApi';
@@ -209,9 +209,15 @@ export default function TransactionsPage() {
                 {transactions.map((transaction) => {
                   const refundRequest = getRefundForTransaction(transaction);
                   return (
-                    <div key={transaction.id} className="p-4">
+                    <div key={transaction.id} className={`p-4 ${transaction.isUpgrade ? 'bg-purple-50/50' : ''}`}>
+                      {transaction.isUpgrade && (
+                        <div className="flex items-center gap-1.5 text-purple-600 text-xs font-medium mb-2">
+                          <ArrowUp className="h-3.5 w-3.5" />
+                          <span>კურსის განახლება</span>
+                        </div>
+                      )}
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
+                        <div className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden ${transaction.isUpgrade ? 'ring-2 ring-purple-300' : 'bg-gray-200'}`}>
                           {transaction.course.thumbnail ? (
                             <img
                               src={transaction.course.thumbnail}
@@ -285,10 +291,10 @@ export default function TransactionsPage() {
                     {transactions.map((transaction) => {
                       const refundRequest = getRefundForTransaction(transaction);
                       return (
-                        <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={transaction.id} className={`hover:bg-gray-50 transition-colors ${transaction.isUpgrade ? 'bg-purple-50/50' : ''}`}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
-                              <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-200">
+                              <div className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden ${transaction.isUpgrade ? 'ring-2 ring-purple-300' : 'bg-gray-200'}`}>
                                 {transaction.course.thumbnail ? (
                                   <img
                                     src={transaction.course.thumbnail}
@@ -304,6 +310,12 @@ export default function TransactionsPage() {
                                 )}
                               </div>
                               <div>
+                                {transaction.isUpgrade && (
+                                  <div className="flex items-center gap-1.5 text-purple-600 text-xs font-medium mb-0.5">
+                                    <ArrowUp className="h-3 w-3" />
+                                    <span>კურსის განახლება</span>
+                                  </div>
+                                )}
                                 <p className="font-medium text-gray-900">{transaction.course.title}</p>
                                 <p className="text-sm text-gray-500">{formatDate(transaction.purchasedAt)}</p>
                               </div>
