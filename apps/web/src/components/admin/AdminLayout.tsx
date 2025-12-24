@@ -25,7 +25,8 @@ import {
   UsersRound,
   Globe,
   Cog,
-  RefreshCcw
+  RefreshCcw,
+  Smartphone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -84,6 +85,7 @@ const navigationCategories: NavCategory[] = [
     icon: Cog,
     items: [
       { name: 'ანალიტიკა', href: '/admin/analytics', icon: BarChart3 },
+      { name: 'მოწყობილობები', href: '/admin/devices', icon: Smartphone },
       { name: 'პარამეტრები', href: '/admin/settings', icon: Settings },
     ],
   },

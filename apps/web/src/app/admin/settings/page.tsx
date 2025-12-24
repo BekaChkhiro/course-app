@@ -1,27 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   User,
   Lock,
-  Smartphone,
   Save,
   Eye,
   EyeOff,
-  Trash2,
-  Monitor,
-  Tablet,
-  AlertCircle,
   CheckCircle,
   Loader2,
   Mail,
 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { authApi, Device } from '@/lib/api/authApi';
+import { authApi } from '@/lib/api/authApi';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 
@@ -61,12 +56,10 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function AdminSettingsPage() {
-  const queryClient = useQueryClient();
   const { user, setUser } = useAuthStore();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [deviceToRemove, setDeviceToRemove] = useState<string | null>(null);
 
   // Profile form
   const {
@@ -91,12 +84,6 @@ export default function AdminSettingsPage() {
     reset: resetPasswordForm,
   } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
-  });
-
-  // Fetch devices
-  const { data: devicesData, isLoading: devicesLoading } = useQuery({
-    queryKey: ['devices'],
-    queryFn: () => authApi.getDevices().then((res) => res.data.devices),
   });
 
   // Update profile mutation
@@ -125,19 +112,6 @@ export default function AdminSettingsPage() {
     },
   });
 
-  // Remove device mutation
-  const removeDeviceMutation = useMutation({
-    mutationFn: authApi.removeDevice,
-    onSuccess: () => {
-      toast.success('მოწყობილობა წარმატებით წაიშალა');
-      queryClient.invalidateQueries({ queryKey: ['devices'] });
-      setDeviceToRemove(null);
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'მოწყობილობის წაშლა ვერ მოხერხდა');
-    },
-  });
-
   // Forgot password mutation
   const forgotPasswordMutation = useMutation({
     mutationFn: () => authApi.forgotPassword(user?.email || ''),
@@ -155,27 +129,6 @@ export default function AdminSettingsPage() {
 
   const onPasswordSubmit = (data: PasswordFormData) => {
     changePasswordMutation.mutate(data);
-  };
-
-  const getDeviceIcon = (deviceType: string) => {
-    switch (deviceType?.toLowerCase()) {
-      case 'mobile':
-        return <Smartphone className="w-5 h-5" />;
-      case 'tablet':
-        return <Tablet className="w-5 h-5" />;
-      default:
-        return <Monitor className="w-5 h-5" />;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ka-GE', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   return (
@@ -472,119 +425,6 @@ export default function AdminSettingsPage() {
           </form>
         </div>
 
-        {/* Devices Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex items-center gap-3">
-              <Smartphone className="w-5 h-5 text-primary-600" />
-              <h2 className="text-lg font-semibold text-gray-900">აქტიური მოწყობილობები</h2>
-            </div>
-            <p className="text-sm text-gray-600 mt-1">მართეთ მოწყობილობები, სადაც თქვენი ანგარიში შესულია</p>
-          </div>
-          <div className="p-6">
-            {devicesLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-              </div>
-            ) : devicesData && devicesData.length > 0 ? (
-              <div className="space-y-4">
-                {devicesData.map((device: Device) => (
-                  <div
-                    key={device.id}
-                    className={`flex items-center justify-between p-4 rounded-lg border ${
-                      device.isCurrentDevice
-                        ? 'border-primary-200 bg-primary-50'
-                        : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`p-2.5 rounded-lg ${
-                          device.isCurrentDevice ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {getDeviceIcon(device.deviceType)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900">{device.deviceName}</p>
-                          {device.isCurrentDevice && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-700 rounded-full">
-                              მიმდინარე
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {device.browser} {device.os && `• ${device.os}`}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          ბოლო აქტივობა: {formatDate(device.lastActiveAt)}
-                        </p>
-                      </div>
-                    </div>
-                    {!device.isCurrentDevice && (
-                      <button
-                        onClick={() => setDeviceToRemove(device.id)}
-                        disabled={removeDeviceMutation.isPending && deviceToRemove === device.id}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        title="მოწყობილობის წაშლა"
-                      >
-                        {removeDeviceMutation.isPending && deviceToRemove === device.id ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-5 h-5" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Smartphone className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>მოწყობილობები ვერ მოიძებნა</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Remove Device Confirmation Modal */}
-        {deviceToRemove && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-md w-full p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">მოწყობილობის წაშლა</h3>
-              </div>
-              <p className="text-gray-600 mb-6">
-                დარწმუნებული ხართ, რომ გსურთ ამ მოწყობილობის წაშლა? ამ მოწყობილობიდან მოხდება თქვენი
-                ანგარიშიდან გასვლა.
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setDeviceToRemove(null)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  გაუქმება
-                </button>
-                <button
-                  onClick={() => removeDeviceMutation.mutate(deviceToRemove)}
-                  disabled={removeDeviceMutation.isPending}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                >
-                  {removeDeviceMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-4 h-4" />
-                  )}
-                  წაშლა
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </AdminLayout>
   );
