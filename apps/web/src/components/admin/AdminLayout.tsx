@@ -26,7 +26,8 @@ import {
   Globe,
   Cog,
   RefreshCcw,
-  Smartphone
+  Smartphone,
+  Tag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Toast from '../ui/Toast';
@@ -70,6 +71,7 @@ const navigationCategories: NavCategory[] = [
       { name: 'შეფასებები', href: '/admin/reviews', icon: Star },
       { name: 'შეტყობინებები', href: '/admin/messages', icon: MessageSquare },
       { name: 'დაბრუნებები', href: '/admin/refunds', icon: RefreshCcw },
+      { name: 'პრომო კოდები', href: '/admin/promo-codes', icon: Tag },
     ],
   },
   {

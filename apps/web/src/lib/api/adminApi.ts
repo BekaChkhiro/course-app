@@ -468,4 +468,72 @@ export const studentsApi = {
   getAnalytics: () => adminApi.get('/admin/students/analytics/overview'),
 };
 
+// Promo Code APIs
+export interface PromoCodeFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: 'all' | 'active' | 'inactive' | 'expired' | 'upcoming';
+  scope?: 'all' | 'ALL' | 'COURSE' | 'CATEGORY';
+}
+
+export interface CreatePromoCodeData {
+  code: string;
+  description?: string;
+  discountType: 'PERCENTAGE' | 'FIXED';
+  discountValue: number;
+  scope: 'ALL' | 'COURSE' | 'CATEGORY';
+  courseId?: string;
+  categoryId?: string;
+  singleUsePerUser?: boolean;
+  minOrderAmount?: number;
+  maxUses?: number;
+  validFrom: string;
+  validUntil: string;
+  isActive?: boolean;
+}
+
+export interface UpdatePromoCodeData extends Partial<CreatePromoCodeData> {
+  id?: string;
+}
+
+export const promoCodeApi = {
+  // Get all promo codes with filters
+  getAll: (filters: PromoCodeFilters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.page) params.append('page', String(filters.page));
+    if (filters.limit) params.append('limit', String(filters.limit));
+    if (filters.search) params.append('search', filters.search);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.scope) params.append('scope', filters.scope);
+    return adminApi.get(`/promo-codes/admin?${params.toString()}`);
+  },
+
+  // Get single promo code by ID
+  getById: (id: string) => adminApi.get(`/promo-codes/admin/${id}`),
+
+  // Create new promo code
+  create: (data: CreatePromoCodeData) => adminApi.post('/promo-codes/admin', data),
+
+  // Update promo code
+  update: (id: string, data: UpdatePromoCodeData) =>
+    adminApi.put(`/promo-codes/admin/${id}`, data),
+
+  // Delete promo code
+  delete: (id: string) => adminApi.delete(`/promo-codes/admin/${id}`),
+
+  // Toggle promo code active status
+  toggle: (id: string) => adminApi.patch(`/promo-codes/admin/${id}/toggle`),
+
+  // Get options for dropdowns (courses and categories)
+  getOptions: () => adminApi.get('/promo-codes/admin/options'),
+
+  // Get promo code analytics
+  getAnalytics: () => adminApi.get('/promo-codes/admin/analytics'),
+
+  // Validate promo code (for checkout)
+  validate: (code: string, courseId: string) =>
+    adminApi.post('/promo-codes/validate', { code, courseId }),
+};
+
 export default adminApi;

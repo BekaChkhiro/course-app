@@ -81,7 +81,7 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
     }
 
     // პრომო კოდის შემოწმება
-    let discount = 0
+    let discountAmount = 0
     let promoCodeRecord = null
 
     if (promoCode) {
@@ -95,16 +95,62 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
       })
 
       if (promoCodeRecord) {
+        // ლიმიტის შემოწმება
         if (!promoCodeRecord.maxUses || promoCodeRecord.usedCount < promoCodeRecord.maxUses) {
-          discount = Number(promoCodeRecord.discount)
+          // Scope შემოწმება
+          let isValidScope = true
+          if (promoCodeRecord.scope === 'COURSE' && promoCodeRecord.courseId !== courseId) {
+            isValidScope = false
+          }
+          if (promoCodeRecord.scope === 'CATEGORY') {
+            const courseData = await prisma.course.findUnique({
+              where: { id: courseId },
+              select: { categoryId: true }
+            })
+            if (courseData?.categoryId !== promoCodeRecord.categoryId) {
+              isValidScope = false
+            }
+          }
+
+          // ერთჯერადი გამოყენების შემოწმება
+          if (promoCodeRecord.singleUsePerUser && userId) {
+            const existingUsage = await prisma.promoCodeUsage.findUnique({
+              where: {
+                promoCodeId_userId: {
+                  promoCodeId: promoCodeRecord.id,
+                  userId,
+                }
+              }
+            })
+            if (existingUsage) {
+              isValidScope = false
+            }
+          }
+
+          // მინიმალური თანხის შემოწმება
+          const originalPrice = Number(course.price)
+          if (promoCodeRecord.minOrderAmount && originalPrice < Number(promoCodeRecord.minOrderAmount)) {
+            isValidScope = false
+          }
+
+          if (isValidScope) {
+            // ფასდაკლების გამოთვლა
+            if (promoCodeRecord.discountType === 'PERCENTAGE') {
+              discountAmount = (originalPrice * Number(promoCodeRecord.discountValue)) / 100
+            } else {
+              // FIXED - არ უნდა აღემატებოდეს თავდაპირველ ფასს
+              discountAmount = Math.min(Number(promoCodeRecord.discountValue), originalPrice)
+            }
+          } else {
+            promoCodeRecord = null // არაა ვალიდური - არ გამოვიყენოთ
+          }
         }
       }
     }
 
     // საბოლოო ფასის გამოთვლა
     const originalAmount = Number(course.price)
-    const discountAmount = (originalAmount * discount) / 100
-    const finalAmount = originalAmount - discountAmount
+    const finalAmount = Math.max(0, originalAmount - discountAmount)
 
     // უნიკალური შეკვეთის ID
     const externalOrderId = `ORDER-${uuidv4()}`
@@ -960,7 +1006,7 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
     }
 
     // Apply promo code if provided
-    let discount = 0
+    let discountAmount = 0
     let promoCodeRecord = null
 
     if (promoCode) {
@@ -975,13 +1021,18 @@ export const initiateUpgrade = async (req: AuthRequest, res: Response) => {
 
       if (promoCodeRecord) {
         if (!promoCodeRecord.maxUses || promoCodeRecord.usedCount < promoCodeRecord.maxUses) {
-          discount = Number(promoCodeRecord.discount)
+          // ფასდაკლების გამოთვლა
+          if (promoCodeRecord.discountType === 'PERCENTAGE') {
+            discountAmount = (upgradePrice * Number(promoCodeRecord.discountValue)) / 100
+          } else {
+            // FIXED - არ უნდა აღემატებოდეს თავდაპირველ ფასს
+            discountAmount = Math.min(Number(promoCodeRecord.discountValue), upgradePrice)
+          }
         }
       }
     }
 
-    const discountAmount = (upgradePrice * discount) / 100
-    const finalAmount = upgradePrice - discountAmount
+    const finalAmount = Math.max(0, upgradePrice - discountAmount)
 
     // Create unique order ID
     const externalOrderId = `UPGRADE-${uuidv4()}`

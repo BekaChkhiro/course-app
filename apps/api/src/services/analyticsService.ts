@@ -1,4 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
+import ExcelJS from 'exceljs';
 
 const prisma = new PrismaClient();
 
@@ -1316,6 +1317,341 @@ export const exportService = {
       totalXP: s.userXP?.totalXP || 0,
       level: s.userXP?.level || 1
     }));
+  },
+
+  // Get available years for export filter
+  async getAvailableYears(): Promise<number[]> {
+    const result = await prisma.$queryRaw<{ year: number }[]>`
+      SELECT DISTINCT EXTRACT(YEAR FROM created_at)::int as year
+      FROM purchases
+      WHERE status = 'COMPLETED'
+      ORDER BY year DESC
+    `;
+    return result.length > 0
+      ? result.map(r => r.year)
+      : [new Date().getFullYear()];
+  },
+
+  // Get courses for export filter
+  async getCoursesForExport(): Promise<{ id: string; title: string }[]> {
+    return prisma.course.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { id: true, title: true },
+      orderBy: { title: 'asc' }
+    });
+  },
+
+  // Generate monthly purchases Excel file
+  async generateMonthlyPurchasesExcel(
+    year: number,
+    month?: number,
+    courseId?: string
+  ): Promise<ArrayBuffer> {
+    // Define date range
+    let startDate: Date;
+    let endDate: Date;
+
+    if (month) {
+      startDate = new Date(year, month - 1, 1);
+      endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    } else {
+      startDate = new Date(year, 0, 1);
+      endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+    }
+
+    // Fetch purchases
+    const purchases = await prisma.purchase.findMany({
+      where: {
+        status: 'COMPLETED',
+        createdAt: { gte: startDate, lte: endDate },
+        ...(courseId ? { courseId } : {})
+      },
+      include: {
+        user: { select: { name: true, surname: true, email: true, phone: true } },
+        course: { select: { id: true, title: true } },
+        promoCode: { select: { code: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    // Georgian month names
+    const georgianMonths = [
+      'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი',
+      'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
+    ];
+
+    // Create workbook
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Course Platform';
+    workbook.created = new Date();
+
+    // Header style
+    const headerStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      border: {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      }
+    };
+
+    // Total row style
+    const totalRowStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } }
+    };
+
+    // ==========================================
+    // SHEET 1: Summary by Month
+    // ==========================================
+    const summarySheet = workbook.addWorksheet('შეჯამება');
+
+    // Set column widths
+    summarySheet.columns = [
+      { header: 'თვე', key: 'month', width: 20 },
+      { header: 'შესყიდვები', key: 'purchases', width: 15 },
+      { header: 'უნიკ. მყიდველები', key: 'uniqueBuyers', width: 20 },
+      { header: 'სულ შემოსავალი', key: 'totalRevenue', width: 18 },
+      { header: 'ფასდაკლებები', key: 'discounts', width: 15 },
+      { header: 'წმინდა შემოსავალი', key: 'netRevenue', width: 20 }
+    ];
+
+    // Apply header style
+    summarySheet.getRow(1).eachCell((cell) => {
+      Object.assign(cell, { style: headerStyle });
+    });
+
+    // Group purchases by month
+    const monthlyData: Map<number, {
+      purchases: number;
+      uniqueBuyers: Set<string>;
+      totalRevenue: number;
+      discounts: number;
+    }> = new Map();
+
+    purchases.forEach(p => {
+      const purchaseMonth = p.createdAt.getMonth();
+      const existing = monthlyData.get(purchaseMonth) || {
+        purchases: 0,
+        uniqueBuyers: new Set<string>(),
+        totalRevenue: 0,
+        discounts: 0
+      };
+
+      existing.purchases++;
+      existing.uniqueBuyers.add(p.userId);
+      existing.totalRevenue += formatCurrency(p.amount);
+      existing.discounts += formatCurrency(p.amount) - formatCurrency(p.finalAmount);
+
+      monthlyData.set(purchaseMonth, existing);
+    });
+
+    // Add data rows
+    let totalPurchases = 0;
+    let totalUniqueBuyers = new Set<string>();
+    let grandTotalRevenue = 0;
+    let grandTotalDiscounts = 0;
+
+    const monthsToShow = month ? [month - 1] : Array.from({ length: 12 }, (_, i) => i);
+
+    monthsToShow.forEach((m, index) => {
+      const data = monthlyData.get(m);
+      if (data) {
+        const netRevenue = data.totalRevenue - data.discounts;
+        summarySheet.addRow({
+          month: `${georgianMonths[m]} ${year}`,
+          purchases: data.purchases,
+          uniqueBuyers: data.uniqueBuyers.size,
+          totalRevenue: data.totalRevenue,
+          discounts: data.discounts,
+          netRevenue: netRevenue
+        });
+
+        totalPurchases += data.purchases;
+        data.uniqueBuyers.forEach(b => totalUniqueBuyers.add(b));
+        grandTotalRevenue += data.totalRevenue;
+        grandTotalDiscounts += data.discounts;
+
+        // Zebra striping
+        if (index % 2 === 1) {
+          summarySheet.getRow(summarySheet.rowCount).eachCell((cell) => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } };
+          });
+        }
+      }
+    });
+
+    // Total row
+    const totalRow = summarySheet.addRow({
+      month: 'სულ',
+      purchases: totalPurchases,
+      uniqueBuyers: totalUniqueBuyers.size,
+      totalRevenue: grandTotalRevenue,
+      discounts: grandTotalDiscounts,
+      netRevenue: grandTotalRevenue - grandTotalDiscounts
+    });
+    totalRow.eachCell((cell) => {
+      Object.assign(cell, { style: totalRowStyle });
+    });
+
+    // Format currency columns
+    ['D', 'E', 'F'].forEach(col => {
+      summarySheet.getColumn(col).numFmt = '#,##0.00 "₾"';
+    });
+
+    // ==========================================
+    // SHEET 2: Detailed Data
+    // ==========================================
+    const detailSheet = workbook.addWorksheet('დეტალური მონაცემები');
+
+    detailSheet.columns = [
+      { header: 'თარიღი', key: 'date', width: 18 },
+      { header: 'თვე', key: 'month', width: 18 },
+      { header: 'კურსი', key: 'course', width: 35 },
+      { header: 'მყიდველი', key: 'buyer', width: 25 },
+      { header: 'ელ-ფოსტა', key: 'email', width: 30 },
+      { header: 'ტელეფონი', key: 'phone', width: 15 },
+      { header: 'საწყისი ფასი', key: 'originalPrice', width: 15 },
+      { header: 'ფასდაკლება', key: 'discount', width: 12 },
+      { header: 'საბოლოო თანხა', key: 'finalAmount', width: 15 },
+      { header: 'პრომო კოდი', key: 'promoCode', width: 15 }
+    ];
+
+    // Apply header style
+    detailSheet.getRow(1).eachCell((cell) => {
+      Object.assign(cell, { style: headerStyle });
+    });
+
+    // Add data rows
+    purchases.forEach((p, index) => {
+      const purchaseMonth = p.createdAt.getMonth();
+      const originalPrice = formatCurrency(p.amount);
+      const finalAmount = formatCurrency(p.finalAmount);
+
+      detailSheet.addRow({
+        date: p.createdAt.toLocaleString('ka-GE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        month: `${georgianMonths[purchaseMonth]} ${year}`,
+        course: p.course.title,
+        buyer: `${p.user.name} ${p.user.surname}`,
+        email: p.user.email,
+        phone: p.user.phone || '',
+        originalPrice: originalPrice,
+        discount: originalPrice - finalAmount,
+        finalAmount: finalAmount,
+        promoCode: p.promoCode?.code || ''
+      });
+
+      // Zebra striping
+      if (index % 2 === 1) {
+        detailSheet.getRow(detailSheet.rowCount).eachCell((cell) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } };
+        });
+      }
+    });
+
+    // Format currency columns
+    ['G', 'H', 'I'].forEach(col => {
+      detailSheet.getColumn(col).numFmt = '#,##0.00 "₾"';
+    });
+
+    // ==========================================
+    // SHEET 3: Courses Summary
+    // ==========================================
+    const coursesSheet = workbook.addWorksheet('კურსების შეჯამება');
+
+    coursesSheet.columns = [
+      { header: 'კურსი', key: 'course', width: 40 },
+      { header: 'შესყიდვები', key: 'purchases', width: 15 },
+      { header: 'უნიკ. მყიდველები', key: 'uniqueBuyers', width: 20 },
+      { header: 'სულ შემოსავალი', key: 'totalRevenue', width: 18 },
+      { header: 'საშუალო თანხა', key: 'avgAmount', width: 18 }
+    ];
+
+    // Apply header style
+    coursesSheet.getRow(1).eachCell((cell) => {
+      Object.assign(cell, { style: headerStyle });
+    });
+
+    // Group by course
+    const courseData: Map<string, {
+      title: string;
+      purchases: number;
+      uniqueBuyers: Set<string>;
+      totalRevenue: number;
+    }> = new Map();
+
+    purchases.forEach(p => {
+      const existing = courseData.get(p.courseId) || {
+        title: p.course.title,
+        purchases: 0,
+        uniqueBuyers: new Set<string>(),
+        totalRevenue: 0
+      };
+
+      existing.purchases++;
+      existing.uniqueBuyers.add(p.userId);
+      existing.totalRevenue += formatCurrency(p.finalAmount);
+
+      courseData.set(p.courseId, existing);
+    });
+
+    // Add data rows
+    let courseTotalPurchases = 0;
+    let courseTotalRevenue = 0;
+
+    Array.from(courseData.values())
+      .sort((a, b) => b.totalRevenue - a.totalRevenue)
+      .forEach((data, index) => {
+        const avgAmount = data.purchases > 0 ? data.totalRevenue / data.purchases : 0;
+
+        coursesSheet.addRow({
+          course: data.title,
+          purchases: data.purchases,
+          uniqueBuyers: data.uniqueBuyers.size,
+          totalRevenue: data.totalRevenue,
+          avgAmount: avgAmount
+        });
+
+        courseTotalPurchases += data.purchases;
+        courseTotalRevenue += data.totalRevenue;
+
+        // Zebra striping
+        if (index % 2 === 1) {
+          coursesSheet.getRow(coursesSheet.rowCount).eachCell((cell) => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9FAFB' } };
+          });
+        }
+      });
+
+    // Total row
+    const courseTotalRow = coursesSheet.addRow({
+      course: 'სულ',
+      purchases: courseTotalPurchases,
+      uniqueBuyers: totalUniqueBuyers.size,
+      totalRevenue: courseTotalRevenue,
+      avgAmount: courseTotalPurchases > 0 ? courseTotalRevenue / courseTotalPurchases : 0
+    });
+    courseTotalRow.eachCell((cell) => {
+      Object.assign(cell, { style: totalRowStyle });
+    });
+
+    // Format currency columns
+    ['D', 'E'].forEach(col => {
+      coursesSheet.getColumn(col).numFmt = '#,##0.00 "₾"';
+    });
+
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer as ArrayBuffer;
   }
 };
 

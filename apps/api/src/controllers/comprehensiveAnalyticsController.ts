@@ -669,3 +669,116 @@ export const exportCoursesData = async (req: Request, res: Response) => {
     });
   }
 };
+
+// ==========================================
+// EXPORT OPTIONS CONTROLLER
+// ==========================================
+
+export const getExportOptions = async (req: Request, res: Response) => {
+  try {
+    const [years, courses] = await Promise.all([
+      exportService.getAvailableYears(),
+      exportService.getCoursesForExport()
+    ]);
+
+    const georgianMonths = [
+      { value: 1, label: 'იანვარი' },
+      { value: 2, label: 'თებერვალი' },
+      { value: 3, label: 'მარტი' },
+      { value: 4, label: 'აპრილი' },
+      { value: 5, label: 'მაისი' },
+      { value: 6, label: 'ივნისი' },
+      { value: 7, label: 'ივლისი' },
+      { value: 8, label: 'აგვისტო' },
+      { value: 9, label: 'სექტემბერი' },
+      { value: 10, label: 'ოქტომბერი' },
+      { value: 11, label: 'ნოემბერი' },
+      { value: 12, label: 'დეკემბერი' }
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        years,
+        months: georgianMonths,
+        courses
+      }
+    });
+  } catch (error) {
+    console.error('Get export options error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch export options'
+    });
+  }
+};
+
+// ==========================================
+// EXPORT MONTHLY PURCHASES CONTROLLER
+// ==========================================
+
+export const exportMonthlyPurchases = async (req: Request, res: Response) => {
+  try {
+    const { year, month, courseId } = req.query;
+
+    // Validate year
+    if (!year) {
+      return res.status(400).json({
+        success: false,
+        message: 'Year is required'
+      });
+    }
+
+    const yearNum = parseInt(year as string);
+    const currentYear = new Date().getFullYear();
+
+    if (isNaN(yearNum) || yearNum < 2020 || yearNum > currentYear + 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid year'
+      });
+    }
+
+    // Validate month (optional)
+    let monthNum: number | undefined;
+    if (month) {
+      monthNum = parseInt(month as string);
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid month'
+        });
+      }
+    }
+
+    // Validate courseId (optional)
+    const courseIdStr = courseId ? (courseId as string) : undefined;
+
+    // Generate Excel file
+    const buffer = await exportService.generateMonthlyPurchasesExcel(
+      yearNum,
+      monthNum,
+      courseIdStr
+    );
+
+    // Generate filename
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const filename = monthNum
+      ? `purchases-${yearNum}-${monthNames[monthNum - 1]}.xlsx`
+      : `purchases-${yearNum}.xlsx`;
+
+    // Set response headers
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.byteLength);
+
+    // Send buffer
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    console.error('Export monthly purchases error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export purchases data'
+    });
+  }
+};

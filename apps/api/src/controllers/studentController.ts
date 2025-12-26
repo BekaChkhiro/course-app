@@ -861,7 +861,8 @@ export const getTransactionHistory = async (req: AuthRequest, res: Response) => 
           promoCode: {
             select: {
               code: true,
-              discount: true,
+              discountType: true,
+              discountValue: true,
             },
           },
         },
@@ -880,7 +881,8 @@ export const getTransactionHistory = async (req: AuthRequest, res: Response) => 
       discount: p.promoCode
         ? {
             code: p.promoCode.code,
-            percentage: Number(p.promoCode.discount),
+            type: p.promoCode.discountType,
+            value: Number(p.promoCode.discountValue),
           }
         : null,
       status: p.status,
