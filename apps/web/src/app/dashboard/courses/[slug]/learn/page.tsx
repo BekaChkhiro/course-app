@@ -738,6 +738,7 @@ function ChapterContent({
                 // Use video URL (secure proxy or R2 public URL)
                 <div className="w-full max-w-[1200px]">
                   <VideoPlayer
+                    key={chapter.video?.id || chapter.id}
                     src={videoUrl}
                     title={chapter.title}
                     initialTime={progress.lastPosition || 0}

@@ -107,6 +107,12 @@ router.post('/export', controller.createExportJob);
 // GET /api/admin/analytics/export - Get user's export jobs
 router.get('/export', controller.getUserExportJobs);
 
+// GET /api/admin/analytics/export/options - Get export filter options (years, months, courses)
+router.get('/export/options', controller.getExportOptions);
+
+// GET /api/admin/analytics/export/purchases - Export monthly purchases as Excel
+router.get('/export/purchases', controller.exportMonthlyPurchases);
+
 // GET /api/admin/analytics/export/revenue - Export revenue data as CSV
 router.get('/export/revenue', controller.exportRevenueData);
 

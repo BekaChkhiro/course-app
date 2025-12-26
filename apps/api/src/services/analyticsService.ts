@@ -1321,15 +1321,21 @@ export const exportService = {
 
   // Get available years for export filter
   async getAvailableYears(): Promise<number[]> {
-    const result = await prisma.$queryRaw<{ year: number }[]>`
-      SELECT DISTINCT EXTRACT(YEAR FROM created_at)::int as year
-      FROM purchases
-      WHERE status = 'COMPLETED'
-      ORDER BY year DESC
-    `;
-    return result.length > 0
-      ? result.map(r => r.year)
-      : [new Date().getFullYear()];
+    // Use Prisma query instead of raw SQL to get completed purchases
+    const purchases = await prisma.purchase.findMany({
+      where: { status: 'COMPLETED' },
+      select: { createdAt: true },
+      distinct: ['createdAt']
+    });
+
+    // Extract unique years from the dates
+    const years = new Set<number>();
+    purchases.forEach(p => {
+      years.add(p.createdAt.getFullYear());
+    });
+
+    const yearsArray = Array.from(years).sort((a, b) => b - a);
+    return yearsArray.length > 0 ? yearsArray : [new Date().getFullYear()];
   },
 
   // Get courses for export filter

@@ -262,6 +262,10 @@ export const comprehensiveAnalyticsApi = {
     adminApi.post('/admin/analytics/export', data),
   getExportJobs: () =>
     adminApi.get('/admin/analytics/export'),
+  getExportOptions: () =>
+    adminApi.get('/admin/analytics/export/options'),
+  exportMonthlyPurchases: (params: { year: number; month?: number; courseId?: string }) =>
+    adminApi.get('/admin/analytics/export/purchases', { params, responseType: 'arraybuffer' }),
   exportRevenue: (params: { startDate: string; endDate: string }) =>
     adminApi.get('/admin/analytics/export/revenue', { params, responseType: 'blob' }),
   exportStudents: () =>

@@ -60,7 +60,16 @@ export default function VideoPlayer({
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play();
+        // Handle the play() promise to avoid "play() was interrupted" errors
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            // AbortError is expected when play() is interrupted by pause() or source change
+            if (error.name !== 'AbortError') {
+              console.error('Video play error:', error);
+            }
+          });
+        }
       }
     }
   }, [isPlaying]);
@@ -191,6 +200,20 @@ export default function VideoPlayer({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // Reset state when src changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      // Pause any existing playback before loading new source
+      video.pause();
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+      setBuffered(0);
+      setIsLoading(true);
+    }
+  }, [src]);
 
   // Video event listeners
   useEffect(() => {

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { analyticsApi } from '@/lib/api/adminApi';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { analyticsApi, comprehensiveAnalyticsApi } from '@/lib/api/adminApi';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
   DollarSign,
@@ -16,7 +16,11 @@ import {
   ShoppingCart,
   UserPlus,
   GraduationCap,
-  CheckCircle
+  CheckCircle,
+  Download,
+  FileSpreadsheet,
+  BarChart3,
+  Loader2
 } from 'lucide-react';
 import {
   LineChart,
@@ -91,14 +95,66 @@ interface TopCourse {
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState(30);
+  const [activeTab, setActiveTab] = useState<'statistics' | 'export'>('statistics');
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number | ''>('');
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['consolidated-analytics', period],
     queryFn: () => analyticsApi.getConsolidated({ period }),
-    staleTime: 60000
+    staleTime: 60000,
+    enabled: activeTab === 'statistics'
+  });
+
+  // Export options query
+  const { data: exportOptionsData, isLoading: exportOptionsLoading } = useQuery({
+    queryKey: ['export-options'],
+    queryFn: async () => {
+      const response = await comprehensiveAnalyticsApi.getExportOptions();
+      return response.data;
+    },
+    staleTime: 300000,
+    enabled: activeTab === 'export'
+  });
+
+  // Export mutation
+  const exportMutation = useMutation({
+    mutationFn: async () => {
+      const params: { year: number; month?: number; courseId?: string } = {
+        year: selectedYear
+      };
+      if (selectedMonth !== '') {
+        params.month = selectedMonth;
+      }
+      if (selectedCourse) {
+        params.courseId = selectedCourse;
+      }
+      return comprehensiveAnalyticsApi.exportMonthlyPurchases(params);
+    },
+    onSuccess: (response) => {
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const filename = selectedMonth !== ''
+        ? `purchases-${selectedYear}-${monthNames[selectedMonth - 1]}.xlsx`
+        : `purchases-${selectedYear}.xlsx`;
+
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    }
   });
 
   const analytics = data?.data?.data;
+  const exportOptions = exportOptionsData?.data;
 
   return (
     <AdminLayout>
@@ -114,37 +170,186 @@ export default function AnalyticsPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ანალიტიკა</h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-1 hidden sm:block">გადახდები, მომხმარებლები და კურსების სტატისტიკა</p>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <select
-              value={period}
-              onChange={(e) => setPeriod(parseInt(e.target.value))}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value={7}>7 დღე</option>
-              <option value={30}>30 დღე</option>
-              <option value={90}>90 დღე</option>
-              <option value={365}>1 წელი</option>
-            </select>
-            <button
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
-              title="განახლება"
-            >
-              <RefreshCw className={`w-5 h-5 ${isFetching ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+          {activeTab === 'statistics' && (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(parseInt(e.target.value))}
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value={7}>7 დღე</option>
+                <option value={30}>30 დღე</option>
+                <option value={90}>90 დღე</option>
+                <option value={365}>1 წელი</option>
+              </select>
+              <button
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="p-2 text-gray-500 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
+                title="განახლება"
+              >
+                <RefreshCw className={`w-5 h-5 ${isFetching ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          )}
         </div>
 
-        {isLoading ? (
-          <div className="space-y-6 sm:space-y-8">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-gray-200 rounded-xl animate-pulse h-48 sm:h-64" />
-            ))}
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex gap-4 sm:gap-6">
+            <button
+              onClick={() => setActiveTab('statistics')}
+              className={`flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-medium transition-colors ${
+                activeTab === 'statistics'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              სტატისტიკა
+            </button>
+            <button
+              onClick={() => setActiveTab('export')}
+              className={`flex items-center gap-2 py-3 px-1 border-b-2 text-sm font-medium transition-colors ${
+                activeTab === 'export'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              ექსპორტი
+            </button>
+          </nav>
+        </div>
+
+        {/* Export Tab Content */}
+        {activeTab === 'export' && (
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <FileSpreadsheet className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">შესყიდვების ექსპორტი</h2>
+                <p className="text-sm text-gray-500">ექსპორტირება Excel ფორმატში</p>
+              </div>
+            </div>
+
+            {exportOptionsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Filters */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Year */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      წელი <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                      className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      {exportOptions?.years?.map((year: number) => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Month */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      თვე <span className="text-gray-400">(არასავალდებულო)</span>
+                    </label>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value === '' ? '' : parseInt(e.target.value))}
+                      className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="">ყველა თვე</option>
+                      {exportOptions?.months?.map((month: { value: number; label: string }) => (
+                        <option key={month.value} value={month.value}>{month.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Course */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      კურსი <span className="text-gray-400">(არასავალდებულო)</span>
+                    </label>
+                    <select
+                      value={selectedCourse}
+                      onChange={(e) => setSelectedCourse(e.target.value)}
+                      className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                      <option value="">ყველა კურსი</option>
+                      {exportOptions?.courses?.map((course: { id: string; title: string }) => (
+                        <option key={course.id} value={course.id}>{course.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Export Info */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Excel ფაილი შეიცავს:</h3>
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary-500 rounded-full"></div>
+                      <span><strong>შეჯამება</strong> - თვეების მიხედვით შემოსავალი და სტატისტიკა</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary-500 rounded-full"></div>
+                      <span><strong>დეტალური მონაცემები</strong> - ყველა შესყიდვა დეტალებით</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-primary-500 rounded-full"></div>
+                      <span><strong>კურსების შეჯამება</strong> - კურსების მიხედვით შემოსავალი</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Export Button */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => exportMutation.mutate()}
+                    disabled={exportMutation.isPending}
+                    className="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {exportMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        მიმდინარეობს...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-5 h-5" />
+                        Excel-ის ჩამოტვირთვა
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        ) : analytics ? (
+        )}
+
+        {/* Statistics Tab Content */}
+        {activeTab === 'statistics' && (
           <>
-            {/* ===== PAYMENTS SECTION ===== */}
+            {isLoading ? (
+              <div className="space-y-6 sm:space-y-8">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-gray-200 rounded-xl animate-pulse h-48 sm:h-64" />
+                ))}
+              </div>
+            ) : analytics ? (
+              <>
+                {/* ===== PAYMENTS SECTION ===== */}
             <section>
               <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                 <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
@@ -442,11 +647,13 @@ export default function AnalyticsPage() {
                 </div>
               </div>
             </section>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500">მონაცემები არ არის</p>
+              </div>
+            )}
           </>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">მონაცემები არ არის</p>
-          </div>
         )}
       </div>
     </AdminLayout>
