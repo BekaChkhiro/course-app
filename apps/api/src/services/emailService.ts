@@ -1963,6 +1963,109 @@ ${BRAND.name} გუნდი
     });
   }
 
+  // ==========================================
+  // CONTACT FORM EMAILS
+  // ==========================================
+
+  /**
+   * Send contact form notification to admin
+   */
+  static async sendContactFormNotification(
+    adminEmail: string,
+    contactData: {
+      name: string;
+      email: string;
+      subject: string;
+      message: string;
+    }
+  ): Promise<boolean> {
+    const subjectLabels: Record<string, string> = {
+      general: 'ზოგადი კითხვა',
+      support: 'ტექნიკური მხარდაჭერა',
+      billing: 'გადახდის საკითხი',
+      partnership: 'თანამშრომლობა',
+      feedback: 'უკუკავშირი',
+    };
+
+    const formattedSubject = subjectLabels[contactData.subject] || contactData.subject;
+
+    const submissionDate = new Date().toLocaleString('ka-GE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const content = `
+      <div class="details-card">
+        <p style="margin: 0 0 15px 0; font-weight: bold; color: ${BRAND.colors.gray[500]}; text-transform: uppercase; font-size: 12px;">👤 გამომგზავნის ინფორმაცია</p>
+        <div class="detail-row">
+          <span class="detail-label">სახელი:</span>
+          <span class="detail-value">${contactData.name}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ელ-ფოსტა:</span>
+          <span class="detail-value"><a href="mailto:${contactData.email}">${contactData.email}</a></span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">თემა:</span>
+          <span class="detail-value">${formattedSubject}</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0;"><strong>💬 შეტყობინება:</strong></p>
+        <p style="margin: 0; color: ${BRAND.colors.gray[700]}; white-space: pre-wrap;">${contactData.message}</p>
+      </div>
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="mailto:${contactData.email}?subject=Re: ${formattedSubject}" class="button">პასუხის გაგზავნა</a>
+      </div>
+
+      <div class="warning-box">
+        <p style="margin: 0;"><strong>⚡ მოქმედება საჭიროა:</strong> გთხოვთ უპასუხოთ მომხმარებელს რაც შეიძლება სწრაფად.</p>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 12px; text-align: center; margin-top: 20px;">გაგზავნის თარიღი: ${submissionDate}</p>
+    `;
+
+    const html = createEmailTemplate({
+      title: 'ახალი შეტყობინება',
+      subtitle: formattedSubject,
+      headerIcon: '✉️',
+      headerGradient: 'primary',
+      content,
+    });
+
+    const text = `
+ახალი შეტყობინება კონტაქტის ფორმიდან - ${BRAND.name}
+
+გამომგზავნის ინფორმაცია:
+სახელი: ${contactData.name}
+ელ-ფოსტა: ${contactData.email}
+თემა: ${formattedSubject}
+
+შეტყობინება:
+${contactData.message}
+
+გაგზავნის თარიღი: ${submissionDate}
+    `;
+
+    return this.sendEmail({
+      to: adminEmail,
+      subject: `✉️ ახალი შეტყობინება: ${formattedSubject} - ${BRAND.name}`,
+      html,
+      text,
+      templateType: 'contact_form',
+      metadata: {
+        senderName: contactData.name,
+        senderEmail: contactData.email,
+        subject: contactData.subject,
+      },
+    });
+  }
+
   /**
    * Send reminder when upgrade discount is about to expire
    */

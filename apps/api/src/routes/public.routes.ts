@@ -653,27 +653,68 @@ router.post('/contact', async (req: Request, res: Response) => {
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required',
+        message: 'ყველა ველი აუცილებელია',
       });
     }
 
-    // In a real app, you would:
-    // 1. Save to database
-    // 2. Send email notification
-    // 3. Possibly integrate with a ticketing system
+    // Validate name length
+    if (name.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'სახელი უნდა შეიცავდეს მინიმუმ 2 სიმბოლოს',
+      });
+    }
 
-    // For now, just log and return success
-    console.log('Contact form submission:', { name, email, subject, message });
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'არასწორი ელ-ფოსტის ფორმატი',
+      });
+    }
 
-    res.json({
-      success: true,
-      message: 'Message sent successfully',
-    });
+    // Validate message length
+    if (message.trim().length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'შეტყობინება უნდა შეიცავდეს მინიმუმ 10 სიმბოლოს',
+      });
+    }
+
+    // Send email notification to admin
+    const adminEmail = process.env.CONTACT_EMAIL || process.env.ADMIN_EMAIL || 'info@kursebi.online';
+
+    try {
+      await EmailService.sendContactFormNotification(adminEmail, {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        subject,
+        message: message.trim(),
+      });
+
+      console.log('📧 Contact form submitted:', {
+        name: name.trim(),
+        email: email.trim(),
+        subject,
+      });
+
+      res.json({
+        success: true,
+        message: 'შეტყობინება წარმატებით გაიგზავნა',
+      });
+    } catch (emailError) {
+      console.error('Failed to send contact form email:', emailError);
+      res.status(500).json({
+        success: false,
+        message: 'შეტყობინების გაგზავნა ვერ მოხერხდა. გთხოვთ სცადოთ მოგვიანებით.',
+      });
+    }
   } catch (error) {
     console.error('Error submitting contact form:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to submit contact form',
+      message: 'შეტყობინების გაგზავნა ვერ მოხერხდა',
     });
   }
 });
