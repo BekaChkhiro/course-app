@@ -190,7 +190,9 @@ model Course {
   slug        String       @unique
   description String       @db.Text
   thumbnail   String?
+  demoVideoId String?      // დემო ვიდეოს ID ქარდებისთვის
   price       Decimal      @db.Decimal(10, 2)
+  individualSessionPrice  Decimal?  @db.Decimal(10, 2)  // ინდივიდუალური სესიის ფასი
   status      CourseStatus @default(DRAFT)
   categoryId  String
   authorId    String
@@ -210,6 +212,7 @@ model Course {
   category        Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   author          User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
   instructor      Instructor?     @relation(fields: [instructorId], references: [id], onDelete: SetNull)
+  demoVideo       Video?          @relation("CourseDemoVideo", fields: [demoVideoId], references: [id], onDelete: SetNull)
   versions        CourseVersion[]
   purchases       Purchase[]
   reviews         Review[]
@@ -223,6 +226,7 @@ model Course {
   @@index([authorId])
   @@index([instructorId])
   @@index([status])
+  @@index([demoVideoId])
   @@map("courses")
 }
 
@@ -927,6 +931,7 @@ model Video {
   analytics       VideoAnalytics[]
   processingJobs  VideoProcessingJob[]
   bookmarks       Bookmark[]
+  demoForCourses  Course[]               @relation("CourseDemoVideo")
 
   @@index([chapterId])
   @@index([processingStatus])
@@ -1835,6 +1840,43 @@ model Slider {
   @@index([order])
   @@index([isActive])
   @@map("sliders")
+}
+
+// ==========================================
+// SITE SETTINGS & PAGE CONTENT
+// ==========================================
+
+model SiteSettings {
+  id              String   @id @default("singleton")
+
+  // Contact Information
+  email           String   @default("info@kursebi.online")
+  phone           String   @default("+995 596 89 91 91")
+  whatsappNumber  String   @default("995596899191")
+
+  // Social Media Links
+  facebookUrl     String?
+  instagramUrl    String?
+  tiktokUrl       String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model PageContent {
+  id              String   @id @default(cuid())
+  pageSlug        String   @unique  // "about", "contact"
+  heroTitle       String
+  heroSubtitle    String?  @db.Text
+  content         String?  @db.Text  // Rich text / JSON content
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([pageSlug])
+  @@map("page_contents")
 }
 
 // ==========================================

@@ -22,6 +22,7 @@ type Course = {
   description: string;
   thumbnail: string | null;
   price: number;
+  individualSessionPrice: number | null;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   category: { id: string; name: string };
   createdAt: string;
@@ -358,6 +359,7 @@ function CourseModal({
     thumbnail: '',
     thumbnailPath: '',
     price: '',
+    individualSessionPrice: '',
     categoryId: '',
     metaTitle: '',
     metaDescription: '',
@@ -377,6 +379,7 @@ function CourseModal({
         thumbnail: course.thumbnail || '',
         thumbnailPath: '',
         price: course.price.toString(),
+        individualSessionPrice: course.individualSessionPrice?.toString() || '',
         categoryId: course.category.id,
         metaTitle: '',
         metaDescription: '',
@@ -392,6 +395,7 @@ function CourseModal({
         thumbnail: '',
         thumbnailPath: '',
         price: '',
+        individualSessionPrice: '',
         categoryId: '',
         metaTitle: '',
         metaDescription: '',
@@ -430,7 +434,8 @@ function CourseModal({
 
     const data = {
       ...formData,
-      price: parseFloat(formData.price)
+      price: parseFloat(formData.price),
+      individualSessionPrice: formData.individualSessionPrice ? parseFloat(formData.individualSessionPrice) : null
     };
 
     if (course) {
@@ -506,6 +511,20 @@ function CourseModal({
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ინდივიდუალური სესიის ფასი (ლარი)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.individualSessionPrice}
+              onChange={(e) => setFormData({ ...formData, individualSessionPrice: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
+              placeholder="არასავალდებულო"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">კატეგორია</label>
             <select
               value={formData.categoryId}
@@ -532,19 +551,19 @@ function CourseModal({
                 })}
             </select>
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">სტატუსი</label>
-          <select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
-          >
-            <option value="DRAFT">დრაფტი</option>
-            <option value="PUBLISHED">გამოქვეყნებული</option>
-            <option value="ARCHIVED">დაარქივებული</option>
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">სტატუსი</label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600"
+            >
+              <option value="DRAFT">დრაფტი</option>
+              <option value="PUBLISHED">გამოქვეყნებული</option>
+              <option value="ARCHIVED">დაარქივებული</option>
+            </select>
+          </div>
         </div>
 
         <ModalFooter>

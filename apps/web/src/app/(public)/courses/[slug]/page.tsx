@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Mail, Facebook, Linkedin, User, Zap, ArrowRight, Clock } from 'lucide-react';
+import { Mail, Facebook, Linkedin, User, Zap, ArrowRight, Clock, Play } from 'lucide-react';
 import { publicApi } from '@/lib/api/publicApi';
 import { studentApiClient } from '@/lib/api/studentApi';
 import { useAuthStore } from '@/store/authStore';
 import BuyButton from '@/components/payment/BuyButton';
 import BookingModal from '@/components/booking/BookingModal';
+import VideoPreviewModal from '@/components/ui/VideoPreviewModal';
 import toast from 'react-hot-toast';
 
 export default function CoursePage() {
@@ -23,6 +24,7 @@ export default function CoursePage() {
   const [enrollError, setEnrollError] = useState<string | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const { data: course, isLoading, error } = useQuery({
     queryKey: ['course', slug],
@@ -471,6 +473,11 @@ export default function CoursePage() {
                         <div>
                           <p className="text-sm font-semibold text-accent-600 uppercase tracking-wide">ინდივიდუალური სწავლება</p>
                           <p className="text-sm text-accent-700 mt-1">დაჯავშნეთ ინდივიდუალური სესია ლექტორთან და მიიღეთ პერსონალური მხარდაჭერა.</p>
+                          <p className="text-lg font-bold text-accent-800 mt-2">
+                            {course.individualSessionPrice
+                              ? `${Number(course.individualSessionPrice).toFixed(0)} ₾ / სესია`
+                              : 'შეთანხმებით'}
+                          </p>
                         </div>
                       </div>
                       <button

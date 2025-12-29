@@ -137,6 +137,7 @@ export const courseApi = {
   getAll: (params?: any) => adminApi.get('/courses', { params }),
   getById: (id: string) => adminApi.get(`/courses/${id}`),
   getStats: (id: string) => adminApi.get(`/courses/${id}/stats`),
+  getAvailableDemoVideos: (id: string) => adminApi.get(`/courses/${id}/available-demo-videos`),
   create: (data: any) => adminApi.post('/courses', data),
   update: (id: string, data: any) => adminApi.put(`/courses/${id}`, data),
   delete: (id: string) => adminApi.delete(`/courses/${id}`),
@@ -538,6 +539,32 @@ export const promoCodeApi = {
   // Validate promo code (for checkout)
   validate: (code: string, courseId: string) =>
     adminApi.post('/promo-codes/validate', { code, courseId }),
+};
+
+// Site Settings APIs (Admin)
+export const siteSettingsApi = {
+  get: () => adminApi.get('/site-settings'),
+  update: (data: {
+    email?: string;
+    phone?: string;
+    whatsappNumber?: string;
+    facebookUrl?: string;
+    instagramUrl?: string;
+    tiktokUrl?: string;
+  }) => adminApi.put('/site-settings', data)
+};
+
+// Page Content APIs (Admin)
+export const pageContentApi = {
+  getAll: () => adminApi.get('/pages'),
+  get: (slug: string) => adminApi.get(`/pages/${slug}`),
+  update: (slug: string, data: {
+    heroTitle: string;
+    heroSubtitle?: string;
+    content?: string;
+    isActive?: boolean;
+  }) => adminApi.put(`/pages/${slug}`, data),
+  delete: (slug: string) => adminApi.delete(`/pages/${slug}`)
 };
 
 export default adminApi;

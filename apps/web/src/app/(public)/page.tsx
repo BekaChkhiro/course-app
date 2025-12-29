@@ -8,6 +8,8 @@ import { publicApi } from '@/lib/api/publicApi';
 import HeroSlider from '@/components/public/HeroSlider';
 import InstructorsSection from '@/components/public/InstructorsSection';
 import FAQSection from '@/components/public/FAQSection';
+import VideoPreviewModal from '@/components/ui/VideoPreviewModal';
+import { Play } from 'lucide-react';
 
 // Hero Section
 const HeroSection = () => {
@@ -117,41 +119,63 @@ const PopularCoursesSection = () => {
   );
 };
 
-// Course Card Component with Hover Syllabus
+// Course Card Component with Hover Syllabus and Demo Video
 const CourseCard = ({ course }: { course: any }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
-    <div
-      className="group relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className={`bg-white overflow-hidden shadow-sm transition-all duration-300 rounded-xl sm:rounded-2xl ${isHovered ? 'sm:shadow-xl sm:rounded-t-2xl sm:rounded-b-none' : ''}`}>
-        {/* Thumbnail */}
-        <Link href={`/courses/${course.slug}`} className="block">
-          <div className="relative h-40 sm:h-48 bg-gray-200 overflow-hidden">
-            {course.thumbnail ? (
-              <Image
-                src={course.thumbnail}
-                alt={course.title}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <div className="w-full h-full bg-primary-900 flex items-center justify-center">
-                <svg className="w-12 h-12 sm:w-16 sm:h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+    <>
+      <div
+        className="group relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className={`bg-white overflow-hidden shadow-sm transition-all duration-300 rounded-xl sm:rounded-2xl ${isHovered ? 'sm:shadow-xl sm:rounded-t-2xl sm:rounded-b-none' : ''}`}>
+          {/* Thumbnail with Play Button */}
+          <div className="relative">
+            <Link href={`/courses/${course.slug}`} className="block">
+              <div className="relative h-40 sm:h-48 bg-gray-200 overflow-hidden">
+                {/* Thumbnail Image */}
+                {course.thumbnail ? (
+                  <Image
+                    src={course.thumbnail}
+                    alt={course.title}
+                    fill
+                    className="object-cover transition-all duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-primary-900 flex items-center justify-center">
+                    <svg className="w-12 h-12 sm:w-16 sm:h-16 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                )}
+
+                {course.category && (
+                  <span className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/90 backdrop-blur-sm px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium text-gray-700 z-10">
+                    {course.category.name}
+                  </span>
+                )}
               </div>
-            )}
-            {course.category && (
-              <span className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/90 backdrop-blur-sm px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium text-gray-700">
-                {course.category.name}
-              </span>
+            </Link>
+
+            {/* Play Button Overlay (if demo video exists) */}
+            {course.demoVideoUrl && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsVideoModalOpen(true);
+                }}
+                className="absolute inset-0 flex items-center justify-center z-10 group/play"
+              >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-accent-600 hover:bg-accent-700 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110">
+                  <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" fill="white" />
+                </div>
+              </button>
             )}
           </div>
-        </Link>
 
         {/* Content */}
         <div className="p-3 sm:p-5 flex flex-col">
@@ -230,6 +254,17 @@ const CourseCard = ({ course }: { course: any }) => {
         </div>
       </div>
     </div>
+
+      {/* Video Preview Modal */}
+      {course.demoVideoUrl && (
+        <VideoPreviewModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
+          videoUrl={course.demoVideoUrl}
+          title={course.title}
+        />
+      )}
+    </>
   );
 };
 

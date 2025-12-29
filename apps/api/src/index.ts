@@ -33,6 +33,8 @@ import adminStudentsRoutes from './routes/adminStudents.routes'
 import refundRoutes from './routes/refund.routes'
 import notificationRoutes from './routes/notificationRoutes'
 import promoCodeRoutes from './routes/promoCode.routes'
+import siteSettingsRoutes from './routes/siteSettingsRoutes'
+import pageContentRoutes from './routes/pageContentRoutes'
 
 // Initialize video processor worker
 import './workers/videoProcessor'
@@ -166,6 +168,12 @@ app.use('/api/notifications', notificationRoutes)
 
 // Promo code routes
 app.use('/api/promo-codes', promoCodeRoutes)
+
+// Site settings routes
+app.use('/api/site-settings', siteSettingsRoutes)
+
+// Page content routes
+app.use('/api/pages', pageContentRoutes)
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

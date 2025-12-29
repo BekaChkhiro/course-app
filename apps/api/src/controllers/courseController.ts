@@ -132,6 +132,7 @@ export const createCourse = async (req: Request, res: Response) => {
       description,
       thumbnail,
       price,
+      individualSessionPrice,
       categoryId,
       metaTitle,
       metaDescription,
@@ -167,6 +168,7 @@ export const createCourse = async (req: Request, res: Response) => {
         description,
         thumbnail,
         price,
+        individualSessionPrice: individualSessionPrice || null,
         categoryId,
         authorId,
         metaTitle,
@@ -201,8 +203,10 @@ export const updateCourse = async (req: Request, res: Response) => {
       description,
       thumbnail,
       price,
+      individualSessionPrice,
       categoryId,
       instructorId,
+      demoVideoId,
       metaTitle,
       metaDescription,
       metaKeywords,
@@ -263,8 +267,10 @@ export const updateCourse = async (req: Request, res: Response) => {
         ...(description && { description }),
         ...(thumbnail !== undefined && { thumbnail }),
         ...(price !== undefined && { price }),
+        ...(individualSessionPrice !== undefined && { individualSessionPrice: individualSessionPrice || null }),
         ...(categoryId && { categoryId }),
         ...(instructorId !== undefined && { instructorId: instructorId || null }),
+        ...(demoVideoId !== undefined && { demoVideoId: demoVideoId || null }),
         ...(metaTitle !== undefined && { metaTitle }),
         ...(metaDescription !== undefined && { metaDescription }),
         ...(metaKeywords !== undefined && { metaKeywords }),
@@ -386,6 +392,7 @@ export const duplicateCourse = async (req: Request, res: Response) => {
         description: originalCourse.description,
         thumbnail: originalCourse.thumbnail,
         price: originalCourse.price,
+        individualSessionPrice: originalCourse.individualSessionPrice,
         categoryId: originalCourse.categoryId,
         authorId,
         metaTitle: originalCourse.metaTitle,
@@ -516,6 +523,87 @@ export const exportCoursesToCSV = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Export courses error:', error);
     res.status(500).json({ error: 'Failed to export courses' });
+  }
+};
+
+// Get available demo videos for a course (only from active version's chapters)
+export const getAvailableDemoVideos = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Get course with active version info
+    const course = await prisma.course.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        demoVideoId: true,
+      }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Get only the active version with its chapters and videos
+    const activeVersion = await prisma.courseVersion.findFirst({
+      where: {
+        courseId: id,
+        isActive: true
+      },
+      include: {
+        chapters: {
+          orderBy: { order: 'asc' },
+          include: {
+            videos: {
+              where: {
+                processingStatus: 'COMPLETED'
+              },
+              select: {
+                id: true,
+                originalName: true,
+                duration: true,
+                r2Key: true,
+                r2Bucket: true,
+                thumbnails: {
+                  take: 1,
+                  select: { url: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Flatten videos with chapter info from active version only
+    const videos: any[] = [];
+    if (activeVersion) {
+      for (const chapter of activeVersion.chapters) {
+        for (const video of chapter.videos) {
+          videos.push({
+            id: video.id,
+            chapterTitle: chapter.title,
+            versionNumber: activeVersion.version,
+            originalName: video.originalName,
+            duration: video.duration,
+            thumbnailUrl: video.thumbnails[0]?.url || null,
+            r2Key: video.r2Key,
+          });
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        videos,
+        currentDemoVideoId: course.demoVideoId,
+        activeVersionNumber: activeVersion?.version || null
+      }
+    });
+  } catch (error) {
+    console.error('Get available demo videos error:', error);
+    res.status(500).json({ error: 'Failed to fetch available demo videos' });
   }
 };
 

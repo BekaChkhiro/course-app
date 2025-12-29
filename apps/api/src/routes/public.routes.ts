@@ -18,6 +18,12 @@ const formatPublicCourse = (course: any) => {
   const chapterCount = activeVersion?._count?.chapters || 0;
   const previewChapters = activeVersion?.chapters || [];
 
+  // Build demo video URL from R2 key
+  let demoVideoUrl = null;
+  if (course.demoVideo?.r2Key) {
+    demoVideoUrl = `${process.env.R2_PUBLIC_URL}/${course.demoVideo.r2Key}`;
+  }
+
   return {
     id: course.id,
     title: course.title,
@@ -26,6 +32,7 @@ const formatPublicCourse = (course: any) => {
       course.description?.substring(0, 200) +
       (course.description && course.description.length > 200 ? '...' : ''),
     thumbnail: course.thumbnail,
+    demoVideoUrl,
     price: Number(course.price),
     category: course.category,
     averageRating,
@@ -117,6 +124,9 @@ router.get('/courses', async (req: Request, res: Response) => {
           category: {
             select: { id: true, name: true, slug: true },
           },
+          demoVideo: {
+            select: { id: true, r2Key: true },
+          },
           _count: {
             select: { purchases: true, reviews: true },
           },
@@ -189,6 +199,9 @@ router.get('/courses/featured', async (req: Request, res: Response) => {
       include: {
         category: {
           select: { id: true, name: true, slug: true },
+        },
+        demoVideo: {
+          select: { id: true, r2Key: true },
         },
         _count: {
           select: { purchases: true, reviews: true },
@@ -454,6 +467,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         shortDescription: course.description?.substring(0, 200),
         thumbnail: course.thumbnail,
         price: Number(course.price),
+        individualSessionPrice: course.individualSessionPrice ? Number(course.individualSessionPrice) : null,
         category: course.category,
         author: course.author,
         instructor: course.instructor,

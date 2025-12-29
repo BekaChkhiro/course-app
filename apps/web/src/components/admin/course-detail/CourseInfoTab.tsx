@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, BookOpen, DollarSign, Image, Search, UserCircle } from 'lucide-react';
+import { Save, BookOpen, DollarSign, Image, Search, UserCircle, Video } from 'lucide-react';
 import { courseApi, categoryApi, uploadApi, instructorApi } from '@/lib/api/adminApi';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import FileUpload from '@/components/ui/FileUpload';
 import RichTextEditor from '@/components/ui/RichTextEditor';
+import DemoVideoSelector from '@/components/admin/DemoVideoSelector';
 import { slugify } from '@/lib/utils';
 
 interface CourseInfoTabProps {
@@ -48,7 +49,9 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
     slug: course.slug,
     description: course.description || '',
     price: course.price,
+    individualSessionPrice: course.individualSessionPrice || '',
     thumbnail: course.thumbnail || '',
+    demoVideoId: course.demoVideoId || null,
     categoryId: course.categoryId,
     instructorId: course.instructorId || '',
     status: course.status,
@@ -83,7 +86,10 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate(formData);
+    updateMutation.mutate({
+      ...formData,
+      individualSessionPrice: formData.individualSessionPrice || null
+    });
   };
 
   const categories = categoriesData?.categories || [];
@@ -157,7 +163,7 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
         title="ფასი და კატეგორია"
         description="კურსის ფასი, კატეგორია და სტატუსი"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               ფასი <span className="text-red-500">*</span>
@@ -173,6 +179,24 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₾</span>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              ინდივიდუალური სესიის ფასი
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                value={formData.individualSessionPrice}
+                onChange={(e) => setFormData({ ...formData, individualSessionPrice: e.target.value ? parseFloat(e.target.value) : '' })}
+                className="w-full pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors"
+                placeholder="არასავალდებულო"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₾</span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">თუ ცარიელია, გამოჩნდება "შეთანხმებით"</p>
           </div>
 
           <div>
@@ -274,6 +298,22 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
           onChange={(url) => setFormData({ ...formData, thumbnail: url })}
           preview={true}
         />
+      </Section>
+
+      {/* Demo Video Section */}
+      <Section
+        icon={<Video className="w-5 h-5" />}
+        title="დემო ვიდეო"
+        description="კურსის თრეილერი ქარდებისთვის"
+      >
+        <DemoVideoSelector
+          courseId={course.id}
+          selectedVideoId={formData.demoVideoId}
+          onSelect={(videoId) => setFormData({ ...formData, demoVideoId: videoId })}
+        />
+        <p className="mt-3 text-xs text-gray-500">
+          დემო ვიდეო გამოჩნდება კურსის ქარდებზე auto-play რეჟიმში hover-ზე
+        </p>
       </Section>
 
       {/* SEO Section */}

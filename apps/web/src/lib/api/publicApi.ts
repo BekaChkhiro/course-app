@@ -232,4 +232,44 @@ export const publicApi = {
     }
     return data.data;
   },
+
+  // Get site settings (contact info, social links)
+  async getSiteSettings() {
+    const response = await fetch(`${API_URL}/api/site-settings/public`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      // Return defaults if failed
+      return {
+        email: 'info@kursebi.online',
+        phone: '+995 596 89 91 91',
+        whatsappNumber: '995596899191',
+        facebookUrl: null,
+        instagramUrl: null,
+        tiktokUrl: null,
+      };
+    }
+    return data.data;
+  },
+
+  // Get page content by slug
+  async getPageContent(slug: string) {
+    const response = await fetch(`${API_URL}/api/pages/public/${slug}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    if (!data.success) {
+      return null;
+    }
+    return data.data;
+  },
 };

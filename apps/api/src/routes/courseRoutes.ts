@@ -9,7 +9,8 @@ import {
   duplicateCourse,
   bulkUpdateStatus,
   exportCoursesToCSV,
-  getCourseStats
+  getCourseStats,
+  getAvailableDemoVideos
 } from '../controllers/courseController';
 
 const router = express.Router();
@@ -28,5 +29,6 @@ router.delete('/:id', deleteCourse);
 router.post('/:id/duplicate', duplicateCourse);
 router.post('/bulk/update-status', bulkUpdateStatus);
 router.get('/export/csv', exportCoursesToCSV);
+router.get('/:id/available-demo-videos', getAvailableDemoVideos);
 
 export default router;
