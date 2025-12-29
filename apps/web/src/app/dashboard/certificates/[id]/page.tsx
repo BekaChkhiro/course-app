@@ -199,9 +199,6 @@ export default function CertificateViewPage() {
                   <div className="w-12 sm:w-20 h-px bg-gradient-to-l from-transparent to-accent-500" />
                 </div>
 
-                {/* Recipient text */}
-                <p className="text-gray-500 text-xs sm:text-sm mb-1 sm:mb-2 italic">ეს სერტიფიკატი გადაეცემა</p>
-
                 {/* Student Name */}
                 <h2 className="text-xl sm:text-3xl font-serif font-bold mb-3 sm:mb-5 px-4" style={{ color: '#0e3355' }}>
                   {certificate.studentName}

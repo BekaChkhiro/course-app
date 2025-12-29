@@ -284,9 +284,6 @@ const CourseCompletionModal: React.FC<CourseCompletionModalProps> = ({
                     <div className="w-12 sm:w-16 h-px bg-gradient-to-l from-transparent to-accent-500" />
                   </div>
 
-                  {/* Recipient text */}
-                  <p className="text-gray-500 text-xs sm:text-xs mb-2 italic">ეს სერტიფიკატი გადაეცემა</p>
-
                   {/* Student Name */}
                   <h2 className="text-xl sm:text-2xl font-serif font-bold mb-3 sm:mb-3 px-2" style={{ color: '#0e3355' }}>
                     {generatedCertificate.studentName}

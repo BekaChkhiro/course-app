@@ -19,7 +19,10 @@ This is a full-stack e-learning platform built as a monorepo using Turborepo. Th
 - **Rich Text**: TipTap editor
 - **Tables**: TanStack Table with drag-and-drop (@dnd-kit)
 - **Authentication**: JWT with refresh tokens
-- **Payment**: Stripe integration
+- **Payment**: BOG (Bank of Georgia) payment integration
+- **Storage**: Cloudflare R2 for files and video
+- **Video Processing**: FFmpeg for HLS streaming conversion
+- **Email**: Resend for transactional emails
 
 ## Common Commands
 
@@ -55,7 +58,14 @@ npm run lint             # Lint all workspaces
 npm run format           # Format code with Prettier
 npm run format:check     # Check formatting without modifying
 npm run type-check       # TypeScript type checking across all workspaces
-npm run test             # Run tests (if configured)
+```
+
+### Testing (API)
+```bash
+cd apps/api
+npm run test             # Run all tests
+npm run test:watch       # Run tests in watch mode
+npm run test:coverage    # Run tests with coverage report
 ```
 
 ### Docker Services
@@ -223,6 +233,20 @@ The naming convention uses `@types/*` for all workspace packages. To use a works
   - Each version can be marked as current
   - Chapters belong to specific versions
   - Allows publishing new content without affecting enrolled students
+  - `UserVersionAccess` tracks which versions each user can access
+  - Version upgrades can have promotional pricing with time-limited discounts
+
+- **Analytics System**: Comprehensive analytics tracking
+  - `DailyAnalytics` - Aggregated daily metrics (revenue, users, engagement)
+  - `CourseRevenueAnalytics` - Per-course revenue breakdown
+  - `ChapterAnalytics` - Learning path and drop-off analysis
+  - `ActivityLog` - Real-time user activity tracking
+
+- **Gamification**: Student engagement features
+  - `StudyStreak` - Daily learning streak tracking
+  - `Badge`, `UserBadge` - Achievement badges system
+  - `UserXP`, `XPHistory` - Experience points and levels
+  - `Note`, `Bookmark` - Personal learning tools
 
 ### Critical Development Patterns
 
@@ -246,15 +270,21 @@ The naming convention uses `@types/*` for all workspace packages. To use a works
    }
    ```
 
-4. **File Uploads**: Backend serves uploads statically from `/uploads/*`
+4. **File Uploads**: Files are stored in Cloudflare R2
    - Upload endpoint: `/api/upload`
-   - Files stored in `apps/api/uploads/`
-   - Served via Express static middleware
+   - Videos are processed with FFmpeg into HLS format (480p, 720p, 1080p)
+   - `Video` model tracks processing status and HLS playlist URLs
+   - Encryption keys managed per-video for DRM
 
 5. **Device Session Management**: Users limited to 3 concurrent devices
    - Check device count before allowing login
    - Track device info with ua-parser-js
    - Allow users to revoke device access
+
+6. **Payment Flow (BOG)**: Bank of Georgia integration
+   - `Purchase` model stores `bogOrderId` and `externalOrderId`
+   - Supports refunds via `RefundRequest` model with status tracking
+   - Promo codes with scopes: ALL, COURSE, or CATEGORY
 
 ## Environment Variables
 
@@ -286,19 +316,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/course_platform?schema=public"
 ```
 
-## Testing Strategy
+## Deployment Notes
 
-When writing tests:
-- Backend: Test controllers and services separately
-- Frontend: Test components with React Testing Library
-- Integration: Test API endpoints with actual database (use test database)
-- E2E: Test critical user flows (authentication, course enrollment)
-
-## Deployment Considerations
-
-- **Frontend**: Deploy to Vercel (automatic with Next.js)
-- **Backend**: Deploy to Railway, Render, or AWS
-- **Database**: Use managed PostgreSQL (Railway, Supabase, AWS RDS)
-- **Redis**: Use managed Redis (Railway, Redis Cloud, AWS ElastiCache)
-- Environment variables must be set in deployment platform
 - Run `npm run db:migrate` (not db:push) for production migrations
+- Backend uses Bull queues for video processing jobs (requires Redis)
