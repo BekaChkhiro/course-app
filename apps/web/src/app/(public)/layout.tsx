@@ -1,4 +1,4 @@
-import { Header, Footer } from '@/components/public';
+import { Header, Footer, WhatsAppButton } from '@/components/public';
 
 export default function PublicLayout({
   children,
@@ -10,6 +10,7 @@ export default function PublicLayout({
       <Header />
       <main className="flex-grow">{children}</main>
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 }
