@@ -78,6 +78,8 @@ const navigationCategories: NavCategory[] = [
     name: 'საიტი',
     icon: Globe,
     items: [
+      { name: 'პარამეტრები', href: '/admin/site-settings', icon: Settings },
+      { name: 'გვერდები', href: '/admin/pages', icon: FileText },
       { name: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
       { name: 'სლაიდერი', href: '/admin/sliders', icon: Images },
     ],

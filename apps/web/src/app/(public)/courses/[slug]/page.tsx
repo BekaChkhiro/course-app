@@ -102,8 +102,8 @@ export default function CoursePage() {
   // Purchase Card Component - reusable for mobile and desktop
   const PurchaseCard = ({ className = '' }: { className?: string }) => (
     <div className={`bg-white rounded-2xl shadow-xl overflow-hidden ${className}`}>
-      {/* Course Image */}
-      <div className="relative h-48 bg-gray-200">
+      {/* Course Image with Video Preview */}
+      <div className="relative h-48 bg-gray-200 group/thumbnail">
         {course.thumbnail ? (
           <Image
             src={course.thumbnail}
@@ -117,6 +117,18 @@ export default function CoursePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
           </div>
+        )}
+
+        {/* Play Button for Demo Video - Always Visible */}
+        {course.demoVideoUrl && (
+          <button
+            onClick={() => setIsVideoModalOpen(true)}
+            className="absolute inset-0 flex items-center justify-center bg-black/30"
+          >
+            <div className="w-16 h-16 bg-accent-600 hover:bg-accent-700 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110">
+              <Play className="w-7 h-7 text-white ml-1" fill="white" />
+            </div>
+          </button>
         )}
       </div>
 
@@ -589,6 +601,17 @@ export default function CoursePage() {
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
       />
+
+      {/* Video Preview Modal */}
+      {course.demoVideoUrl && (
+        <VideoPreviewModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
+          videoUrl={course.demoVideoUrl}
+          title={course.title}
+          thumbnailUrl={course.thumbnail}
+        />
+      )}
     </div>
   );
 }

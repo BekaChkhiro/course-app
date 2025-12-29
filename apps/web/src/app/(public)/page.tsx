@@ -262,6 +262,7 @@ const CourseCard = ({ course }: { course: any }) => {
           onClose={() => setIsVideoModalOpen(false)}
           videoUrl={course.demoVideoUrl}
           title={course.title}
+          thumbnailUrl={course.thumbnail}
         />
       )}
     </>

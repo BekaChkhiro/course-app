@@ -1,4 +1,25 @@
+'use client';
+
+import { usePageContent } from '@/hooks/useSiteSettings';
+
 export default function AboutPage() {
+  const { data: pageContent } = usePageContent('about');
+
+  // Hero content with fallbacks
+  const heroTitle = pageContent?.heroTitle || 'ჩვენ შესახებ';
+  const heroSubtitle = pageContent?.heroSubtitle || 'ჩვენი მისია არის განათლების ხელმისაწვდომობა ყველასთვის';
+
+  // Mission content - split by newlines if content exists
+  const defaultMissionParagraphs = [
+    'Kursebi Online შეიქმნა იმ იდეით, რომ ხარისხიანი განათლება უნდა იყოს ხელმისაწვდომი ყველასთვის, მიუხედავად გეოგრაფიული მდებარეობისა თუ ფინანსური შესაძლებლობებისა.',
+    'ჩვენ ვთანამშრომლობთ საუკეთესო ინსტრუქტორებთან და ინდუსტრიის ექსპერტებთან, რათა შევქმნათ კურსები, რომლებიც მართლაც ემსახურება სტუდენტების საჭიროებებს და ეხმარება მათ კარიერული მიზნების მიღწევაში.',
+    'ჩვენი პლატფორმა აერთიანებს თანამედროვე ტექნოლოგიებს და ინოვაციურ სასწავლო მეთოდებს, რაც სწავლის პროცესს ხდის მაქსიმალურად ეფექტურს და საინტერესოს.',
+  ];
+
+  const missionParagraphs = pageContent?.content
+    ? pageContent.content.split('\n').filter((p: string) => p.trim())
+    : defaultMissionParagraphs;
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -12,9 +33,9 @@ export default function AboutPage() {
           />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white">ჩვენ შესახებ</h1>
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white">{heroTitle}</h1>
           <p className="mt-3 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-primary-100 px-2">
-            ჩვენი მისია არის განათლების ხელმისაწვდომობა ყველასთვის
+            {heroSubtitle}
           </p>
         </div>
       </section>
@@ -25,19 +46,16 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
             <div>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">ჩვენი მისია</h2>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-3 sm:mb-4">
-                Kursebi Online შეიქმნა იმ იდეით, რომ ხარისხიანი განათლება უნდა იყოს ხელმისაწვდომი ყველასთვის,
-                მიუხედავად გეოგრაფიული მდებარეობისა თუ ფინანსური შესაძლებლობებისა.
-              </p>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-3 sm:mb-4">
-                ჩვენ ვთანამშრომლობთ საუკეთესო ინსტრუქტორებთან და ინდუსტრიის ექსპერტებთან,
-                რათა შევქმნათ კურსები, რომლებიც მართლაც ემსახურება სტუდენტების საჭიროებებს
-                და ეხმარება მათ კარიერული მიზნების მიღწევაში.
-              </p>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600">
-                ჩვენი პლატფორმა აერთიანებს თანამედროვე ტექნოლოგიებს და ინოვაციურ სასწავლო მეთოდებს,
-                რაც სწავლის პროცესს ხდის მაქსიმალურად ეფექტურს და საინტერესოს.
-              </p>
+              {missionParagraphs.map((paragraph: string, index: number) => (
+                <p
+                  key={index}
+                  className={`text-sm sm:text-base lg:text-lg text-gray-600 ${
+                    index < missionParagraphs.length - 1 ? 'mb-3 sm:mb-4' : ''
+                  }`}
+                >
+                  {paragraph}
+                </p>
+              ))}
             </div>
             <div className="relative h-64 sm:h-80 lg:h-96 bg-gray-50 rounded-2xl sm:rounded-3xl overflow-hidden">
               <div className="absolute inset-0 flex items-center justify-center">

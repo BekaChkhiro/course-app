@@ -1,7 +1,10 @@
 'use client';
 
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+
 export const WhatsAppButton = () => {
-  const phoneNumber = '995596899191';
+  const { data: settings } = useSiteSettings();
+  const phoneNumber = settings?.whatsappNumber || '995596899191';
   const whatsappUrl = `https://wa.me/${phoneNumber}`;
 
   return (

@@ -281,6 +281,9 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
             linkedin: true,
           },
         },
+        demoVideo: {
+          select: { id: true, r2Key: true },
+        },
         reviews: {
           where: { status: 'APPROVED' },
           select: { rating: true },
@@ -457,6 +460,12 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
       // For now, return empty array - can be added to Course model later
     } catch {}
 
+    // Build demo video URL
+    let demoVideoUrl = null;
+    if (course.demoVideo?.r2Key) {
+      demoVideoUrl = `${process.env.R2_PUBLIC_URL}/${course.demoVideo.r2Key}`;
+    }
+
     res.json({
       success: true,
       data: {
@@ -466,6 +475,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         description: course.description,
         shortDescription: course.description?.substring(0, 200),
         thumbnail: course.thumbnail,
+        demoVideoUrl,
         price: Number(course.price),
         individualSessionPrice: course.individualSessionPrice ? Number(course.individualSessionPrice) : null,
         category: course.category,
