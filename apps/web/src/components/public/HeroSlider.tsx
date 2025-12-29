@@ -32,7 +32,7 @@ export default function HeroSlider({ slides }: HeroSliderProps) {
   return (
     <section className="w-full pt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="aspect-[2/1] sm:aspect-[16/9] lg:aspect-[3/1] relative rounded-xl sm:rounded-2xl overflow-hidden group">
+        <div className="aspect-[3/1] relative rounded-xl sm:rounded-2xl overflow-hidden group">
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}
             onSwiper={(swiper) => {
