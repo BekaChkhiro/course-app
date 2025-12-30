@@ -96,9 +96,6 @@ function ReviewCard({
           <span className="text-xs sm:text-sm text-gray-500">
             {new Date(review.createdAt).toLocaleDateString()}
           </span>
-          {review.isAnonymous && (
-            <span className="text-[10px] sm:text-xs text-gray-400">• ანონიმური</span>
-          )}
         </div>
 
         {review.title && (
@@ -106,23 +103,6 @@ function ReviewCard({
         )}
 
         <p className="text-gray-700 text-xs sm:text-sm line-clamp-3">{review.comment}</p>
-
-        {(review.pros || review.cons) && (
-          <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-            {review.pros && (
-              <div className="bg-green-50 rounded-lg p-2">
-                <span className="text-[10px] sm:text-xs font-medium text-green-700">დადებითი:</span>
-                <p className="text-[10px] sm:text-xs text-green-800 truncate">{review.pros}</p>
-              </div>
-            )}
-            {review.cons && (
-              <div className="bg-red-50 rounded-lg p-2">
-                <span className="text-[10px] sm:text-xs font-medium text-red-700">უარყოფითი:</span>
-                <p className="text-[10px] sm:text-xs text-red-800 truncate">{review.cons}</p>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Admin Response */}
         {review.response && (
@@ -149,11 +129,6 @@ function ReviewCard({
               </svg>
               {review.helpfulCount || 0}
             </span>
-            {review.wouldRecommend !== null && (
-              <span className={`text-xs ${review.wouldRecommend ? 'text-green-600' : 'text-red-600'}`}>
-                {review.wouldRecommend ? 'რეკომენდაცია' : "არა"}
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             {canEdit() && (

@@ -704,34 +704,6 @@ function ReviewsSection({ courseId }: { courseId: string }) {
                 <p className="text-gray-600">{review.comment}</p>
               )}
 
-              {/* Pros & Cons */}
-              {(review.pros || review.cons) && (
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {review.pros && (
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <div className="flex items-center gap-1 text-green-700 font-medium text-sm mb-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        დადებითი
-                      </div>
-                      <p className="text-sm text-green-800">{review.pros}</p>
-                    </div>
-                  )}
-                  {review.cons && (
-                    <div className="bg-red-50 rounded-lg p-3">
-                      <div className="flex items-center gap-1 text-red-700 font-medium text-sm mb-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        უარყოფითი
-                      </div>
-                      <p className="text-sm text-red-800">{review.cons}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {/* Admin Response */}
               {review.response && (
                 <div className="mt-3 bg-blue-50 rounded-lg p-3 border-l-4 border-blue-500">

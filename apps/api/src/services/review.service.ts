@@ -8,20 +8,12 @@ interface CreateReviewInput {
   rating: number;
   title?: string;
   comment?: string;
-  pros?: string;
-  cons?: string;
-  wouldRecommend?: boolean;
-  isAnonymous?: boolean;
 }
 
 interface UpdateReviewInput {
   rating?: number;
   title?: string;
   comment?: string;
-  pros?: string;
-  cons?: string;
-  wouldRecommend?: boolean;
-  isAnonymous?: boolean;
 }
 
 interface ReviewFilters {
@@ -134,7 +126,7 @@ export class ReviewService {
    * Create a new review
    */
   static async createReview(input: CreateReviewInput) {
-    const { userId, courseId, rating, title, comment, pros, cons, wouldRecommend, isAnonymous } = input;
+    const { userId, courseId, rating, title, comment } = input;
 
     // Validate rating (1-5 stars, stored as 10-50 for half-stars)
     if (rating < 10 || rating > 50) {
@@ -176,10 +168,6 @@ export class ReviewService {
         rating,
         title,
         comment,
-        pros,
-        cons,
-        wouldRecommend,
-        isAnonymous: isAnonymous ?? false,
         completionPercentage: canReviewResult.completionPercentage,
         status: autoApprove ? ReviewStatus.APPROVED : ReviewStatus.PENDING,
       },
@@ -398,7 +386,6 @@ export class ReviewService {
       },
       select: {
         rating: true,
-        wouldRecommend: true,
       },
     });
 
@@ -407,7 +394,6 @@ export class ReviewService {
         averageRating: 0,
         totalReviews: 0,
         ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-        wouldRecommendPercentage: 0,
       };
     }
 
@@ -424,18 +410,10 @@ export class ReviewService {
       }
     });
 
-    // Calculate would recommend percentage
-    const recommendReviews = reviews.filter(r => r.wouldRecommend !== null);
-    const wouldRecommendCount = recommendReviews.filter(r => r.wouldRecommend).length;
-    const wouldRecommendPercentage = recommendReviews.length > 0
-      ? Math.round((wouldRecommendCount / recommendReviews.length) * 100)
-      : 0;
-
     return {
       averageRating: Math.round(averageRating * 10) / 10,
       totalReviews: reviews.length,
       ratingDistribution,
-      wouldRecommendPercentage,
     };
   }
 

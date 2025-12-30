@@ -11,10 +11,6 @@ interface ReviewFormProps {
     rating: number;
     title?: string;
     comment?: string;
-    pros?: string;
-    cons?: string;
-    wouldRecommend?: boolean;
-    isAnonymous?: boolean;
   };
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -33,12 +29,6 @@ export default function ReviewForm({
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState(existingReview?.title || '');
   const [comment, setComment] = useState(existingReview?.comment || '');
-  const [pros, setPros] = useState(existingReview?.pros || '');
-  const [cons, setCons] = useState(existingReview?.cons || '');
-  const [wouldRecommend, setWouldRecommend] = useState<boolean | undefined>(
-    existingReview?.wouldRecommend
-  );
-  const [isAnonymous, setIsAnonymous] = useState(existingReview?.isAnonymous || false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createReviewMutation = useMutation({
@@ -82,10 +72,6 @@ export default function ReviewForm({
       rating: rating * 10, // Convert 1-5 to 10-50 for backend
       title: title || undefined,
       comment,
-      pros: pros || undefined,
-      cons: cons || undefined,
-      wouldRecommend,
-      isAnonymous,
     };
 
     if (isEditing) {
@@ -196,113 +182,6 @@ export default function ReviewForm({
             {comment.length}/10
           </span>
         </div>
-      </div>
-
-      {/* Pros */}
-      <div>
-        <label htmlFor="pros" className="block text-sm font-medium text-gray-700 mb-2">
-          <span className="text-green-600">დადებითი მხარეები</span>{' '}
-          <span className="text-gray-400">(არასავალდებულო)</span>
-        </label>
-        <textarea
-          id="pros"
-          value={pros}
-          onChange={(e) => setPros(e.target.value)}
-          placeholder="რა მოგეწონათ ამ კურსში?"
-          rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        />
-      </div>
-
-      {/* Cons */}
-      <div>
-        <label htmlFor="cons" className="block text-sm font-medium text-gray-700 mb-2">
-          <span className="text-red-600">უარყოფითი მხარეები</span>{' '}
-          <span className="text-gray-400">(არასავალდებულო)</span>
-        </label>
-        <textarea
-          id="cons"
-          value={cons}
-          onChange={(e) => setCons(e.target.value)}
-          placeholder="რა შეიძლება გაუმჯობესდეს?"
-          rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        />
-      </div>
-
-      {/* Would Recommend */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          ურჩევდით ამ კურსს სხვებს?
-        </label>
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => setWouldRecommend(true)}
-            className={`flex-1 py-2 px-4 rounded-lg border-2 transition-colors ${
-              wouldRecommend === true
-                ? 'border-green-500 bg-green-50 text-green-700'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            <svg
-              className={`w-5 h-5 inline mr-2 ${
-                wouldRecommend === true ? 'text-green-500' : 'text-gray-400'
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-              />
-            </svg>
-            დიახ
-          </button>
-          <button
-            type="button"
-            onClick={() => setWouldRecommend(false)}
-            className={`flex-1 py-2 px-4 rounded-lg border-2 transition-colors ${
-              wouldRecommend === false
-                ? 'border-red-500 bg-red-50 text-red-700'
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            <svg
-              className={`w-5 h-5 inline mr-2 ${
-                wouldRecommend === false ? 'text-red-500' : 'text-gray-400'
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
-              />
-            </svg>
-            არა
-          </button>
-        </div>
-      </div>
-
-      {/* Anonymous Option */}
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="anonymous"
-          checked={isAnonymous}
-          onChange={(e) => setIsAnonymous(e.target.checked)}
-          className="w-4 h-4 text-primary-900 border-gray-300 rounded focus:ring-primary-500"
-        />
-        <label htmlFor="anonymous" className="ml-2 text-sm text-gray-700">
-          ანონიმურად გამოქვეყნება
-        </label>
       </div>
 
       {/* Error Message */}

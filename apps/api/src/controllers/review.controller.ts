@@ -39,7 +39,7 @@ export const createReview = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const { courseId } = req.params;
-    const { rating, title, comment, pros, cons, wouldRecommend, isAnonymous } = req.body;
+    const { rating, title, comment } = req.body;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -51,10 +51,6 @@ export const createReview = async (req: AuthRequest, res: Response) => {
       rating,
       title,
       comment,
-      pros,
-      cons,
-      wouldRecommend,
-      isAnonymous,
     });
 
     return res.status(201).json({
@@ -77,7 +73,7 @@ export const updateReview = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     const { reviewId } = req.params;
-    const { rating, title, comment, pros, cons, wouldRecommend, isAnonymous } = req.body;
+    const { rating, title, comment } = req.body;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -87,10 +83,6 @@ export const updateReview = async (req: AuthRequest, res: Response) => {
       rating,
       title,
       comment,
-      pros,
-      cons,
-      wouldRecommend,
-      isAnonymous,
     });
 
     return res.json({

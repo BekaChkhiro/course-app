@@ -259,8 +259,8 @@ export const createPromoCode = async (req: AuthRequest, res: Response) => {
         courseId: scope === 'COURSE' ? courseId : null,
         categoryId: scope === 'CATEGORY' ? categoryId : null,
         singleUsePerUser: singleUsePerUser || false,
-        minOrderAmount: minOrderAmount || null,
-        maxUses: maxUses || null,
+        minOrderAmount: minOrderAmount === '' || minOrderAmount === null || minOrderAmount === undefined ? null : Number(minOrderAmount),
+        maxUses: maxUses === '' || maxUses === null || maxUses === undefined ? null : Number(maxUses),
         validFrom: validFromDate,
         validUntil: validUntilDate,
         isActive,
@@ -346,8 +346,12 @@ export const updatePromoCode = async (req: AuthRequest, res: Response) => {
     if (discountValue !== undefined) updateData.discountValue = discountValue
     if (scope !== undefined) updateData.scope = scope
     if (singleUsePerUser !== undefined) updateData.singleUsePerUser = singleUsePerUser
-    if (minOrderAmount !== undefined) updateData.minOrderAmount = minOrderAmount
-    if (maxUses !== undefined) updateData.maxUses = maxUses
+    if (minOrderAmount !== undefined) {
+      updateData.minOrderAmount = minOrderAmount === '' || minOrderAmount === null ? null : Number(minOrderAmount)
+    }
+    if (maxUses !== undefined) {
+      updateData.maxUses = maxUses === '' || maxUses === null ? null : Number(maxUses)
+    }
     if (isActive !== undefined) updateData.isActive = isActive
 
     // Scope-ის მიხედვით courseId/categoryId

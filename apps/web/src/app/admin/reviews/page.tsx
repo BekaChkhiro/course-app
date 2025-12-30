@@ -391,9 +391,7 @@ export default function AdminReviewsPage() {
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                         <span className="text-sm font-medium text-primary-900">
-                          {review.isAnonymous
-                            ? '?'
-                            : `${review.user.name.charAt(0)}${review.user.surname.charAt(0)}`}
+                          {`${review.user.name.charAt(0)}${review.user.surname.charAt(0)}`}
                         </span>
                       </div>
                     )}
@@ -405,9 +403,7 @@ export default function AdminReviewsPage() {
                     <div className="sm:hidden">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className="font-medium text-gray-900 text-sm truncate">
-                          {review.isAnonymous
-                            ? 'ანონიმური'
-                            : `${review.user.name} ${review.user.surname}`}
+                          {`${review.user.name} ${review.user.surname}`}
                         </p>
                         <span
                           className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
@@ -431,9 +427,7 @@ export default function AdminReviewsPage() {
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <p className="font-medium text-gray-900">
-                            {review.isAnonymous
-                              ? 'ანონიმური'
-                              : `${review.user.name} ${review.user.surname}`}
+                            {`${review.user.name} ${review.user.surname}`}
                           </p>
                           <p className="text-sm text-gray-500">{review.course.title}</p>
                         </div>
@@ -457,15 +451,6 @@ export default function AdminReviewsPage() {
                         <span className="text-sm text-gray-500">
                           {review.completionPercentage}% დასრულებული
                         </span>
-                        {review.wouldRecommend !== null && (
-                          <span
-                            className={`text-sm ${
-                              review.wouldRecommend ? 'text-green-600' : 'text-red-600'
-                            }`}
-                          >
-                            {review.wouldRecommend ? 'რეკომენდაციას უწევს' : 'არ რეკომენდირდება'}
-                          </span>
-                        )}
                       </div>
                     </div>
 
@@ -475,24 +460,6 @@ export default function AdminReviewsPage() {
                     )}
                     {review.comment && (
                       <p className="mt-1 text-gray-700 whitespace-pre-wrap text-sm sm:text-base">{review.comment}</p>
-                    )}
-
-                    {/* Pros & Cons */}
-                    {(review.pros || review.cons) && (
-                      <div className="mt-2 sm:mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                        {review.pros && (
-                          <div>
-                            <p className="text-xs sm:text-sm font-medium text-green-700">დადებითი:</p>
-                            <p className="text-xs sm:text-sm text-gray-600">{review.pros}</p>
-                          </div>
-                        )}
-                        {review.cons && (
-                          <div>
-                            <p className="text-xs sm:text-sm font-medium text-red-700">უარყოფითი:</p>
-                            <p className="text-xs sm:text-sm text-gray-600">{review.cons}</p>
-                          </div>
-                        )}
-                      </div>
                     )}
 
                     {/* Admin Response */}

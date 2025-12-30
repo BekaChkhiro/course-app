@@ -645,10 +645,6 @@ export const studentApiClient = {
       rating: number;
       title?: string;
       comment?: string;
-      pros?: string;
-      cons?: string;
-      wouldRecommend?: boolean;
-      isAnonymous?: boolean;
     }
   ): Promise<{ success: boolean; data: any; message: string }> => {
     const response = await axios.post(`${API_URL}/api/courses/${courseId}/reviews`, data, {
@@ -663,10 +659,6 @@ export const studentApiClient = {
       rating?: number;
       title?: string;
       comment?: string;
-      pros?: string;
-      cons?: string;
-      wouldRecommend?: boolean;
-      isAnonymous?: boolean;
     }
   ): Promise<{ success: boolean; data: any; message: string }> => {
     const response = await axios.put(`${API_URL}/api/reviews/${reviewId}`, data, {
