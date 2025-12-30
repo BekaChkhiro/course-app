@@ -39,6 +39,7 @@
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "hls.js": "^1.6.15",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.554.0",
@@ -56,6 +57,7 @@
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
+    "@types/hls.js": "^0.13.3",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",

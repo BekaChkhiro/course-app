@@ -5,6 +5,8 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import Player from 'video.js/dist/types/player';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 interface VideoPlayerProps {
   videoId: string;
   chapterId: string;
@@ -44,7 +46,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
         // Get saved progress first
         const progressRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/progress/chapters/${chapterId}`,
+          `${API_URL}/api/progress/chapters/${chapterId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -62,7 +64,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
         // Get video access token
         const tokenRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/videos/${videoId}/access-token`,
+          `${API_URL}/api/videos/${videoId}/access-token`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -77,7 +79,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         const tokenData = await tokenRes.json();
         if (tokenData.success) {
           setAccessToken(tokenData.data.token);
-          setHlsUrl(tokenData.data.hlsMasterUrl);
+          // Prefer variant URL over master playlist for better CDN cache handling
+          // Use 720p if available, fallback to 480p, then master
+          const variants = tokenData.data.variants;
+          const preferredUrl =
+            variants?.['720p'] ||
+            variants?.['480p'] ||
+            tokenData.data.hlsMasterUrl;
+          setHlsUrl(preferredUrl);
         } else {
           throw new Error(tokenData.message || 'Failed to get video access');
         }
@@ -274,7 +283,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   ) => {
     try {
       await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/progress/chapters/${chapterId}`,
+        `${API_URL}/api/progress/chapters/${chapterId}`,
         {
           method: 'PUT',
           headers: {
@@ -291,7 +300,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       // Track analytics
       await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/videos/${videoId}/analytics`,
+        `${API_URL}/api/videos/${videoId}/analytics`,
         {
           method: 'POST',
           headers: {

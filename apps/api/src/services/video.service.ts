@@ -1,18 +1,48 @@
 import ffmpeg from 'fluent-ffmpeg';
-import ffmpegPath from 'ffmpeg-static';
-import ffprobePath from 'ffprobe-static';
 import { createReadStream, createWriteStream, promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { execSync } from 'child_process';
 import r2Service from './r2.service';
 import { prisma } from '../config/database';
 
-// Set FFmpeg paths
-if (ffmpegPath) {
-  ffmpeg.setFfmpegPath(ffmpegPath);
+// Set FFmpeg paths - prefer system-installed ffmpeg (Homebrew) over static binaries
+// Static binaries don't work on Apple Silicon Macs
+const getSystemPath = (binary: string): string | null => {
+  try {
+    return execSync(`which ${binary}`, { encoding: 'utf8' }).trim();
+  } catch {
+    return null;
+  }
+};
+
+const systemFfmpeg = getSystemPath('ffmpeg');
+const systemFfprobe = getSystemPath('ffprobe');
+
+if (systemFfmpeg) {
+  ffmpeg.setFfmpegPath(systemFfmpeg);
+  console.log(`📹 Using system FFmpeg: ${systemFfmpeg}`);
+} else {
+  // Fallback to static (might not work on Apple Silicon)
+  try {
+    const ffmpegStatic = require('ffmpeg-static');
+    if (ffmpegStatic) ffmpeg.setFfmpegPath(ffmpegStatic);
+  } catch {
+    console.warn('⚠️ FFmpeg not found');
+  }
 }
-if (ffprobePath.path) {
-  ffmpeg.setFfprobePath(ffprobePath.path);
+
+if (systemFfprobe) {
+  ffmpeg.setFfprobePath(systemFfprobe);
+  console.log(`📹 Using system FFprobe: ${systemFfprobe}`);
+} else {
+  // Fallback to static
+  try {
+    const ffprobeStatic = require('ffprobe-static');
+    if (ffprobeStatic?.path) ffmpeg.setFfprobePath(ffprobeStatic.path);
+  } catch {
+    console.warn('⚠️ FFprobe not found');
+  }
 }
 
 interface VideoMetadata {
@@ -169,12 +199,14 @@ class VideoService {
           playlistName
         );
 
+        console.log(`📤 Uploading HLS playlist: ${playlistKey}`);
         const playlistBuffer = await fs.readFile(playlistPath);
         await r2Service.uploadFile(
           playlistKey,
           playlistBuffer,
           'application/vnd.apple.mpegurl'
         );
+        console.log(`✅ Uploaded playlist for ${quality.name}`);
 
         // Upload segments
         const segmentFiles = await fs.readdir(qualityDir);
@@ -336,7 +368,7 @@ class VideoService {
       if (quality) {
         const bandwidth = parseInt(quality.videoBitrate) * 1000;
         playlist += `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=${quality.width}x${quality.height}\n`;
-        playlist += `${variant.quality}/playlist.m3u8\n\n`;
+        playlist += `../${variant.quality}/playlist.m3u8\n\n`;
       }
     });
 

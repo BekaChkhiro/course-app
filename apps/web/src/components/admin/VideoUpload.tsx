@@ -3,6 +3,33 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, X, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+// Helper to get fresh access token (refresh if needed)
+const getFreshAccessToken = async (): Promise<string | null> => {
+  const currentToken = localStorage.getItem('accessToken');
+
+  // Try to refresh token
+  try {
+    const refreshResponse = await fetch(`${API_URL}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      if (data.success && data.data?.accessToken) {
+        localStorage.setItem('accessToken', data.data.accessToken);
+        return data.data.accessToken;
+      }
+    }
+  } catch {
+    // Refresh failed, try current token
+  }
+
+  return currentToken;
+};
+
 interface UploadItem {
   id: string;
   file: File;
@@ -142,7 +169,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
 
       // Step 1: Get presigned URL from backend
       const presignedResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/videos/presigned-upload`,
+        `${API_URL}/api/videos/presigned-upload`,
         {
           method: 'POST',
           headers: {
@@ -183,13 +210,16 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
         if (xhr.status === 200 || xhr.status === 201) {
           // Step 3: Confirm upload to create video record
           try {
+            // Get fresh token (refresh if expired during upload)
+            const freshToken = await getFreshAccessToken();
+
             const confirmResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/videos/confirm-upload`,
+              `${API_URL}/api/videos/confirm-upload`,
               {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                  Authorization: `Bearer ${freshToken}`,
                 },
                 body: JSON.stringify({
                   chapterId,
@@ -265,7 +295,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ chapterId, existingVideo, onU
     const interval = setInterval(async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/videos/${videoId}/status`,
+          `${API_URL}/api/videos/${videoId}/status`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`,

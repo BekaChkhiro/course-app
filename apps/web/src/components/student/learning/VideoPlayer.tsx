@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Hls from 'hls.js';
 import { Bookmark } from '@/lib/api/studentApi';
 
 interface VideoPlayerProps {
@@ -62,15 +63,13 @@ export default function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize video player
+  // HLS instance ref
+  const hlsRef = useRef<Hls | null>(null);
+
+  // Initialize video player with HLS.js
   useEffect(() => {
     const videoEl = videoRef.current;
-    if (!videoEl) return;
-
-    // Set initial position if there's saved progress
-    if (progress.lastPosition > 0) {
-      videoEl.currentTime = progress.lastPosition;
-    }
+    if (!videoEl || !video?.hlsMasterUrl) return;
 
     const handleLoadedMetadata = () => {
       setDuration(videoEl.duration);
@@ -96,14 +95,73 @@ export default function VideoPlayer({
     videoEl.addEventListener('pause', handlePause);
     videoEl.addEventListener('ended', handleEnded);
 
+    // Check if URL is HLS (.m3u8)
+    const isHLS = video.hlsMasterUrl.includes('.m3u8');
+
+    if (isHLS && Hls.isSupported()) {
+      // Use HLS.js for browsers that don't support HLS natively (Chrome, Firefox)
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+      });
+      hlsRef.current = hls;
+
+      hls.loadSource(video.hlsMasterUrl);
+      hls.attachMedia(videoEl);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        // Set initial position if there's saved progress
+        if (progress.lastPosition > 0) {
+          videoEl.currentTime = progress.lastPosition;
+        }
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.error('HLS network error, trying to recover...');
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.error('HLS media error, trying to recover...');
+              hls.recoverMediaError();
+              break;
+            default:
+              console.error('Unrecoverable HLS error:', data);
+              hls.destroy();
+              break;
+          }
+        }
+      });
+    } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari has native HLS support
+      videoEl.src = video.hlsMasterUrl;
+      if (progress.lastPosition > 0) {
+        videoEl.currentTime = progress.lastPosition;
+      }
+    } else {
+      // Fallback for non-HLS URLs (direct video files, YouTube, etc.)
+      videoEl.src = video.hlsMasterUrl;
+      if (progress.lastPosition > 0) {
+        videoEl.currentTime = progress.lastPosition;
+      }
+    }
+
     return () => {
       videoEl.removeEventListener('loadedmetadata', handleLoadedMetadata);
       videoEl.removeEventListener('timeupdate', handleTimeUpdate);
       videoEl.removeEventListener('play', handlePlay);
       videoEl.removeEventListener('pause', handlePause);
       videoEl.removeEventListener('ended', handleEnded);
+
+      // Cleanup HLS instance
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
     };
-  }, [progress.lastPosition, onProgressUpdate]);
+  }, [video?.hlsMasterUrl, progress.lastPosition, onProgressUpdate]);
 
   // Auto-save progress every 30 seconds
   useEffect(() => {
@@ -382,7 +440,6 @@ export default function VideoPlayer({
         <video
           ref={videoRef}
           className="w-full aspect-video cursor-pointer"
-          src={video.hlsMasterUrl}
           onClick={togglePlay}
           playsInline
         />

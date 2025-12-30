@@ -32,8 +32,11 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install runtime dependencies only
-RUN apk add --no-cache dumb-init
+# Install runtime dependencies including FFmpeg for video processing
+RUN apk add --no-cache dumb-init ffmpeg
+
+# Verify FFmpeg installation
+RUN ffmpeg -version && ffprobe -version
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs

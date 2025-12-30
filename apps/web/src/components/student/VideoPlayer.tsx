@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Hls from 'hls.js';
 
 interface WatermarkInfo {
   text: string;
@@ -29,6 +30,7 @@ export default function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -40,7 +42,86 @@ export default function VideoPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showPlaybackMenu, setShowPlaybackMenu] = useState(false);
   const [buffered, setBuffered] = useState(0);
+  const [, setCurrentQuality] = useState<string>('auto');
+  const [, setAvailableQualities] = useState<Array<{ height: number; label: string }>>([]);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize HLS.js for .m3u8 streams
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src) return;
+
+    const isHLS = src.includes('.m3u8');
+
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    if (isHLS && Hls.isSupported()) {
+      // Use HLS.js for browsers that don't natively support HLS
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 90,
+      });
+
+      hls.loadSource(src);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+        console.log('HLS manifest loaded, quality levels:', data.levels.length);
+        // Set available qualities
+        const qualities = data.levels.map((level) => ({
+          height: level.height,
+          label: `${level.height}p`,
+        }));
+        setAvailableQualities(qualities);
+      });
+
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+        const level = hls.levels[data.level];
+        if (level) {
+          setCurrentQuality(`${level.height}p`);
+        }
+      });
+
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.error('HLS network error, trying to recover...');
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.error('HLS media error, trying to recover...');
+              hls.recoverMediaError();
+              break;
+            default:
+              console.error('Fatal HLS error:', data);
+              hls.destroy();
+              break;
+          }
+        }
+      });
+
+      hlsRef.current = hls;
+    } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Native HLS support (Safari)
+      video.src = src;
+    } else {
+      // Regular video file (MP4, MOV, etc.)
+      video.src = src;
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [src]);
 
   // Format time to MM:SS or HH:MM:SS
   const formatTime = (seconds: number): string => {
@@ -285,10 +366,9 @@ export default function VideoPlayer({
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
-      {/* Video Element */}
+      {/* Video Element - src is managed by HLS.js or useEffect */}
       <video
         ref={videoRef}
-        src={src}
         poster={poster}
         className="w-full h-full object-contain"
         onClick={togglePlay}

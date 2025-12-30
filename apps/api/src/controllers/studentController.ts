@@ -790,7 +790,11 @@ export const getChapterForLearning = async (req: AuthRequest, res: Response) => 
           assignments,
           answers,
           video: chapter.videos[0]
-            ? chapter.videos[0]
+            ? {
+                ...chapter.videos[0],
+                // Prefer variant URLs over master playlist to bypass CDN cache issues
+                hlsMasterUrl: chapter.videos[0].hls720pUrl || chapter.videos[0].hls480pUrl || chapter.videos[0].hlsMasterUrl,
+              }
             : chapter.videoUrl
               ? { id: null, duration: null, hlsMasterUrl: chapter.videoUrl }
               : null,

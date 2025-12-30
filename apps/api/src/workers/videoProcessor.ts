@@ -133,6 +133,16 @@ class VideoProcessor {
       const variant720p = hlsResult.variants.find(v => v.quality === '720p');
       const variant1080p = hlsResult.variants.find(v => v.quality === '1080p');
 
+      // Extract metadata before cleanup (file is still available)
+      let metadata = null;
+      try {
+        console.log(`Extracting metadata for video ${videoId}`);
+        metadata = await videoService.extractMetadata(localVideoPath);
+        console.log(`Metadata extracted: ${metadata.duration}s, ${metadata.width}x${metadata.height}`);
+      } catch (metadataError) {
+        console.error(`Metadata extraction failed for ${videoId}:`, metadataError);
+      }
+
       await prisma.video.update({
         where: { id: videoId },
         data: {
@@ -143,22 +153,18 @@ class VideoProcessor {
           processingStatus: 'COMPLETED',
           processingProgress: 100,
           processedAt: new Date(),
+          // Add metadata if extracted
+          ...(metadata && {
+            duration: Math.floor(metadata.duration),
+            width: metadata.width,
+            height: metadata.height,
+            metadata: {
+              bitrate: metadata.bitrate,
+              codec: metadata.codec,
+              fps: metadata.fps,
+            },
+          }),
         },
-      });
-
-      // Queue thumbnail generation
-      await queueService.addThumbnailGenerationJob({
-        videoId,
-        videoPath: localVideoPath,
-        chapterId,
-        courseId,
-        interval: 10,
-      });
-
-      // Queue metadata extraction
-      await queueService.addMetadataExtractionJob({
-        videoId,
-        videoPath: localVideoPath,
       });
 
       console.log(`Video processing completed for ${videoId}`);

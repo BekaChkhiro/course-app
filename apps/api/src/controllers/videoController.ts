@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import videoAccessService from '../services/videoAccess.service';
 import r2Service from '../services/r2.service';
+import queueService from '../services/queue.service';
 
 // In-memory store for stream tokens (in production, use Redis)
 const streamTokens = new Map<string, {
@@ -142,7 +143,7 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
     // Delete local temp file after successful R2 upload
     await fs.unlink(req.file.path).catch(() => {});
 
-    // Create video record
+    // Create video record with PENDING status (will be processed by worker)
     const video = await prisma.video.create({
       data: {
         chapterId,
@@ -151,20 +152,37 @@ export const uploadVideo = async (req: AuthRequest, res: Response) => {
         mimeType: req.file.mimetype,
         r2Key: r2Key,
         r2Bucket: process.env.R2_BUCKET_NAME || 'course-videos',
-        processingStatus: 'COMPLETED',
-        hlsMasterUrl: uploadResult.url,
+        processingStatus: queueService.isAvailable() ? 'PENDING' : 'COMPLETED',
+        hlsMasterUrl: queueService.isAvailable() ? null : uploadResult.url, // Will be set after HLS processing
       },
     });
 
-    // Update chapter with video URL
+    // Update chapter with video URL (temporary, will be updated after processing)
     await prisma.chapter.update({
       where: { id: chapterId },
       data: { videoUrl: uploadResult.url },
     });
 
+    // Add to processing queue if available
+    if (queueService.isAvailable()) {
+      const job = await queueService.addVideoProcessingJob({
+        videoId: video.id,
+        chapterId,
+        courseId,
+        originalFilePath: uploadResult.url, // R2 URL for download
+        r2Key,
+        userId: req.user?.id || '',
+      });
+      console.log(`📹 Video processing job added: ${job?.id}`);
+    } else {
+      console.log('⚠️ Queue not available, video saved without HLS processing');
+    }
+
     res.json({
       success: true,
-      message: 'Video uploaded successfully',
+      message: queueService.isAvailable()
+        ? 'Video uploaded successfully. Processing started...'
+        : 'Video uploaded successfully',
       data: {
         videoId: video.id,
         status: video.processingStatus,
@@ -305,7 +323,17 @@ export const confirmVideoUpload = async (req: AuthRequest, res: Response) => {
     // Generate public URL
     const publicUrl = `${process.env.R2_PUBLIC_URL || ''}/${r2Key}`;
 
-    // Create video record
+    // Get courseId from chapter
+    const chapterWithVersion = await prisma.chapter.findUnique({
+      where: { id: chapterId },
+      include: {
+        courseVersion: true,
+      },
+    });
+
+    const courseId = chapterWithVersion?.courseVersion?.courseId || '';
+
+    // Create video record with PENDING status if queue is available
     const video = await prisma.video.create({
       data: {
         chapterId,
@@ -314,12 +342,25 @@ export const confirmVideoUpload = async (req: AuthRequest, res: Response) => {
         mimeType: mimeType || 'video/mp4',
         r2Key: r2Key,
         r2Bucket: process.env.R2_BUCKET_NAME || 'course-videos',
-        processingStatus: 'COMPLETED',
-        hlsMasterUrl: publicUrl,
+        processingStatus: queueService.isAvailable() ? 'PENDING' : 'COMPLETED',
+        hlsMasterUrl: queueService.isAvailable() ? null : publicUrl,
       },
     });
 
-    // Update chapter with video URL
+    // Add to processing queue if available
+    if (queueService.isAvailable()) {
+      const job = await queueService.addVideoProcessingJob({
+        videoId: video.id,
+        chapterId,
+        courseId,
+        originalFilePath: publicUrl,
+        r2Key,
+        userId: req.user?.id || '',
+      });
+      console.log(`📹 Video processing job added: ${job?.id}`);
+    }
+
+    // Update chapter with video URL (use public URL for now, will be updated after HLS processing)
     await prisma.chapter.update({
       where: { id: chapterId },
       data: { videoUrl: publicUrl },
@@ -327,7 +368,9 @@ export const confirmVideoUpload = async (req: AuthRequest, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Video upload confirmed',
+      message: queueService.isAvailable()
+        ? 'Video uploaded, processing started'
+        : 'Video upload confirmed',
       data: {
         videoId: video.id,
         status: video.processingStatus,
