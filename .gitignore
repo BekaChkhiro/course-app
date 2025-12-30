@@ -57,6 +57,11 @@ uploads/
 *.webm
 *.pdf
 
+# Temp video processing files
+temp/
+apps/api/temp/
+*.ts.tmp
+
 # Logs
 logs
 *.log

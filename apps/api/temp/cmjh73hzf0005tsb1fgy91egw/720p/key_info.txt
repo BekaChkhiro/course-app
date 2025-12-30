@@ -1,3 +1,0 @@
-encryption.key
-/Users/beqolozi/Desktop/course-app/apps/api/temp/cmjh73hzf0005tsb1fgy91egw/720p/encryption.key
-e7d1cccbb91698f7b2a4c4709063b559
