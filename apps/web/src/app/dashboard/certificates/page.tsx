@@ -26,11 +26,16 @@ interface CertificateViewModalProps {
 function CertificateViewModal({ certificate, onClose }: CertificateViewModalProps) {
   const certificateRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPdfMode, setIsPdfMode] = useState(false);
 
   const handleDownloadPDF = async () => {
     if (!certificateRef.current) return;
 
     setIsDownloading(true);
+    setIsPdfMode(true);
+
+    // Wait for re-render with landscape aspect ratio
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     try {
       const canvas = await html2canvas(certificateRef.current, {
@@ -57,6 +62,7 @@ function CertificateViewModal({ certificate, onClose }: CertificateViewModalProp
       console.error('Failed to generate PDF:', error);
       toast.error('PDF ჩამოტვირთვა ვერ მოხერხდა');
     } finally {
+      setIsPdfMode(false);
       setIsDownloading(false);
     }
   };
@@ -70,7 +76,7 @@ function CertificateViewModal({ certificate, onClose }: CertificateViewModalProp
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+      <div className="relative bg-white rounded-2xl shadow-2xl max-w-[95vw] sm:max-w-4xl w-full overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <h3 className="font-semibold text-gray-900">სერტიფიკატი</h3>
@@ -101,15 +107,16 @@ function CertificateViewModal({ certificate, onClose }: CertificateViewModalProp
         <div className="overflow-auto p-3 sm:p-6 bg-gray-100 flex-1">
           <div
             ref={certificateRef}
-            className="bg-white shadow-xl mx-auto min-h-[400px] sm:min-h-0"
-            style={{ aspectRatio: window?.innerWidth < 640 ? '1/1.2' : '1.414/1', maxWidth: '800px' }}
+            className={`bg-white shadow-xl mx-auto max-w-[800px] ${
+              isPdfMode ? 'aspect-[1.414/1]' : 'aspect-[5/6] sm:aspect-[1.414/1]'
+            }`}
           >
             {/* Certificate Design */}
-            <div className="relative w-full h-full flex flex-col p-4 sm:p-0" style={{ background: 'linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%)' }}>
+            <div className="relative w-full h-full flex flex-col" style={{ background: 'linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%)' }}>
 
               {/* Elegant outer border */}
-              <div className="absolute inset-2 sm:inset-4 border-2 border-primary-900/30 hidden sm:block" />
-              <div className="absolute inset-3 sm:inset-5 border border-primary-900/20 hidden sm:block" />
+              <div className="absolute inset-2 sm:inset-4 border-2 border-primary-900/30" />
+              <div className="absolute inset-3 sm:inset-5 border border-primary-900/20" />
 
               {/* Corner ornaments - hidden on mobile */}
               <div className="hidden sm:block absolute top-8 left-8 w-14 h-14">
@@ -134,70 +141,70 @@ function CertificateViewModal({ certificate, onClose }: CertificateViewModalProp
               </div>
 
               {/* Main Content */}
-              <div className="relative flex-1 flex flex-col items-center justify-center text-center z-10 px-4 sm:px-12 py-6 sm:py-10">
+              <div className="relative flex-1 flex flex-col items-center justify-center text-center z-10 px-6 sm:px-12 py-8 sm:py-10">
 
                 {/* Logo */}
-                <div className="mb-3 sm:mb-4">
+                <div className="mb-4 sm:mb-4">
                   <img
                     src="/kursebi-logo.png"
                     alt="Kursebi.online"
-                    className="h-10 sm:h-12 w-auto mx-auto"
+                    className="h-12 sm:h-12 w-auto mx-auto"
                   />
                 </div>
 
                 {/* Title */}
-                <div className="mb-4 sm:mb-5">
-                  <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-wider" style={{ color: '#0e3355' }}>
+                <div className="mb-5 sm:mb-5">
+                  <h1 className="text-3xl sm:text-3xl font-serif font-bold tracking-wider" style={{ color: '#0e3355' }}>
                     სერტიფიკატი
                   </h1>
                 </div>
 
                 {/* Decorative divider */}
-                <div className="flex items-center gap-2 mb-4 sm:mb-5">
-                  <div className="w-12 sm:w-16 h-px bg-gradient-to-r from-transparent to-accent-500" />
-                  <svg className="w-4 h-4 text-accent-500" viewBox="0 0 24 24" fill="currentColor">
+                <div className="flex items-center gap-2 mb-5 sm:mb-5">
+                  <div className="w-16 sm:w-16 h-px bg-gradient-to-r from-transparent to-accent-500" />
+                  <svg className="w-5 h-5 text-accent-500" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
-                  <div className="w-12 sm:w-16 h-px bg-gradient-to-l from-transparent to-accent-500" />
+                  <div className="w-16 sm:w-16 h-px bg-gradient-to-l from-transparent to-accent-500" />
                 </div>
 
                 {/* Student Name */}
-                <h2 className="text-xl sm:text-2xl font-serif font-bold mb-3 px-2" style={{ color: '#0e3355' }}>
+                <h2 className="text-2xl sm:text-2xl font-serif font-bold mb-4 px-2" style={{ color: '#0e3355' }}>
                   {certificate.studentName}
                 </h2>
 
                 {/* Underline decoration */}
-                <div className="w-40 sm:w-48 h-0.5 bg-gradient-to-r from-transparent via-accent-500 to-transparent mb-4" />
+                <div className="w-48 sm:w-48 h-0.5 bg-gradient-to-r from-transparent via-accent-500 to-transparent mb-5" />
 
                 {/* Course completion text */}
-                <p className="text-gray-500 text-xs mb-2">წარმატებით დაასრულა კურსი</p>
+                <p className="text-gray-500 text-sm mb-2">წარმატებით დაასრულა კურსი</p>
 
                 {/* Course Name */}
-                <h3 className="text-base sm:text-lg font-semibold text-primary-800 mb-4 max-w-xs sm:max-w-md px-2 leading-snug">
+                <h3 className="text-lg sm:text-lg font-semibold text-primary-800 mb-5 max-w-xs sm:max-w-md px-2 leading-snug">
                   „{certificate.courseName}"
                 </h3>
 
                 {/* Score Badge */}
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-accent-50 to-accent-100 border border-accent-200 rounded-full">
-                    <svg className="w-4 h-4 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
+                <div className="flex items-center justify-center mb-5">
+                  <div className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-accent-50 to-accent-100 border border-accent-200 rounded-full">
+                    <svg className="w-5 h-5 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
-                    <span className="text-sm font-bold text-accent-700">
+                    <span className="text-base font-bold text-accent-700">
                       {Math.round(Number(certificate.score))}%
                     </span>
                   </div>
                 </div>
 
                 {/* Date and Certificate Info */}
-                <div className="flex flex-col items-center gap-1.5 text-xs text-gray-400">
+                <div className="flex flex-col items-center gap-2 text-sm text-gray-400">
                   <div className="flex items-center gap-1">
                     <span className="text-gray-500">თარიღი:</span>
                     <span className="font-medium text-gray-600">{formatDate(certificate.issuedAt)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-gray-500">ID:</span>
-                    <span className="font-mono text-gray-600 text-[11px]">{certificate.certificateNumber}</span>
+                    <span className="font-mono text-gray-600 text-xs">{certificate.certificateNumber}</span>
                   </div>
                 </div>
               </div>

@@ -22,6 +22,7 @@ export default function CertificateViewPage() {
   const params = useParams();
   const certificateRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPdfMode, setIsPdfMode] = useState(false);
 
   const certificateId = params.id as string;
 
@@ -37,6 +38,10 @@ export default function CertificateViewPage() {
     if (!certificateRef.current) return;
 
     setIsDownloading(true);
+    setIsPdfMode(true);
+
+    // Wait for re-render with landscape aspect ratio
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     try {
       const canvas = await html2canvas(certificateRef.current, {
@@ -61,6 +66,7 @@ export default function CertificateViewPage() {
     } catch (error) {
       console.error('Failed to generate PDF:', error);
     } finally {
+      setIsPdfMode(false);
       setIsDownloading(false);
     }
   };
@@ -132,103 +138,104 @@ export default function CertificateViewPage() {
           {/* Certificate Container */}
           <div
             ref={certificateRef}
-            className="bg-white shadow-2xl overflow-hidden"
-            style={{ aspectRatio: '1.414/1' }}
+            className={`bg-white shadow-2xl overflow-hidden ${
+              isPdfMode ? 'aspect-[1.414/1]' : 'aspect-[5/6] sm:aspect-[1.414/1]'
+            }`}
           >
             {/* Certificate Design */}
             <div className="relative w-full h-full flex flex-col" style={{ background: 'linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%)' }}>
 
               {/* Elegant outer border */}
-              <div className="absolute inset-3 sm:inset-4 border-2 border-primary-900/30" />
-              <div className="absolute inset-4 sm:inset-5 border border-primary-900/20" />
+              <div className="absolute inset-2 sm:inset-4 border-2 border-primary-900/30" />
+              <div className="absolute inset-3 sm:inset-5 border border-primary-900/20" />
 
-              {/* Corner ornaments */}
-              <div className="absolute top-6 left-6 sm:top-8 sm:left-8 w-12 h-12 sm:w-16 sm:h-16">
+              {/* Corner ornaments - hidden on mobile */}
+              <div className="hidden sm:block absolute top-8 left-8 w-16 h-16">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
                   <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
                 </svg>
               </div>
-              <div className="absolute top-6 right-6 sm:top-8 sm:right-8 w-12 h-12 sm:w-16 sm:h-16 rotate-90">
+              <div className="hidden sm:block absolute top-8 right-8 w-16 h-16 rotate-90">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
                   <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
                 </svg>
               </div>
-              <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 w-12 h-12 sm:w-16 sm:h-16 -rotate-90">
+              <div className="hidden sm:block absolute bottom-8 left-8 w-16 h-16 -rotate-90">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
                   <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
                 </svg>
               </div>
-              <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8 w-12 h-12 sm:w-16 sm:h-16 rotate-180">
+              <div className="hidden sm:block absolute bottom-8 right-8 w-16 h-16 rotate-180">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-accent-500/50">
                   <path d="M0 0 L100 0 L100 20 L20 20 L20 100 L0 100 Z" fill="currentColor"/>
                 </svg>
               </div>
 
-              {/* Decorative lines at top */}
-              <div className="absolute top-10 sm:top-14 left-1/2 transform -translate-x-1/2 flex items-center gap-3">
-                <div className="w-16 sm:w-24 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent" />
+              {/* Decorative lines at top - hidden on mobile */}
+              <div className="hidden sm:flex absolute top-14 left-1/2 transform -translate-x-1/2 items-center gap-3">
+                <div className="w-24 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent" />
                 <div className="w-2 h-2 bg-accent-500/50 rotate-45" />
-                <div className="w-16 sm:w-24 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent" />
+                <div className="w-24 h-px bg-gradient-to-r from-transparent via-accent-500/50 to-transparent" />
               </div>
 
               {/* Main Content */}
-              <div className="relative flex-1 flex flex-col items-center justify-center text-center z-10 px-8 sm:px-16 py-8 sm:py-12">
+              <div className="relative flex-1 flex flex-col items-center justify-center text-center z-10 px-6 sm:px-16 py-10 sm:py-12">
 
                 {/* Logo */}
-                <div className="mb-3 sm:mb-4">
+                <div className="mb-4 sm:mb-4">
                   <img
                     src="/kursebi-logo.png"
                     alt="Kursebi.online"
-                    className="h-10 sm:h-14 w-auto mx-auto"
+                    className="h-12 sm:h-14 w-auto mx-auto"
                   />
                 </div>
 
                 {/* Title with decorative elements */}
-                <div className="mb-4 sm:mb-6">
-                  <h1 className="text-2xl sm:text-4xl font-serif font-bold tracking-wider" style={{ color: '#0e3355' }}>
+                <div className="mb-5 sm:mb-6">
+                  <h1 className="text-3xl sm:text-4xl font-serif font-bold tracking-wider" style={{ color: '#0e3355' }}>
                     სერტიფიკატი
                   </h1>
                 </div>
 
                 {/* Decorative divider */}
-                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="w-12 sm:w-20 h-px bg-gradient-to-r from-transparent to-accent-500" />
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-accent-500" viewBox="0 0 24 24" fill="currentColor">
+                <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
+                  <div className="w-16 sm:w-20 h-px bg-gradient-to-r from-transparent to-accent-500" />
+                  <svg className="w-5 h-5 sm:w-5 sm:h-5 text-accent-500" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
-                  <div className="w-12 sm:w-20 h-px bg-gradient-to-l from-transparent to-accent-500" />
+                  <div className="w-16 sm:w-20 h-px bg-gradient-to-l from-transparent to-accent-500" />
                 </div>
 
                 {/* Student Name */}
-                <h2 className="text-xl sm:text-3xl font-serif font-bold mb-3 sm:mb-5 px-4" style={{ color: '#0e3355' }}>
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-4 sm:mb-5 px-4" style={{ color: '#0e3355' }}>
                   {certificate.studentName}
                 </h2>
 
                 {/* Underline decoration */}
-                <div className="w-40 sm:w-64 h-0.5 bg-gradient-to-r from-transparent via-accent-500 to-transparent mb-4 sm:mb-6" />
+                <div className="w-48 sm:w-64 h-0.5 bg-gradient-to-r from-transparent via-accent-500 to-transparent mb-5 sm:mb-6" />
 
                 {/* Course completion text */}
-                <p className="text-gray-500 text-xs sm:text-sm mb-1 sm:mb-2">წარმატებით დაასრულა კურსი</p>
+                <p className="text-gray-500 text-sm sm:text-sm mb-2 sm:mb-2">წარმატებით დაასრულა კურსი</p>
 
                 {/* Course Name */}
-                <h3 className="text-base sm:text-xl font-semibold text-primary-800 mb-4 sm:mb-6 max-w-xl px-4">
+                <h3 className="text-lg sm:text-xl font-semibold text-primary-800 mb-5 sm:mb-6 max-w-xl px-4">
                   „{certificate.courseName}"
                 </h3>
 
                 {/* Score Badge */}
-                <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="flex items-center gap-2 px-4 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-accent-50 to-accent-100 border border-accent-200 rounded-full">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
+                <div className="flex items-center justify-center gap-2 sm:gap-3 mb-5 sm:mb-6">
+                  <div className="flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2 bg-gradient-to-r from-accent-50 to-accent-100 border border-accent-200 rounded-full">
+                    <svg className="w-5 h-5 sm:w-5 sm:h-5 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
-                    <span className="text-sm sm:text-base font-bold text-accent-700">
+                    <span className="text-base sm:text-base font-bold text-accent-700">
                       {Math.round(Number(certificate.score))}%
                     </span>
                   </div>
                 </div>
 
                 {/* Date and Certificate Info */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 text-xs text-gray-400">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-8 text-sm sm:text-xs text-gray-400">
                   <div className="flex items-center gap-1.5">
                     <span className="text-gray-500">თარიღი:</span>
                     <span className="font-medium text-gray-600">{formatDate(certificate.issuedAt)}</span>
@@ -236,16 +243,16 @@ export default function CertificateViewPage() {
                   <div className="hidden sm:block w-1 h-1 bg-gray-300 rounded-full" />
                   <div className="flex items-center gap-1.5">
                     <span className="text-gray-500">ID:</span>
-                    <span className="font-mono text-gray-600">{certificate.certificateNumber}</span>
+                    <span className="font-mono text-gray-600 text-xs">{certificate.certificateNumber}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom decorative line */}
-              <div className="absolute bottom-10 sm:bottom-14 left-1/2 transform -translate-x-1/2 flex items-center gap-2">
-                <div className="w-8 sm:w-12 h-px bg-gradient-to-r from-transparent to-primary-900/20" />
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary-900/20 rounded-full" />
-                <div className="w-8 sm:w-12 h-px bg-gradient-to-l from-transparent to-primary-900/20" />
+              {/* Bottom decorative line - hidden on mobile */}
+              <div className="hidden sm:flex absolute bottom-14 left-1/2 transform -translate-x-1/2 items-center gap-2">
+                <div className="w-12 h-px bg-gradient-to-r from-transparent to-primary-900/20" />
+                <div className="w-2 h-2 bg-primary-900/20 rounded-full" />
+                <div className="w-12 h-px bg-gradient-to-l from-transparent to-primary-900/20" />
               </div>
             </div>
           </div>

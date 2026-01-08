@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { X, Play, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import Hls from 'hls.js';
 
 interface VideoPreviewModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function VideoPreviewModal({
   thumbnailUrl
 }: VideoPreviewModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
@@ -33,15 +35,16 @@ export default function VideoPreviewModal({
           setIsAnimating(true);
         });
       });
-    } else {
-      setIsAnimating(false);
-      // Wait for animation to complete before unmounting
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-        setIsLoading(true);
-      }, 300);
-      return () => clearTimeout(timer);
+      return;
     }
+
+    setIsAnimating(false);
+    // Wait for animation to complete before unmounting
+    const timer = setTimeout(() => {
+      setShouldRender(false);
+      setIsLoading(true);
+    }, 300);
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   // Close on escape key
@@ -68,6 +71,59 @@ export default function VideoPreviewModal({
       videoRef.current.currentTime = 0;
     }
   }, [isOpen]);
+
+  // Initialize HLS.js for streaming
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !isOpen || !videoUrl) return;
+
+    const isHLS = videoUrl.includes('.m3u8');
+
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    if (isHLS && Hls.isSupported()) {
+      // Use HLS.js for browsers that don't natively support HLS
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+      });
+      hlsRef.current = hls;
+
+      hls.loadSource(videoUrl);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setIsLoading(false);
+        video.play().catch(() => {});
+      });
+
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) {
+          console.error('HLS error:', data);
+          setIsLoading(false);
+        }
+      });
+    } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari has native HLS support
+      video.src = videoUrl;
+      video.play().catch(() => {});
+    } else {
+      // Regular video file (MP4, MOV, etc.)
+      video.src = videoUrl;
+      video.play().catch(() => {});
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [videoUrl, isOpen]);
 
   const handleVideoLoaded = () => {
     setIsLoading(false);
@@ -139,13 +195,12 @@ export default function VideoPreviewModal({
               </div>
             )}
 
-            {/* Video Player */}
+            {/* Video Player - src managed by HLS.js or useEffect */}
             <video
               ref={videoRef}
-              src={videoUrl}
               controls
-              autoPlay
               playsInline
+              preload="metadata"
               onLoadedData={handleVideoLoaded}
               onCanPlay={handleVideoLoaded}
               onError={handleVideoError}

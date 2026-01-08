@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentApiClient, ChapterProgress, ChapterForLearning } from '@/lib/api/studentApi';
+import { useAuthStore } from '@/store/authStore';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 import QuizPlayer from '@/components/quiz/QuizPlayer';
@@ -526,6 +527,7 @@ function ChapterContent({
   onQuizComplete,
   onQuizRetry,
   onViewResults,
+  userEmail,
 }: {
   chapterData: ChapterForLearning;
   activeTab: ActiveTab;
@@ -537,6 +539,7 @@ function ChapterContent({
   onQuizComplete: (attempt: QuizAttempt) => void;
   onQuizRetry: () => void;
   onViewResults: (attemptId: string) => void;
+  userEmail?: string;
 }) {
   const { chapter, progress } = chapterData;
   const [showAnswer, setShowAnswer] = useState(false);
@@ -719,6 +722,10 @@ function ChapterContent({
                     src={videoUrl}
                     title={chapter.title}
                     initialTime={progress.lastPosition || 0}
+                    watermark={userEmail ? {
+                      text: userEmail,
+                      visibleText: userEmail
+                    } : undefined}
                     onProgress={() => {
                       // Optional: Save progress to backend periodically
                     }}
@@ -917,6 +924,7 @@ export default function CourseLearningPage() {
   const queryClient = useQueryClient();
   const slug = params.slug as string;
   const isMobile = useIsMobile();
+  const { user } = useAuthStore();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -1385,6 +1393,7 @@ export default function CourseLearningPage() {
               setCompletedAttemptId(attemptId);
               setQuizMode('results');
             }}
+            userEmail={user?.email}
           />
         )}
 
