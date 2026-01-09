@@ -29,7 +29,7 @@ export default function VideoPreviewModal({
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
-      // Small delay to trigger animation
+      setIsLoading(true);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setIsAnimating(true);
@@ -39,7 +39,6 @@ export default function VideoPreviewModal({
     }
 
     setIsAnimating(false);
-    // Wait for animation to complete before unmounting
     const timer = setTimeout(() => {
       setShouldRender(false);
       setIsLoading(true);
@@ -70,68 +69,70 @@ export default function VideoPreviewModal({
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
-  }, [isOpen]);
 
-  // Initialize HLS.js for streaming
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !isOpen || !videoUrl) return;
-
-    const isHLS = videoUrl.includes('.m3u8');
-
-    // Cleanup previous HLS instance
-    if (hlsRef.current) {
+    if (!isOpen && hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
     }
+  }, [isOpen]);
 
-    if (isHLS && Hls.isSupported()) {
-      // Use HLS.js for browsers that don't natively support HLS
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false,
-      });
-      hlsRef.current = hls;
+  // Initialize video when modal opens
+  useEffect(() => {
+    if (!shouldRender || !videoUrl) return;
 
-      hls.loadSource(videoUrl);
-      hls.attachMedia(video);
+    const timer = setTimeout(() => {
+      const video = videoRef.current;
+      if (!video) return;
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setIsLoading(false);
-        video.play().catch(() => {});
-      });
+      const isHLS = videoUrl.includes('.m3u8');
 
-      hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) {
-          console.error('HLS error:', data);
-          setIsLoading(false);
-        }
-      });
-    } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Safari has native HLS support
-      video.src = videoUrl;
-      video.play().catch(() => {});
-    } else {
-      // Regular video file (MP4, MOV, etc.)
-      video.src = videoUrl;
-      video.play().catch(() => {});
-    }
-
-    return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
-    };
-  }, [videoUrl, isOpen]);
 
-  const handleVideoLoaded = () => {
-    setIsLoading(false);
-  };
+      if (isHLS && Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          startLevel: -1,
+        });
+        hlsRef.current = hls;
 
-  const handleVideoError = () => {
-    setIsLoading(false);
-  };
+        hls.loadSource(videoUrl);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(console.error);
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+          setIsLoading(false);
+        }, { once: true });
+
+        hls.on(Hls.Events.ERROR, (_, data) => {
+          console.error('HLS Error:', data);
+          if (data.fatal) {
+            setIsLoading(false);
+          }
+        });
+      } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = videoUrl;
+        video.addEventListener('loadedmetadata', () => {
+          setIsLoading(false);
+          video.play().catch(console.error);
+        }, { once: true });
+      } else {
+        video.src = videoUrl;
+        video.addEventListener('loadedmetadata', () => {
+          setIsLoading(false);
+          video.play().catch(console.error);
+        }, { once: true });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [shouldRender, videoUrl]);
 
   if (!shouldRender) return null;
 
@@ -151,11 +152,11 @@ export default function VideoPreviewModal({
 
       {/* Modal Content */}
       <div
-        className={`relative z-10 w-full max-w-5xl transition-all duration-300 ease-out ${
+        className={`relative z-10 w-full max-w-4xl transition-all duration-300 ease-out ${
           isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
-        {/* Header with Title and Close Button */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           {title && (
             <div className="flex items-center gap-3">
@@ -174,47 +175,35 @@ export default function VideoPreviewModal({
         </div>
 
         {/* Video Container */}
-        <div className="relative bg-gray-900 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-          {/* Aspect Ratio Container */}
-          <div className="aspect-video relative">
-            {/* Loading State */}
-            {isLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-10">
-                {thumbnailUrl && (
-                  <div
-                    className="absolute inset-0 bg-cover bg-center opacity-30 blur-sm"
-                    style={{ backgroundImage: `url(${thumbnailUrl})` }}
-                  />
-                )}
-                <div className="relative flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent-600/20 rounded-full flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-accent-500 animate-spin" />
-                  </div>
-                  <p className="text-white/60 text-sm">ვიდეო იტვირთება...</p>
+        <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 aspect-video">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900">
+              {thumbnailUrl && (
+                <div
+                  className="absolute inset-0 bg-cover bg-center opacity-30 blur-sm"
+                  style={{ backgroundImage: `url(${thumbnailUrl})` }}
+                />
+              )}
+              <div className="relative flex flex-col items-center gap-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent-600/20 rounded-full flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-accent-500 animate-spin" />
                 </div>
+                <p className="text-white/60 text-sm">ვიდეო იტვირთება...</p>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Video Player - src managed by HLS.js or useEffect */}
-            <video
-              ref={videoRef}
-              controls
-              playsInline
-              preload="metadata"
-              onLoadedData={handleVideoLoaded}
-              onCanPlay={handleVideoLoaded}
-              onError={handleVideoError}
-              className={`w-full h-full transition-opacity duration-300 ${
-                isLoading ? 'opacity-0' : 'opacity-100'
-              }`}
-            />
-          </div>
-
-          {/* Bottom gradient for better controls visibility */}
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+          {/* Video */}
+          <video
+            ref={videoRef}
+            controls
+            playsInline
+            className="absolute inset-0 w-full h-full"
+          />
         </div>
 
-        {/* Hint Text */}
+        {/* Hint */}
         <p className="text-center text-white/40 text-xs sm:text-sm mt-4">
           დააჭირეთ <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/60 font-mono text-xs">ESC</kbd> ან ფონს დასახურად
         </p>

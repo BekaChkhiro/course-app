@@ -18,10 +18,14 @@ const formatPublicCourse = (course: any) => {
   const chapterCount = activeVersion?._count?.chapters || 0;
   const previewChapters = activeVersion?.chapters || [];
 
-  // Build demo video URL from R2 key
+  // Build demo video URL - prefer HLS for streaming, fallback to R2
   let demoVideoUrl = null;
-  if (course.demoVideo?.r2Key) {
-    demoVideoUrl = `${process.env.R2_PUBLIC_URL}/${course.demoVideo.r2Key}`;
+  if (course.demoVideo) {
+    // Prefer 480p HLS for faster demo loading, then 720p
+    demoVideoUrl = course.demoVideo.hls480pUrl
+      || course.demoVideo.hls720pUrl
+      || course.demoVideo.hlsMasterUrl
+      || (course.demoVideo.r2Key ? `${process.env.R2_PUBLIC_URL}/${course.demoVideo.r2Key}` : null);
   }
 
   return {
@@ -125,7 +129,7 @@ router.get('/courses', async (req: Request, res: Response) => {
             select: { id: true, name: true, slug: true },
           },
           demoVideo: {
-            select: { id: true, r2Key: true },
+            select: { id: true, r2Key: true, hlsMasterUrl: true, hls720pUrl: true, hls480pUrl: true },
           },
           _count: {
             select: { purchases: true, reviews: true },
@@ -460,10 +464,14 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
       // For now, return empty array - can be added to Course model later
     } catch {}
 
-    // Build demo video URL
+    // Build demo video URL - prefer HLS for streaming, fallback to R2
     let demoVideoUrl = null;
-    if (course.demoVideo?.r2Key) {
-      demoVideoUrl = `${process.env.R2_PUBLIC_URL}/${course.demoVideo.r2Key}`;
+    if (course.demoVideo) {
+      // Prefer HLS URLs for better streaming performance
+      demoVideoUrl = course.demoVideo.hls720pUrl
+        || course.demoVideo.hls480pUrl
+        || course.demoVideo.hlsMasterUrl
+        || (course.demoVideo.r2Key ? `${process.env.R2_PUBLIC_URL}/${course.demoVideo.r2Key}` : null);
     }
 
     res.json({
