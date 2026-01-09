@@ -187,7 +187,8 @@ class VideoService {
           quality,
           encryptionKey,
           metadata.duration,
-          onProgress
+          onProgress,
+          metadata
         );
 
         // Upload playlist and segments to R2
@@ -278,11 +279,28 @@ class VideoService {
     quality: HLSQuality,
     encryptionKey?: string,
     duration?: number,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    inputMetadata?: VideoMetadata
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const segmentDuration = 6; // 6 seconds per segment
       const playlistPath = path.join(outputDir, 'playlist.m3u8');
+
+      // Calculate correct dimensions maintaining aspect ratio
+      let scaleFilter: string;
+      if (inputMetadata && inputMetadata.width && inputMetadata.height) {
+        const isPortrait = inputMetadata.height > inputMetadata.width;
+        if (isPortrait) {
+          // For portrait videos, scale by height and calculate width
+          scaleFilter = `-vf scale=-2:${quality.height}`;
+        } else {
+          // For landscape videos, scale by width and calculate height
+          scaleFilter = `-vf scale=${quality.width}:-2`;
+        }
+      } else {
+        // Fallback: scale to fit within bounds while maintaining aspect ratio
+        scaleFilter = `-vf scale='min(${quality.width},iw)':min'(${quality.height},ih)':force_original_aspect_ratio=decrease`;
+      }
 
       let command = ffmpeg(inputPath)
         .outputOptions([
@@ -294,7 +312,7 @@ class VideoService {
           '-g 48',
           '-sc_threshold 0',
           '-keyint_min 48',
-          `-s ${quality.width}x${quality.height}`,
+          scaleFilter,
           '-f hls',
           `-hls_time ${segmentDuration}`,
           '-hls_playlist_type vod',

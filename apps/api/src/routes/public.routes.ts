@@ -18,10 +18,9 @@ const formatPublicCourse = (course: any) => {
   const chapterCount = activeVersion?._count?.chapters || 0;
   const previewChapters = activeVersion?.chapters || [];
 
-  // Build demo video URL - prefer HLS for streaming, fallback to R2
+  // Build demo video URL - prefer HLS for streaming
   let demoVideoUrl = null;
   if (course.demoVideo) {
-    // Prefer 480p HLS for faster demo loading, then 720p
     demoVideoUrl = course.demoVideo.hls480pUrl
       || course.demoVideo.hls720pUrl
       || course.demoVideo.hlsMasterUrl
@@ -464,10 +463,9 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
       // For now, return empty array - can be added to Course model later
     } catch {}
 
-    // Build demo video URL - prefer HLS for streaming, fallback to R2
+    // Build demo video URL - prefer HLS for streaming
     let demoVideoUrl = null;
     if (course.demoVideo) {
-      // Prefer HLS URLs for better streaming performance
       demoVideoUrl = course.demoVideo.hls720pUrl
         || course.demoVideo.hls480pUrl
         || course.demoVideo.hlsMasterUrl

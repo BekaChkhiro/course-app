@@ -24,6 +24,7 @@ export default function VideoPreviewModal({
   const [isLoading, setIsLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
+  const [videoDimensions, setVideoDimensions] = useState<{ width: number; height: number } | null>(null);
 
   // Handle open/close animations
   useEffect(() => {
@@ -107,6 +108,28 @@ export default function VideoPreviewModal({
         });
 
         video.addEventListener('loadedmetadata', () => {
+          // Calculate proper dimensions based on video aspect ratio
+          const maxH = window.innerHeight * 0.75;
+          const maxW = window.innerWidth * 0.9;
+          const videoRatio = video.videoWidth / video.videoHeight;
+
+          console.log('Video actual size:', video.videoWidth, 'x', video.videoHeight);
+          console.log('Video ratio:', videoRatio);
+          console.log('Max constraints:', maxW, 'x', maxH);
+
+          let displayWidth, displayHeight;
+          if (videoRatio > 1) {
+            // Landscape video
+            displayWidth = Math.min(maxW, maxH * videoRatio);
+            displayHeight = displayWidth / videoRatio;
+          } else {
+            // Portrait video
+            displayHeight = Math.min(maxH, maxW / videoRatio);
+            displayWidth = displayHeight * videoRatio;
+          }
+
+          console.log('Calculated display size:', displayWidth, 'x', displayHeight);
+          setVideoDimensions({ width: displayWidth, height: displayHeight });
           setIsLoading(false);
         }, { once: true });
 
@@ -119,12 +142,36 @@ export default function VideoPreviewModal({
       } else if (isHLS && video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = videoUrl;
         video.addEventListener('loadedmetadata', () => {
+          const maxH = window.innerHeight * 0.75;
+          const maxW = window.innerWidth * 0.9;
+          const videoRatio = video.videoWidth / video.videoHeight;
+          let displayWidth, displayHeight;
+          if (videoRatio > 1) {
+            displayWidth = Math.min(maxW, maxH * videoRatio);
+            displayHeight = displayWidth / videoRatio;
+          } else {
+            displayHeight = Math.min(maxH, maxW / videoRatio);
+            displayWidth = displayHeight * videoRatio;
+          }
+          setVideoDimensions({ width: displayWidth, height: displayHeight });
           setIsLoading(false);
           video.play().catch(console.error);
         }, { once: true });
       } else {
         video.src = videoUrl;
         video.addEventListener('loadedmetadata', () => {
+          const maxH = window.innerHeight * 0.75;
+          const maxW = window.innerWidth * 0.9;
+          const videoRatio = video.videoWidth / video.videoHeight;
+          let displayWidth, displayHeight;
+          if (videoRatio > 1) {
+            displayWidth = Math.min(maxW, maxH * videoRatio);
+            displayHeight = displayWidth / videoRatio;
+          } else {
+            displayHeight = Math.min(maxH, maxW / videoRatio);
+            displayWidth = displayHeight * videoRatio;
+          }
+          setVideoDimensions({ width: displayWidth, height: displayHeight });
           setIsLoading(false);
           video.play().catch(console.error);
         }, { once: true });
@@ -175,32 +222,32 @@ export default function VideoPreviewModal({
         </div>
 
         {/* Video Container */}
-        <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 aspect-video">
-          {/* Loading State */}
-          {isLoading && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900">
-              {thumbnailUrl && (
-                <div
-                  className="absolute inset-0 bg-cover bg-center opacity-30 blur-sm"
-                  style={{ backgroundImage: `url(${thumbnailUrl})` }}
-                />
-              )}
-              <div className="relative flex flex-col items-center gap-4">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-accent-600/20 rounded-full flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-accent-500 animate-spin" />
+        <div className="flex justify-center">
+          <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+            {/* Loading State */}
+            {isLoading && (
+              <div className="w-[300px] h-[200px] flex flex-col items-center justify-center bg-gray-900">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 bg-accent-600/20 rounded-full flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
+                  </div>
+                  <p className="text-white/60 text-sm">ვიდეო იტვირთება...</p>
                 </div>
-                <p className="text-white/60 text-sm">ვიდეო იტვირთება...</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Video */}
-          <video
-            ref={videoRef}
-            controls
-            playsInline
-            className="absolute inset-0 w-full h-full"
-          />
+            {/* Video */}
+            <video
+              ref={videoRef}
+              controls
+              playsInline
+              className={isLoading ? 'hidden' : 'block'}
+              style={videoDimensions ? {
+                width: `${videoDimensions.width}px`,
+                height: `${videoDimensions.height}px`,
+              } : undefined}
+            />
+          </div>
         </div>
 
         {/* Hint */}
