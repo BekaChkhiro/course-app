@@ -204,7 +204,7 @@ router.get('/courses/featured', async (req: Request, res: Response) => {
           select: { id: true, name: true, slug: true },
         },
         demoVideo: {
-          select: { id: true, r2Key: true },
+          select: { id: true, r2Key: true, hlsMasterUrl: true, hls720pUrl: true, hls480pUrl: true },
         },
         _count: {
           select: { purchases: true, reviews: true },
@@ -285,7 +285,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
           },
         },
         demoVideo: {
-          select: { id: true, r2Key: true },
+          select: { id: true, r2Key: true, hlsMasterUrl: true, hls720pUrl: true, hls480pUrl: true },
         },
         reviews: {
           where: { status: 'APPROVED' },
