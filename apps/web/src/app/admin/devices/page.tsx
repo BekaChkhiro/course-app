@@ -162,7 +162,7 @@ export default function AdminDevicesPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">მოწყობილობების მართვა</h1>
             <p className="text-gray-600 mt-1">
-              მართეთ თქვენი აქტიური მოწყობილობები. მაქსიმუმ 3 მოწყობილობა.
+              მართეთ თქვენი აქტიური მოწყობილობები. მაქსიმუმ 5 მოწყობილობა.
             </p>
           </div>
           <button
@@ -184,16 +184,16 @@ export default function AdminDevicesPage() {
               <div>
                 <p className="text-lg font-semibold text-gray-900">აქტიური მოწყობილობები</p>
                 <p className="text-sm text-gray-500">
-                  {devices.length} მოწყობილობა 3-დან გამოყენებულია
+                  {devices.length} მოწყობილობა 5-დან გამოყენებულია
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold text-gray-900">{devices.length}</span>
               <span className="text-gray-400">/</span>
-              <span className="text-2xl font-bold text-gray-400">3</span>
+              <span className="text-2xl font-bold text-gray-400">5</span>
               <div className="flex gap-1.5 ml-4">
-                {[1, 2, 3].map((i) => (
+                {[1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
                     className={`w-3 h-3 rounded-full transition-colors ${

@@ -164,6 +164,7 @@ export class AuthController {
         browser: deviceInfo.browser,
         ipAddress,
         userAgent: deviceInfo.userAgent,
+        userRole: user.role,
       });
 
       // Generate access token
@@ -213,7 +214,7 @@ export class AuthController {
       if (error instanceof DeviceLimitError) {
         return res.status(403).json({
           success: false,
-          message: 'მოწყობილობების ლიმიტი ამოიწურა. თქვენ უკვე გაქვთ 3 აქტიური მოწყობილობა. ახალი მოწყობილობიდან შესასვლელად, ჯერ გამოდით ერთ-ერთი არსებული მოწყობილობიდან.',
+          message: `მოწყობილობების ლიმიტი ამოიწურა. თქვენ უკვე გაქვთ ${error.maxDevices} აქტიური მოწყობილობა. ახალი მოწყობილობიდან შესასვლელად, ჯერ გამოდით ერთ-ერთი არსებული მოწყობილობიდან.`,
           code: error.code,
           data: {
             activeDevices: error.activeDevices,

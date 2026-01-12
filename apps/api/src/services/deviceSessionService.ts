@@ -2,7 +2,8 @@ import { db } from '../config/database';
 import { DeviceSession } from '@prisma/client';
 import { TokenService } from './tokenService';
 
-const MAX_DEVICES_PER_USER = 3;
+const MAX_DEVICES_STUDENT = 3;
+const MAX_DEVICES_ADMIN = 5;
 const INACTIVE_DEVICE_DAYS = 30;
 
 export interface CreateDeviceSessionData {
@@ -13,6 +14,7 @@ export interface CreateDeviceSessionData {
   browser?: string;
   ipAddress: string;
   userAgent: string;
+  userRole?: string;
 }
 
 // Custom error for device limit
@@ -21,12 +23,12 @@ export class DeviceLimitError extends Error {
   activeDevices: number;
   maxDevices: number;
 
-  constructor(activeDevices: number) {
+  constructor(activeDevices: number, maxDevices: number) {
     super('მოწყობილობების ლიმიტი ამოიწურა');
     this.name = 'DeviceLimitError';
     this.code = 'DEVICE_LIMIT_REACHED';
     this.activeDevices = activeDevices;
-    this.maxDevices = MAX_DEVICES_PER_USER;
+    this.maxDevices = maxDevices;
   }
 }
 
@@ -75,9 +77,12 @@ export class DeviceSessionService {
       },
     });
 
+    // Determine max devices based on user role
+    const maxDevices = data.userRole === 'ADMIN' ? MAX_DEVICES_ADMIN : MAX_DEVICES_STUDENT;
+
     // If max devices reached, throw error instead of auto-deleting
-    if (activeDeviceCount >= MAX_DEVICES_PER_USER) {
-      throw new DeviceLimitError(activeDeviceCount);
+    if (activeDeviceCount >= maxDevices) {
+      throw new DeviceLimitError(activeDeviceCount, maxDevices);
     }
 
     // Create new session

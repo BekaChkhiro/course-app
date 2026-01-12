@@ -201,7 +201,7 @@ export default function LoginPage() {
                       მოწყობილობების ლიმიტი ამოიწურა
                     </h3>
                     <p className="mt-1 text-sm text-amber-700">
-                      თქვენ უკვე გაქვთ 3 აქტიური მოწყობილობა. ახალი მოწყობილობიდან შესასვლელად, ჯერ გამოდით ერთ-ერთი არსებული მოწყობილობიდან.
+                      {error}
                     </p>
                     <div className="mt-3">
                       <Link
