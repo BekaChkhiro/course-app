@@ -256,7 +256,7 @@ export default function CoursePage() {
             href={`/auth/login?redirect=/courses/${course.slug}`}
             className="block w-full text-center bg-accent-600 text-white py-3 rounded-xl font-medium hover:bg-accent-700 transition-colors"
           >
-            {course.price === 0 ? 'დაიწყე უფასოდ' : 'შესვლა'}
+            {course.price === 0 ? 'დაიწყე უფასოდ' : 'ყიდვა'}
           </Link>
         )}
 
