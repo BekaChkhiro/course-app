@@ -410,7 +410,7 @@ export default function RegisterPage() {
                   წესებსა და პირობებს
                 </Link>{' '}
                 და{' '}
-                <Link href="/privacy" className="text-primary-900 hover:text-primary-500">
+                <Link href="/privacy-policy" className="text-primary-900 hover:text-primary-500">
                   კონფიდენციალურობის პოლიტიკას
                 </Link>
               </label>
@@ -449,7 +449,7 @@ export default function RegisterPage() {
             წესებს
           </Link>{' '}
           და{' '}
-          <Link href="/privacy" className="text-primary-900 hover:text-primary-500">
+          <Link href="/privacy-policy" className="text-primary-900 hover:text-primary-500">
             კონფიდენციალურობის პოლიტიკას
           </Link>
         </p>

@@ -96,6 +96,7 @@ export default function QuizManager({
           answers: q.answers.map(a => ({
             id: a.id,
             text: a.answer,
+            answerImage: a.answerImage,
             isCorrect: a.isCorrect
           }))
         })));
@@ -135,8 +136,9 @@ export default function QuizManager({
           questionImage: q.questionImage,
           points: q.points,
           order: qIndex,
-          answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
+          answers: q.answers.filter(a => a.text.trim() || a.answerImage).map((a, i) => ({
             answer: a.text,
+            answerImage: a.answerImage,
             isCorrect: a.isCorrect,
             order: i
           }))
@@ -190,8 +192,9 @@ export default function QuizManager({
             questionImage: q.questionImage,
             points: q.points,
             order: qIndex,
-            answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
+            answers: q.answers.filter(a => a.text.trim() || a.answerImage).map((a, i) => ({
               answer: a.text,
+              answerImage: a.answerImage,
               isCorrect: a.isCorrect,
               order: i
             }))
@@ -203,8 +206,9 @@ export default function QuizManager({
             questionImage: q.questionImage,
             points: q.points,
             order: qIndex,
-            answers: q.answers.filter(a => a.text.trim()).map((a, i) => ({
+            answers: q.answers.filter(a => a.text.trim() || a.answerImage).map((a, i) => ({
               answer: a.text,
+              answerImage: a.answerImage,
               isCorrect: a.isCorrect,
               order: i
             }))
@@ -294,8 +298,8 @@ export default function QuizManager({
 
   const canSave = questions.length > 0 && questions.every(q =>
     q.question.trim() &&
-    q.answers.filter(a => a.text.trim()).length >= 2 &&
-    q.answers.some(a => a.isCorrect && a.text.trim())
+    q.answers.filter(a => a.text.trim() || a.answerImage).length >= 2 &&
+    q.answers.some(a => a.isCorrect && (a.text.trim() || a.answerImage))
   );
 
   // VIEW MODE - Show existing quiz summary
@@ -361,19 +365,28 @@ export default function QuizManager({
                       />
                     )}
                     <div className="mt-1.5 space-y-1">
-                      {q.answers.map((a, ai) => (
+                      {q.answers.map((a) => (
                         <div
                           key={a.id}
-                          className={`flex items-center gap-1.5 text-xs ${
+                          className={`text-xs ${
                             a.isCorrect ? 'text-green-600' : 'text-gray-500'
                           }`}
                         >
-                          {a.isCorrect ? (
-                            <Check className="w-3 h-3" />
-                          ) : (
-                            <span className="w-3 h-3 rounded-full border border-gray-300" />
+                          <div className="flex items-center gap-1.5">
+                            {a.isCorrect ? (
+                              <Check className="w-3 h-3 flex-shrink-0" />
+                            ) : (
+                              <span className="w-3 h-3 rounded-full border border-gray-300 flex-shrink-0" />
+                            )}
+                            {a.answer}
+                          </div>
+                          {a.answerImage && (
+                            <img
+                              src={a.answerImage}
+                              alt="პასუხის სურათი"
+                              className="mt-1 ml-[18px] max-w-[150px] max-h-24 rounded border border-gray-200"
+                            />
                           )}
-                          {a.answer}
                         </div>
                       ))}
                     </div>
@@ -594,6 +607,7 @@ export default function QuizManager({
 interface AnswerInput {
   id?: string;
   text: string;
+  answerImage?: string;
   isCorrect: boolean;
 }
 
@@ -627,7 +641,9 @@ function QuestionCard({
   onRemoveAnswer: (answerIndex: number) => void;
 }) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingAnswerIndex, setUploadingAnswerIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const answerFileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const {
     attributes,
@@ -681,6 +697,41 @@ function QuestionCard({
 
   const handleRemoveImage = () => {
     onUpdate({ questionImage: undefined });
+  };
+
+  const handleAnswerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, answerIndex: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('მხოლოდ სურათის ატვირთვა შეიძლება');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('სურათი არ უნდა აღემატებოდეს 5MB-ს');
+      return;
+    }
+
+    setUploadingAnswerIndex(answerIndex);
+    try {
+      const response = await uploadApi.quizImage(file);
+      const imageUrl = response.data.file.url;
+      onUpdateAnswer(answerIndex, { answerImage: imageUrl });
+      toast.success('სურათი აიტვირთა');
+    } catch (error) {
+      console.error('Answer image upload error:', error);
+      toast.error('სურათის ატვირთვა ვერ მოხერხდა');
+    } finally {
+      setUploadingAnswerIndex(null);
+      if (answerFileInputRefs.current[answerIndex]) {
+        answerFileInputRefs.current[answerIndex]!.value = '';
+      }
+    }
+  };
+
+  const handleRemoveAnswerImage = (answerIndex: number) => {
+    onUpdateAnswer(answerIndex, { answerImage: undefined });
   };
 
   return (
@@ -791,32 +842,76 @@ function QuestionCard({
       {/* Answers */}
       <div className="space-y-2 ml-8">
         {question.answers.map((answer, aIndex) => (
-          <div key={answer.id || aIndex} className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onUpdateAnswer(aIndex, { isCorrect: !answer.isCorrect })}
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
-                answer.isCorrect
-                  ? 'bg-green-500 border-green-500 text-white'
-                  : 'border-gray-300 hover:border-green-400'
-              }`}
-            >
-              {answer.isCorrect && <Check className="w-3 h-3" />}
-            </button>
-            <input
-              type="text"
-              value={answer.text}
-              onChange={(e) => onUpdateAnswer(aIndex, { text: e.target.value })}
-              placeholder={`პასუხი ${aIndex + 1}`}
-              className="flex-1 px-2 py-1.5 border rounded text-sm focus:ring-1 focus:ring-accent-600 focus:border-accent-600"
-            />
-            {question.answers.length > 2 && (
+          <div key={answer.id || aIndex} className="space-y-1">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => onRemoveAnswer(aIndex)}
-                className="p-1 text-gray-400 hover:text-red-500"
+                type="button"
+                onClick={() => onUpdateAnswer(aIndex, { isCorrect: !answer.isCorrect })}
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                  answer.isCorrect
+                    ? 'bg-green-500 border-green-500 text-white'
+                    : 'border-gray-300 hover:border-green-400'
+                }`}
               >
-                <X className="w-3 h-3" />
+                {answer.isCorrect && <Check className="w-3 h-3" />}
               </button>
+              <input
+                type="text"
+                value={answer.text}
+                onChange={(e) => onUpdateAnswer(aIndex, { text: e.target.value })}
+                placeholder={`პასუხი ${aIndex + 1}`}
+                className="flex-1 px-2 py-1.5 border rounded text-sm focus:ring-1 focus:ring-accent-600 focus:border-accent-600"
+              />
+              {/* Answer Image Upload */}
+              <input
+                ref={(el) => { answerFileInputRefs.current[aIndex] = el; }}
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleAnswerImageUpload(e, aIndex)}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => answerFileInputRefs.current[aIndex]?.click()}
+                disabled={uploadingAnswerIndex === aIndex}
+                className={`p-1.5 rounded transition-colors ${
+                  answer.answerImage
+                    ? 'text-accent-600 bg-accent-50 hover:bg-accent-100'
+                    : 'text-gray-400 hover:text-accent-600 hover:bg-gray-100'
+                }`}
+                title="სურათის დამატება"
+              >
+                {uploadingAnswerIndex === aIndex ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <ImagePlus className="w-3.5 h-3.5" />
+                )}
+              </button>
+              {question.answers.length > 2 && (
+                <button
+                  onClick={() => onRemoveAnswer(aIndex)}
+                  className="p-1 text-gray-400 hover:text-red-500"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            {/* Answer Image Preview */}
+            {answer.answerImage && (
+              <div className="ml-7 relative inline-block">
+                <img
+                  src={answer.answerImage}
+                  alt="პასუხის სურათი"
+                  className="max-w-[120px] max-h-20 rounded border border-gray-200"
+                />
+                <button
+                  onClick={() => handleRemoveAnswerImage(aIndex)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm"
+                  title="სურათის წაშლა"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
             )}
           </div>
         ))}

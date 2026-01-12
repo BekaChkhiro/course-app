@@ -28,6 +28,14 @@ export interface QuizAnswer {
   order: number;
 }
 
+// Type for creating/updating answers (without id)
+export interface QuizAnswerInput {
+  answer: string;
+  answerImage?: string;
+  isCorrect: boolean;
+  order: number;
+}
+
 export interface QuizQuestion {
   id: string;
   type: QuestionType;
@@ -40,6 +48,20 @@ export interface QuizQuestion {
   tags: string[];
   difficulty?: string;
   answers: QuizAnswer[];
+}
+
+// Type for creating/updating questions (without id, answers use QuizAnswerInput)
+export interface QuizQuestionInput {
+  type: QuestionType;
+  question: string;
+  questionImage?: string;
+  explanation?: string;
+  points: number;
+  order: number;
+  category?: string;
+  tags?: string[];
+  difficulty?: string;
+  answers: QuizAnswerInput[];
 }
 
 export interface Quiz {
@@ -168,13 +190,13 @@ export const quizApi = {
   },
 
   // Add question
-  async addQuestion(quizId: string, data: Partial<QuizQuestion>) {
+  async addQuestion(quizId: string, data: Partial<QuizQuestionInput>) {
     const response = await apiClient.post(`/quizzes/${quizId}/questions`, data);
     return response.data;
   },
 
   // Update question
-  async updateQuestion(questionId: string, data: Partial<QuizQuestion>) {
+  async updateQuestion(questionId: string, data: Partial<QuizQuestionInput>) {
     const response = await apiClient.put(`/quizzes/questions/${questionId}`, data);
     return response.data;
   },
