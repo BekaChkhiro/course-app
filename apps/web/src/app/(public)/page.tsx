@@ -10,6 +10,7 @@ import InstructorsSection from '@/components/public/InstructorsSection';
 import FAQSection from '@/components/public/FAQSection';
 import VideoPreviewModal from '@/components/ui/VideoPreviewModal';
 import { Play } from 'lucide-react';
+import { stripHtmlTags } from '@/utils/string';
 
 // Hero Section
 const HeroSection = () => {
@@ -184,7 +185,7 @@ const CourseCard = ({ course }: { course: any }) => {
               {course.title}
             </h3>
           </Link>
-          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 line-clamp-2 min-h-[32px] sm:min-h-[40px]">{course.shortDescription || '\u00A0'}</p>
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 line-clamp-2 min-h-[32px] sm:min-h-[40px]">{stripHtmlTags(course.shortDescription) || '\u00A0'}</p>
           <div className="mt-3 sm:mt-4 flex items-center justify-between">
             <div className="flex items-center space-x-1">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">

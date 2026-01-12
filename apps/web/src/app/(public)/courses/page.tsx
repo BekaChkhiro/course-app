@@ -8,6 +8,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { publicApi } from '@/lib/api/publicApi';
 import VideoPreviewModal from '@/components/ui/VideoPreviewModal';
 import { Play } from 'lucide-react';
+import { stripHtmlTags } from '@/utils/string';
 
 type SortOption = 'popular' | 'newest' | 'price_low' | 'price_high' | 'rating';
 
@@ -534,7 +535,7 @@ const CourseCard = ({ course }: { course: any }) => {
             </h3>
           </Link>
           <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 line-clamp-2 min-h-[32px] sm:min-h-[40px]">
-            {course.shortDescription || '\u00A0'}
+            {stripHtmlTags(course.shortDescription) || '\u00A0'}
           </p>
           <div className="mt-3 sm:mt-4 flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-100">
             <div className="flex items-center space-x-1">

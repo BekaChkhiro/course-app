@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { BookOpen, Mail, Facebook, Linkedin, User, Star, Users, ArrowLeft } from 'lucide-react';
 import { publicApi } from '@/lib/api/publicApi';
+import { stripHtmlTags } from '@/utils/string';
 
 type Course = {
   id: string;
@@ -68,7 +69,7 @@ function CourseCard({ course }: { course: Course }) {
           {course.title}
         </h3>
         {course.shortDescription && (
-          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{course.shortDescription}</p>
+          <p className="mt-2 text-sm text-gray-600 line-clamp-2">{stripHtmlTags(course.shortDescription)}</p>
         )}
 
         <div className="mt-4 flex items-center justify-between">
