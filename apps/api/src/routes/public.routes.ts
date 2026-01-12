@@ -287,6 +287,11 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         demoVideo: {
           select: { id: true, r2Key: true, hlsMasterUrl: true, hls720pUrl: true, hls480pUrl: true },
         },
+        features: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+          select: { id: true, text: true },
+        },
         reviews: {
           where: { status: 'APPROVED' },
           select: { rating: true },
@@ -493,6 +498,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
         chapterCount: chapters.length,
         chapters,
         learningOutcomes,
+        features: course.features || [],
         totalDuration: 0, // Can be calculated if duration is stored in chapters
         isEnrolled,
         progressPercentage,

@@ -2,7 +2,24 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, BookOpen, DollarSign, Image, Search, UserCircle, Video } from 'lucide-react';
+import { Save, BookOpen, DollarSign, Image, Search, UserCircle, Video, ListChecks, Plus, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { courseApi, categoryApi, uploadApi, instructorApi } from '@/lib/api/adminApi';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -13,6 +30,12 @@ import { slugify } from '@/lib/utils';
 
 interface CourseInfoTabProps {
   course: any;
+}
+
+interface Feature {
+  id: string;
+  text: string;
+  isActive?: boolean;
 }
 
 interface SectionProps {
@@ -43,6 +66,62 @@ function Section({ icon, title, description, children }: SectionProps) {
   );
 }
 
+// Sortable Feature Item Component
+function SortableFeatureItem({
+  feature,
+  onUpdate,
+  onRemove
+}: {
+  feature: Feature;
+  onUpdate: (id: string, text: string) => void;
+  onRemove: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: feature.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 sm:gap-3 bg-gray-50 rounded-lg p-2 sm:p-3 ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 flex-shrink-0"
+      >
+        <GripVertical className="w-4 h-4 sm:w-5 sm:h-5" />
+      </button>
+      <input
+        type="text"
+        value={feature.text}
+        onChange={(e) => onUpdate(feature.id, e.target.value)}
+        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 focus:border-accent-600 transition-colors text-sm"
+        placeholder="მახასიათებელი..."
+      />
+      <button
+        type="button"
+        onClick={() => onRemove(feature.id)}
+        className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 p-1"
+      >
+        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+      </button>
+    </div>
+  );
+}
+
 export default function CourseInfoTab({ course }: CourseInfoTabProps) {
   const [formData, setFormData] = useState({
     title: course.title,
@@ -59,6 +138,23 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
     metaDescription: course.metaDescription || '',
     metaKeywords: course.metaKeywords || ''
   });
+
+  // Features state - initialize from course.features or empty array
+  const [features, setFeatures] = useState<Feature[]>(
+    (course.features || []).map((f: any, index: number) => ({
+      id: f.id || `feature-${index}`,
+      text: f.text,
+      isActive: f.isActive !== false
+    }))
+  );
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
 
   const queryClient = useQueryClient();
 
@@ -84,11 +180,41 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
     }
   });
 
+  // Feature helper functions
+  const addFeature = () => {
+    setFeatures([
+      ...features,
+      { id: `new-${Date.now()}`, text: '', isActive: true }
+    ]);
+  };
+
+  const updateFeature = (id: string, text: string) => {
+    setFeatures(features.map(f => f.id === id ? { ...f, text } : f));
+  };
+
+  const removeFeature = (id: string) => {
+    setFeatures(features.filter(f => f.id !== id));
+  };
+
+  const handleFeatureDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setFeatures((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Filter out empty features before submitting
+    const validFeatures = features.filter(f => f.text.trim());
     updateMutation.mutate({
       ...formData,
-      individualSessionPrice: formData.individualSessionPrice || null
+      individualSessionPrice: formData.individualSessionPrice || null,
+      features: validFeatures.map(f => ({ text: f.text, isActive: f.isActive }))
     });
   };
 
@@ -314,6 +440,54 @@ export default function CourseInfoTab({ course }: CourseInfoTabProps) {
         <p className="mt-3 text-xs text-gray-500">
           დემო ვიდეო გამოჩნდება კურსის ქარდებზე auto-play რეჟიმში hover-ზე
         </p>
+      </Section>
+
+      {/* Course Features Section */}
+      <Section
+        icon={<ListChecks className="w-5 h-5" />}
+        title="კურსის მახასიათებლები"
+        description="უპირატესობები რომლებიც გამოჩნდება კურსის გვერდზე"
+      >
+        <div className="space-y-3">
+          {features.length > 0 ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleFeatureDragEnd}
+            >
+              <SortableContext
+                items={features.map(f => f.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {features.map((feature) => (
+                    <SortableFeatureItem
+                      key={feature.id}
+                      feature={feature}
+                      onUpdate={updateFeature}
+                      onRemove={removeFeature}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-4">
+              ჯერ არ არის დამატებული მახასიათებლები
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={addFeature}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-accent-500 hover:text-accent-600 transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            დამატება
+          </button>
+          <p className="text-xs text-gray-500">
+            მაგ: შეუზღუდავი წვდომა, სერტიფიკატი დასრულებისას, პრაქტიკული დავალებები
+          </p>
+        </div>
       </Section>
 
       {/* SEO Section */}

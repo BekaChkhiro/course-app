@@ -140,6 +140,7 @@ export const addQuestion = async (req: AuthRequest, res: Response) => {
     // Validate answers have order field
     const answersWithOrder = (req.body.answers || []).map((a: any, index: number) => ({
       answer: a.answer,
+      answerImage: a.answerImage,
       isCorrect: a.isCorrect,
       order: a.order ?? index,
     }));

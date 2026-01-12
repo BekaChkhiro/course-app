@@ -299,7 +299,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                       {question.questionImage && (
                         <div
                           className="mt-2 relative inline-block cursor-zoom-in group"
-                          onClick={() => setZoomedImage(question.questionImage)}
+                          onClick={() => setZoomedImage(question.questionImage || null)}
                         >
                           <img
                             src={question.questionImage}
@@ -338,6 +338,23 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
                             {isUserAnswer && !isCorrectAnswer && <X className="w-3.5 h-3.5 text-red-600" />}
                             <span>{answer.answer}</span>
                           </div>
+                          {answer.answerImage && (
+                            <div
+                              className="mt-2 relative inline-block cursor-zoom-in group"
+                              onClick={() => setZoomedImage(answer.answerImage || null)}
+                            >
+                              <img
+                                src={answer.answerImage}
+                                alt=""
+                                className="max-w-[200px] rounded-lg transition-opacity group-hover:opacity-90"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="bg-black/50 rounded-full p-1.5">
+                                  <ZoomIn className="w-3.5 h-3.5 text-white" />
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

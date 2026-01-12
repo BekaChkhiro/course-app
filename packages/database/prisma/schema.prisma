@@ -218,6 +218,7 @@ model Course {
   reviews         Review[]
   messages        StudentMessage[]
   promoCodes      PromoCode[]
+  features        CourseFeature[]
   activeVersionId String?         @unique
 
   @@index([slug])
@@ -1906,4 +1907,25 @@ model Instructor {
   @@index([isActive])
   @@index([order])
   @@map("instructors")
+}
+
+// ==========================================
+// COURSE FEATURES/BENEFITS SYSTEM
+// ==========================================
+
+model CourseFeature {
+  id        String   @id @default(cuid())
+  courseId  String
+  text      String   // Feature text (e.g., "შეუზღუდავი წვდომა")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([order])
+  @@map("course_features")
 }

@@ -80,6 +80,11 @@ export const getCourseById = async (req: Request, res: Response) => {
         category: true,
         author: { select: { id: true, name: true, surname: true, email: true, avatar: true } },
         instructor: { select: { id: true, firstName: true, lastName: true, slug: true, profession: true, bio: true, avatar: true, email: true, facebook: true, linkedin: true } },
+        features: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+          select: { id: true, text: true, order: true, isActive: true }
+        },
         versions: {
           include: {
             chapters: {
@@ -212,6 +217,7 @@ export const updateCourse = async (req: Request, res: Response) => {
       metaKeywords,
       status,
       isFeatured,
+      features,
     } = req.body;
 
     const existingCourse = await prisma.course.findUnique({
@@ -284,9 +290,54 @@ export const updateCourse = async (req: Request, res: Response) => {
         category: true,
         author: { select: { id: true, name: true, surname: true, email: true } },
         instructor: { select: { id: true, firstName: true, lastName: true, profession: true, avatar: true } },
+        features: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
+          select: { id: true, text: true, order: true, isActive: true }
+        },
         _count: { select: { purchases: true, reviews: true, versions: true } }
       }
     });
+
+    // Handle features update if provided
+    if (Array.isArray(features)) {
+      // Delete existing features and create new ones
+      await prisma.courseFeature.deleteMany({
+        where: { courseId: id }
+      });
+
+      if (features.length > 0) {
+        await prisma.courseFeature.createMany({
+          data: features.map((feature: { text: string; isActive?: boolean }, index: number) => ({
+            courseId: id,
+            text: feature.text,
+            order: index,
+            isActive: feature.isActive !== false
+          }))
+        });
+      }
+
+      // Refetch course with updated features
+      const updatedCourse = await prisma.course.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          author: { select: { id: true, name: true, surname: true, email: true } },
+          instructor: { select: { id: true, firstName: true, lastName: true, profession: true, avatar: true } },
+          features: {
+            where: { isActive: true },
+            orderBy: { order: 'asc' },
+            select: { id: true, text: true, order: true, isActive: true }
+          },
+          _count: { select: { purchases: true, reviews: true, versions: true } }
+        }
+      });
+
+      return res.json({
+        message: 'Course updated successfully',
+        course: updatedCourse
+      });
+    }
 
     res.json({
       message: 'Course updated successfully',

@@ -261,26 +261,18 @@ export default function CoursePage() {
         )}
 
         {/* Features */}
-        <div className="mt-6 space-y-3">
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            შეუზღუდავი წვდომა
+        {course.features && course.features.length > 0 && (
+          <div className="mt-6 space-y-3">
+            {course.features.map((feature: { id: string; text: string }) => (
+              <div key={feature.id} className="flex items-center text-sm text-gray-600">
+                <svg className="w-5 h-5 mr-3 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                {feature.text}
+              </div>
+            ))}
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            სერტიფიკატი დასრულებისას
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-5 h-5 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            პრაქტიკული დავალებები
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
