@@ -85,10 +85,11 @@ export class DeviceSessionService {
       throw new DeviceLimitError(activeDeviceCount, maxDevices);
     }
 
-    // Create new session
+    // Create new session - exclude userRole as it's not a DB field
+    const { userRole: _, ...sessionData } = data;
     const session = await db.deviceSession.create({
       data: {
-        ...data,
+        ...sessionData,
         refreshToken,
         expiresAt,
         lastActiveAt: new Date(),
