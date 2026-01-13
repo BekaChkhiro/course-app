@@ -11,7 +11,7 @@ const formatPublicCourse = (course: any) => {
   const ratings = course.reviews.map((r: any) => r.rating);
   const averageRating =
     ratings.length > 0
-      ? ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length
+      ? ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length / 10
       : 0;
 
   const activeVersion = course.versions[0];
@@ -455,7 +455,7 @@ router.get('/courses/:slug', optionalAuth, async (req: AuthRequest, res: Respons
     const ratings = course.reviews.map((r) => r.rating);
     const averageRating =
       ratings.length > 0
-        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length / 10
         : 0;
 
     const activeVersion = course.versions[0];

@@ -105,7 +105,7 @@ export const getInstructorBySlug = async (req: Request, res: Response) => {
     const courses = instructor.courses.map(course => {
       const ratings = course.reviews.map(r => r.rating);
       const averageRating = ratings.length > 0
-        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+        ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length / 10
         : 0;
       const activeVersion = course.versions[0];
 
