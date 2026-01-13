@@ -3,7 +3,7 @@ import { DeviceSession } from '@prisma/client';
 import { TokenService } from './tokenService';
 
 const MAX_DEVICES_STUDENT = 3;
-const MAX_DEVICES_ADMIN = 5;
+const MAX_DEVICES_ADMIN = 10;
 const INACTIVE_DEVICE_DAYS = 30;
 
 export interface CreateDeviceSessionData {
