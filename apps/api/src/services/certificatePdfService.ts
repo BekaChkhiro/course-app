@@ -36,209 +36,159 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
       const centerX = pageWidth / 2;
 
       // Colors
-      const primaryColor = '#0e3355';
-      const accentColor = '#ff4d40';
-      const lightGray = '#9CA3AF';
+      const primaryColor = '#0e3355'; // Dark blue
+      const accentColor = '#ff4d40'; // Red
+      const blackColor = '#000000';
 
-      // Background gradient effect (light)
+      // White background
       doc.rect(0, 0, pageWidth, pageHeight)
-        .fill('#fefefe');
+        .fill('#ffffff');
 
-      // Outer border
-      doc.rect(25, 25, pageWidth - 50, pageHeight - 50)
-        .lineWidth(2)
-        .stroke(primaryColor);
+      // Top horizontal dark blue line
+      doc.rect(0, 0, pageWidth, 4)
+        .fill(primaryColor);
 
-      // Inner border
-      doc.rect(35, 35, pageWidth - 70, pageHeight - 70)
-        .lineWidth(0.5)
-        .strokeOpacity(0.3)
-        .stroke(primaryColor);
+      // Bottom horizontal dark blue line
+      doc.rect(0, pageHeight - 4, pageWidth, 4)
+        .fill(primaryColor);
 
-      // Reset opacity
-      doc.strokeOpacity(1);
+      // Left vertical red line
+      doc.rect(0, 0, 4, pageHeight)
+        .fill(accentColor);
 
-      // Corner decorations (L-shaped)
-      const cornerSize = 30;
-      const cornerThickness = 5;
-      const cornerOffset = 45;
+      // Right vertical red line
+      doc.rect(pageWidth - 4, 0, 4, pageHeight)
+        .fill(accentColor);
 
-      // Top-left corner
+      // Top-left corner - Red and black outlined triangles
+      const cornerSize = 50;
+      const cornerOffset = 30;
+
+      // Red triangle outline (top-left)
       doc.polygon(
         [cornerOffset, cornerOffset],
         [cornerOffset + cornerSize, cornerOffset],
-        [cornerOffset + cornerSize, cornerOffset + cornerThickness],
-        [cornerOffset + cornerThickness, cornerOffset + cornerThickness],
-        [cornerOffset + cornerThickness, cornerOffset + cornerSize],
         [cornerOffset, cornerOffset + cornerSize]
-      ).fillOpacity(0.5).fill(accentColor);
+      )
+        .lineWidth(2)
+        .stroke(accentColor)
+        .fill('none');
 
-      // Top-right corner
+      // Black triangle outline (smaller, offset)
+      const innerOffset = cornerOffset + 8;
+      const innerSize = cornerSize - 16;
       doc.polygon(
-        [pageWidth - cornerOffset, cornerOffset],
-        [pageWidth - cornerOffset, cornerOffset + cornerSize],
-        [pageWidth - cornerOffset - cornerThickness, cornerOffset + cornerSize],
-        [pageWidth - cornerOffset - cornerThickness, cornerOffset + cornerThickness],
-        [pageWidth - cornerOffset - cornerSize, cornerOffset + cornerThickness],
-        [pageWidth - cornerOffset - cornerSize, cornerOffset]
-      ).fill(accentColor);
+        [innerOffset, innerOffset],
+        [innerOffset + innerSize, innerOffset],
+        [innerOffset, innerOffset + innerSize]
+      )
+        .lineWidth(1.5)
+        .stroke(blackColor)
+        .fill('none');
 
-      // Bottom-left corner
-      doc.polygon(
-        [cornerOffset, pageHeight - cornerOffset],
-        [cornerOffset + cornerSize, pageHeight - cornerOffset],
-        [cornerOffset + cornerSize, pageHeight - cornerOffset - cornerThickness],
-        [cornerOffset + cornerThickness, pageHeight - cornerOffset - cornerThickness],
-        [cornerOffset + cornerThickness, pageHeight - cornerOffset - cornerSize],
-        [cornerOffset, pageHeight - cornerOffset - cornerSize]
-      ).fill(accentColor);
+      // Bottom-right corner - Solid dark blue and black outlined triangles
+      const brCornerX = pageWidth - cornerOffset - cornerSize;
+      const brCornerY = pageHeight - cornerOffset - cornerSize;
 
-      // Bottom-right corner
+      // Solid dark blue triangle (bottom-right)
       doc.polygon(
-        [pageWidth - cornerOffset, pageHeight - cornerOffset],
         [pageWidth - cornerOffset, pageHeight - cornerOffset - cornerSize],
-        [pageWidth - cornerOffset - cornerThickness, pageHeight - cornerOffset - cornerSize],
-        [pageWidth - cornerOffset - cornerThickness, pageHeight - cornerOffset - cornerThickness],
-        [pageWidth - cornerOffset - cornerSize, pageHeight - cornerOffset - cornerThickness],
+        [pageWidth - cornerOffset, pageHeight - cornerOffset],
         [pageWidth - cornerOffset - cornerSize, pageHeight - cornerOffset]
-      ).fill(accentColor);
+      )
+        .fill(primaryColor);
 
-      // Reset opacity
-      doc.fillOpacity(1);
-
-      // Top decorative line
-      const lineY = 55;
-      doc.moveTo(centerX - 80, lineY)
-        .lineTo(centerX - 10, lineY)
-        .strokeOpacity(0.5)
-        .stroke(accentColor);
-
-      // Diamond in center
+      // Black triangle outline (smaller, offset)
+      const brInnerX = pageWidth - innerOffset - innerSize;
+      const brInnerY = pageHeight - innerOffset - innerSize;
       doc.polygon(
-        [centerX, lineY - 5],
-        [centerX + 5, lineY],
-        [centerX, lineY + 5],
-        [centerX - 5, lineY]
-      ).fillOpacity(0.5).fill(accentColor);
+        [pageWidth - innerOffset, brInnerY],
+        [pageWidth - innerOffset, pageHeight - innerOffset],
+        [brInnerX, pageHeight - innerOffset]
+      )
+        .lineWidth(1.5)
+        .stroke(blackColor)
+        .fill('none');
 
-      doc.moveTo(centerX + 10, lineY)
-        .lineTo(centerX + 80, lineY)
-        .strokeOpacity(0.5)
-        .stroke(accentColor);
+      // Main Content
+      let currentY = 100;
 
-      doc.fillOpacity(1);
-      doc.strokeOpacity(1);
-
-      // Logo text (since we can't embed an image easily)
-      let currentY = 85;
-      doc.fontSize(16)
+      // Logo text
+      doc.fontSize(18)
         .fillColor(primaryColor)
-        .text('KURSEBI.ONLINE', centerX - 80, currentY, { width: 160, align: 'center' });
-
-      // Title
-      currentY += 40;
-      doc.fontSize(36)
+        .font('Helvetica-Bold')
+        .text('KURSEBI', centerX - 100, currentY, { width: 200, align: 'center' });
+      
+      currentY += 20;
+      doc.fontSize(12)
         .fillColor(primaryColor)
-        .text('CERTIFICATE', centerX - 200, currentY, { width: 400, align: 'center' });
+        .text('.ONLINE', centerX - 50, currentY, { width: 100, align: 'center' });
 
-      // Star divider
-      currentY += 25;
-      doc.moveTo(centerX - 80, currentY)
-        .lineTo(centerX - 10, currentY)
-        .stroke(accentColor);
+      // Title - სერტიფიკატი in large red text
+      currentY += 50;
+      doc.fontSize(42)
+        .fillColor(accentColor)
+        .font('Helvetica-Bold')
+        .text('სერტიფიკატი', centerX - 200, currentY, { width: 400, align: 'center' });
 
-      // Star
-      doc.fontSize(14).fillColor(accentColor).text('★', centerX - 5, currentY - 7);
+      // Introductory phrase - ადასტურებს, რომ
+      currentY += 50;
+      doc.fontSize(14)
+        .fillColor(primaryColor)
+        .font('Helvetica')
+        .text('ადასტურებს, რომ', centerX - 150, currentY, { width: 300, align: 'center' });
 
-      doc.moveTo(centerX + 10, currentY)
-        .lineTo(centerX + 80, currentY)
-        .stroke(accentColor);
-
-      // "This is to certify that"
-      currentY += 25;
-      doc.fontSize(11)
-        .fillColor('#6B7280')
-        .font('Helvetica-Oblique')
-        .text('This is to certify that', centerX - 150, currentY, { width: 300, align: 'center' });
-
-      // Student Name
-      currentY += 25;
-      doc.fontSize(28)
+      // Student Name - Large bold dark blue
+      currentY += 35;
+      doc.fontSize(32)
         .fillColor(primaryColor)
         .font('Helvetica-Bold')
         .text(data.studentName, centerX - 250, currentY, { width: 500, align: 'center' });
 
-      // Underline decoration
-      currentY += 40;
-      const underlineWidth = 200;
-      doc.moveTo(centerX - underlineWidth/2, currentY)
-        .lineTo(centerX + underlineWidth/2, currentY)
-        .lineWidth(2)
-        .stroke(accentColor);
-
-      // "has successfully completed the course"
-      currentY += 20;
-      doc.fontSize(11)
-        .fillColor('#6B7280')
+      // Completion statement
+      currentY += 50;
+      doc.fontSize(13)
+        .fillColor(primaryColor)
         .font('Helvetica')
-        .text('has successfully completed the course', centerX - 150, currentY, { width: 300, align: 'center' });
-
-      // Course Title
-      currentY += 25;
-      doc.fontSize(18)
+        .text('წარმატებით დაასრულა ონლაინ პროგრამა, პლატფორმა', centerX - 250, currentY, { width: 500, align: 'center' });
+      
+      currentY += 20;
+      doc.fontSize(13)
         .fillColor(primaryColor)
         .font('Helvetica-Bold')
-        .text(`"${data.courseTitle}"`, centerX - 300, currentY, { width: 600, align: 'center' });
+        .text('Kursebi.Online-ზე', centerX - 150, currentY, { width: 300, align: 'center' });
 
-      // Score (if provided)
-      if (data.score !== undefined) {
-        currentY += 35;
-        doc.roundedRect(centerX - 40, currentY, 80, 28, 14)
-          .fill(accentColor);
-        doc.fontSize(14)
-          .fillColor('#ffffff')
-          .text(`${Math.round(data.score)}%`, centerX - 40, currentY + 6, { width: 80, align: 'center' });
-      }
+      // Course Title - Large red text
+      currentY += 40;
+      doc.fontSize(28)
+        .fillColor(accentColor)
+        .font('Helvetica-Bold')
+        .text(data.courseTitle, centerX - 300, currentY, { width: 600, align: 'center' });
 
-      // Date and Certificate Number
-      currentY = pageHeight - 110;
+      // Footer - Date and ID
+      const footerY = pageHeight - 80;
 
-      // Date
-      doc.fontSize(10)
-        .fillColor('#6B7280')
+      // Date on left
+      doc.fontSize(11)
+        .fillColor(primaryColor)
         .font('Helvetica')
-        .text('Date:', centerX - 180, currentY, { width: 80, align: 'right' });
-      doc.fillColor('#374151')
-        .text(formatGeorgianDate(data.issuedAt), centerX - 95, currentY);
+        .text('თარიღი:', 80, footerY);
+      
+      doc.fontSize(11)
+        .fillColor(primaryColor)
+        .font('Helvetica')
+        .text(formatGeorgianDate(data.issuedAt), 80, footerY + 18);
 
-      // Separator dot
-      doc.fontSize(8)
-        .fillColor(lightGray)
-        .text('•', centerX - 5, currentY + 1);
-
-      // Certificate ID
-      doc.fontSize(10)
-        .fillColor('#6B7280')
-        .text('ID:', centerX + 15, currentY);
-      doc.fillColor('#374151')
+      // ID on right
+      doc.fontSize(11)
+        .fillColor(primaryColor)
+        .font('Helvetica')
+        .text('ID:', pageWidth - 200, footerY, { align: 'right' });
+      
+      doc.fontSize(11)
+        .fillColor(primaryColor)
         .font('Courier')
-        .text(data.certificateNumber, centerX + 35, currentY);
-
-      // Bottom decorative line
-      const bottomLineY = pageHeight - 70;
-      doc.moveTo(centerX - 50, bottomLineY)
-        .lineTo(centerX - 10, bottomLineY)
-        .strokeOpacity(0.3)
-        .stroke(primaryColor);
-
-      doc.circle(centerX, bottomLineY, 3)
-        .fillOpacity(0.3)
-        .fill(primaryColor);
-
-      doc.moveTo(centerX + 10, bottomLineY)
-        .lineTo(centerX + 50, bottomLineY)
-        .strokeOpacity(0.3)
-        .stroke(primaryColor);
+        .text(data.certificateNumber, pageWidth - 80, footerY + 18, { align: 'right' });
 
       // Finalize PDF
       doc.end();
