@@ -630,7 +630,7 @@ function ChapterContent({
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">თავი {chapter.order}</p>
-            <h1 className="text-xl font-bold text-gray-900">{chapter.title}</h1>
+            <h1 className="text-xl font-bold text-gray-900 line-clamp-2">{chapter.title}</h1>
           </div>
           {!progress.isCompleted && (
             chapter.quiz ? (
