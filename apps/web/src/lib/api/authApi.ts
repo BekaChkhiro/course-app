@@ -252,6 +252,12 @@ export const authApi = {
     const response = await apiClient.post('/auth/change-password', data);
     return response.data;
   },
+
+  // Change email (only for unverified users)
+  changeEmail: async (newEmail: string): Promise<{ success: boolean; data?: { user: User }; message: string }> => {
+    const response = await apiClient.post('/auth/change-email', { newEmail });
+    return response.data;
+  },
 };
 
 export default apiClient;

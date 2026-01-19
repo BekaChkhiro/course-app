@@ -167,6 +167,16 @@ export const validateChangePassword = [
     .withMessage('Passwords do not match'),
 ];
 
+export const validateChangeEmail = [
+  body('newEmail')
+    .trim()
+    .notEmpty()
+    .withMessage('ახალი ელ-ფოსტა სავალდებულოა')
+    .isEmail()
+    .withMessage('არასწორი ელ-ფოსტის ფორმატი')
+    .normalizeEmail(),
+];
+
 // Middleware to handle validation errors
 export const handleValidationErrors = (
   req: Request,

@@ -855,6 +855,99 @@ export class AuthController {
   }
 
   /**
+   * Change email (only for unverified users)
+   * POST /api/auth/change-email
+   */
+  static async changeEmail(req: AuthRequest, res: Response) {
+    try {
+      const userId = req.userId!;
+      const { newEmail } = req.body;
+
+      // 1. Get user
+      const user = await db.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'მომხმარებელი ვერ მოიძებნა',
+        });
+      }
+
+      // 2. Check if email is already verified
+      if (user.emailVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'დადასტურებული ელ-ფოსტის შეცვლა შეუძლებელია',
+          code: 'EMAIL_ALREADY_VERIFIED',
+        });
+      }
+
+      // 3. Check if new email is different
+      if (user.email === newEmail) {
+        return res.status(400).json({
+          success: false,
+          message: 'ახალი ელ-ფოსტა იგივეა რაც ძველი',
+        });
+      }
+
+      // 4. Check if new email is unique
+      const existingUser = await db.user.findUnique({
+        where: { email: newEmail },
+      });
+
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          message: 'ეს ელ-ფოსტა უკვე გამოყენებულია',
+        });
+      }
+
+      // 5. Generate new verification token
+      const verificationToken = TokenService.generateVerificationToken();
+
+      // 6. Update email and token
+      const updatedUser = await db.user.update({
+        where: { id: userId },
+        data: {
+          email: newEmail,
+          verificationToken,
+        },
+        select: {
+          id: true,
+          name: true,
+          surname: true,
+          email: true,
+          phone: true,
+          role: true,
+          emailVerified: true,
+          avatar: true,
+        },
+      });
+
+      // 7. Send verification email to new address
+      await EmailService.sendVerificationEmail(
+        newEmail,
+        user.name,
+        verificationToken
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'ელ-ფოსტა შეიცვალა. გთხოვთ შეამოწმოთ ახალი მისამართი.',
+        data: { user: updatedUser },
+      });
+    } catch (error) {
+      console.error('Change email error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'შეცდომა მოხდა',
+      });
+    }
+  }
+
+  /**
    * Change password
    * POST /api/auth/change-password
    */

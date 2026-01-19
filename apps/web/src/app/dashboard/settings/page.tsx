@@ -55,6 +55,12 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState('');
   const [verificationSent, setVerificationSent] = useState(false);
 
+  // Email change state
+  const [newEmail, setNewEmail] = useState('');
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false);
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
+  const [emailChangeSuccess, setEmailChangeSuccess] = useState(false);
+
   // Email-based password reset state
   const [resetLinkSent, setResetLinkSent] = useState(false);
   const [resetLinkError, setResetLinkError] = useState(false);
@@ -127,6 +133,29 @@ export default function SettingsPage() {
     // For now, just show success
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     setShowPasswordForm(false);
+  };
+
+  // Email change handler
+  const handleEmailChange = async () => {
+    if (!newEmail.trim()) return;
+    setEmailChangeLoading(true);
+    setEmailChangeError(null);
+    setEmailChangeSuccess(false);
+    try {
+      const response = await authApi.changeEmail(newEmail);
+      if (response.success) {
+        setEmailChangeSuccess(true);
+        setNewEmail('');
+        // Update user in store with new email
+        if (response.data?.user) {
+          setUser(response.data.user);
+        }
+      }
+    } catch (error: any) {
+      setEmailChangeError(error.response?.data?.message || 'შეცდომა მოხდა');
+    } finally {
+      setEmailChangeLoading(false);
+    }
   };
 
   return (
@@ -229,6 +258,38 @@ export default function SettingsPage() {
                               ბმულის გაგზავნა ვერ მოხერხდა. სცადეთ თავიდან.
                             </div>
                           )}
+
+                          {/* Email change form */}
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                              არასწორი მეილია? შეცვალეთ:
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="email"
+                                value={newEmail}
+                                onChange={(e) => setNewEmail(e.target.value)}
+                                placeholder="ახალი ელ-ფოსტა"
+                                disabled={emailChangeLoading}
+                                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:opacity-50"
+                              />
+                              <button
+                                onClick={handleEmailChange}
+                                disabled={emailChangeLoading || !newEmail.trim()}
+                                className="px-3 sm:px-4 py-2 bg-primary-900 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-primary-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                              >
+                                {emailChangeLoading ? 'იცვლება...' : 'შეცვლა'}
+                              </button>
+                            </div>
+                            {emailChangeError && (
+                              <p className="mt-2 text-xs sm:text-sm text-red-600">{emailChangeError}</p>
+                            )}
+                            {emailChangeSuccess && (
+                              <p className="mt-2 text-xs sm:text-sm text-green-600">
+                                ელ-ფოსტა შეიცვალა. შეამოწმეთ ახალი მისამართი დადასტურებისთვის.
+                              </p>
+                            )}
+                          </div>
                         </div>
                       )}
                     </dd>

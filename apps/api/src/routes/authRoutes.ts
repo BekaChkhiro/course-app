@@ -10,6 +10,7 @@ import {
   validateDeviceNaming,
   validateProfileUpdate,
   validateChangePassword,
+  validateChangeEmail,
   handleValidationErrors,
 } from '../middleware/validation';
 import {
@@ -128,6 +129,15 @@ router.post(
   validateChangePassword,
   handleValidationErrors,
   AuthController.changePassword
+);
+
+// POST /api/auth/change-email - Change email (only for unverified users)
+router.post(
+  '/change-email',
+  requireAuth,
+  validateChangeEmail,
+  handleValidationErrors,
+  AuthController.changeEmail
 );
 
 export default router;
