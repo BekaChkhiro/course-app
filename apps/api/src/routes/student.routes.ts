@@ -22,7 +22,7 @@ import {
   createComment,
   deleteComment,
 } from '../controllers/studentController';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requireEmailVerified } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -45,8 +45,8 @@ router.post('/chapters/:chapterId/complete', markChapterComplete);
 
 // Chapter Comments
 router.get('/chapters/:chapterId/comments', getChapterComments);
-router.post('/chapters/:chapterId/comments', createComment);
-router.delete('/comments/:commentId', deleteComment);
+router.post('/chapters/:chapterId/comments', requireEmailVerified, createComment);
+router.delete('/comments/:commentId', requireEmailVerified, deleteComment);
 
 // Transaction History
 router.get('/transactions', getTransactionHistory);

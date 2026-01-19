@@ -44,6 +44,11 @@ export default function BuyButton({
         router.push('/auth/login')
         return
       }
+      // თუ მეილი არ არის დადასტურებული
+      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setError('კურსის შესაძენად საჭიროა ელ-ფოსტის დადასტურება')
+        return
+      }
       setError('შეცდომა მოხდა. გთხოვთ სცადოთ თავიდან.')
     } finally {
       setLoading(false)

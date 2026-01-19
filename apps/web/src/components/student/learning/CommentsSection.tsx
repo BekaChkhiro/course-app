@@ -29,6 +29,7 @@ export default function CommentsSection({ chapterId }: CommentsSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   // Fetch comments
   const { data, isLoading, error } = useQuery({
@@ -61,13 +62,25 @@ export default function CommentsSection({ chapterId }: CommentsSectionProps) {
           body: JSON.stringify({ content, parentId }),
         }
       );
-      return response.json();
+      const data = await response.json();
+      if (!response.ok) {
+        throw { response: { data, status: response.status } };
+      }
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chapterComments', chapterId] });
       setNewComment('');
       setReplyingTo(null);
       setReplyContent('');
+      setCommentError(null);
+    },
+    onError: (error: any) => {
+      if (error.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setCommentError('კომენტარის დასაწერად საჭიროა ელ-ფოსტის დადასტურება');
+      } else {
+        setCommentError('კომენტარის დამატება ვერ მოხერხდა');
+      }
     },
   });
 
@@ -276,6 +289,11 @@ export default function CommentsSection({ chapterId }: CommentsSectionProps) {
 
       {/* New Comment Form */}
       <div className="p-6 border-b border-gray-200">
+        {commentError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {commentError}
+          </div>
+        )}
         <form onSubmit={handleSubmitComment}>
           <div className="flex space-x-3">
             <div className="flex-shrink-0">

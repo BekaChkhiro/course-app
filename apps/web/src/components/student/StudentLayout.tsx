@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 import NotificationsDropdown from '@/components/ui/NotificationsDropdown';
+import { authApi } from '@/lib/api/authApi';
 
 interface StudentLayoutProps {
   children: React.ReactNode;
@@ -101,6 +102,8 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   const pathname = usePathname();
   const { user, isAuthenticated, logout, isInitialized } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
   const hasRedirected = useRef(false);
 
   useEffect(() => {
@@ -114,6 +117,19 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   const handleLogout = async () => {
     await logout();
     router.push('/auth/login');
+  };
+
+  const handleResendVerification = async () => {
+    if (verificationLoading) return;
+    setVerificationLoading(true);
+    try {
+      await authApi.resendVerification();
+      setVerificationSent(true);
+    } catch (error) {
+      console.error('Failed to resend verification:', error);
+    } finally {
+      setVerificationLoading(false);
+    }
   };
 
   // აჩვენე loading სანამ ვალიდაცია მიმდინარეობს ან არაა ავტორიზებული
@@ -273,7 +289,38 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-8">{children}</main>
+        <main className="p-4 lg:p-8">
+          {/* Email Verification Banner */}
+          {user && !user.emailVerified && (
+            <div className="mb-4 sm:mb-6 bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl p-4 sm:p-5 flex items-start gap-3 sm:gap-4">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm sm:text-base font-semibold text-amber-900">
+                  დაადასტურეთ თქვენი ელ-ფოსტა
+                </h3>
+                <p className="text-xs sm:text-sm text-amber-700 mt-1">
+                  კურსების შესაძენად და კომენტარების დასაწერად საჭიროა ელ-ფოსტის დადასტურება.
+                </p>
+                {verificationSent ? (
+                  <p className="mt-2 text-xs sm:text-sm font-medium text-green-700">
+                    ვერიფიკაციის ბმული გაიგზავნა თქვენს ელ-ფოსტაზე
+                  </p>
+                ) : (
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={verificationLoading}
+                    className="mt-2 text-xs sm:text-sm font-medium text-amber-800 hover:text-amber-900 underline disabled:opacity-50"
+                  >
+                    {verificationLoading ? 'იგზავნება...' : 'ვერიფიკაციის ბმულის ხელახლა გაგზავნა'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );

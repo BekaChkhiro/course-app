@@ -7,7 +7,7 @@ import {
   checkEnrollment,
   initiateUpgrade,
 } from '../controllers/purchaseController'
-import { requireAuth } from '../middleware/auth'
+import { requireAuth, requireEmailVerified } from '../middleware/auth'
 
 const router = express.Router()
 
@@ -34,7 +34,7 @@ router.use(requireAuth)
  * Body: { courseId: string, promoCode?: string }
  * Response: { redirectUrl: string, orderId: string, amount: number }
  */
-router.post('/initiate', initiatePayment)
+router.post('/initiate', requireEmailVerified, initiatePayment)
 
 /**
  * გადახდის სტატუსის შემოწმება
@@ -47,7 +47,7 @@ router.get('/status/:orderId', checkPaymentStatus)
  * POST /api/purchase/enroll
  * Body: { courseId: string }
  */
-router.post('/enroll', enrollInCourse)
+router.post('/enroll', requireEmailVerified, enrollInCourse)
 
 /**
  * ჩარიცხვის სტატუსის შემოწმება
@@ -61,6 +61,6 @@ router.get('/check/:courseId', checkEnrollment)
  * Body: { courseId: string, targetVersionId: string, promoCode?: string }
  * Response: { redirectUrl: string, orderId: string, amount: number }
  */
-router.post('/upgrade', initiateUpgrade)
+router.post('/upgrade', requireEmailVerified, initiateUpgrade)
 
 export default router
