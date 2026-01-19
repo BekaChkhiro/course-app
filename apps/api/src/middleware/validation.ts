@@ -33,7 +33,7 @@ export const validateRegistration = [
     .normalizeEmail(),
 
   body('phone')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .matches(GEORGIAN_PHONE_REGEX)
     .withMessage('Invalid Georgian phone number format'),
