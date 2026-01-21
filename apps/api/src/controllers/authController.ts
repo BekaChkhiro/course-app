@@ -31,10 +31,10 @@ export class AuthController {
         });
       }
 
-      // Check if phone is already taken
-      if (phone) {
+      // Check if phone is already taken (only if phone is provided and not empty)
+      if (phone && phone.trim()) {
         const existingPhone = await db.user.findUnique({
-          where: { phone },
+          where: { phone: phone.trim() },
         });
 
         if (existingPhone) {
@@ -57,7 +57,7 @@ export class AuthController {
           name,
           surname,
           email,
-          phone,
+          phone: phone?.trim() || null,
           password: hashedPassword,
           verificationToken,
           emailVerified: false,

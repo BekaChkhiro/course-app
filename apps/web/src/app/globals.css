@@ -8,9 +8,14 @@
   --background-end-rgb: 255, 255, 255;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: white;
+  font-weight: 400;
 }
 
 /* Force light theme for admin panel */
