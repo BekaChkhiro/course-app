@@ -516,30 +516,34 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onViewResul
                     }`}>
                       {isSelected ? <Check className="w-4 h-4" /> : letter}
                     </span>
-                    <span className={`pt-0.5 ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
-                      {answer.answer}
-                    </span>
-                  </div>
-                  {answer.answerImage && (
-                    <div
-                      className="mt-3 ml-10 relative inline-block cursor-zoom-in group"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setZoomedImage(answer.answerImage);
-                      }}
-                    >
-                      <img
-                        src={answer.answerImage}
-                        alt=""
-                        className="max-w-xs rounded-lg transition-opacity group-hover:opacity-90"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="bg-black/50 rounded-full p-2">
-                          <ZoomIn className="w-4 h-4 text-white" />
+                    <div className="flex-1 min-w-0">
+                      {answer.answer && (
+                        <span className={`pt-0.5 ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                          {answer.answer}
+                        </span>
+                      )}
+                      {answer.answerImage && (
+                        <div
+                          className={`${answer.answer ? 'mt-2' : ''} relative inline-block cursor-zoom-in group`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setZoomedImage(answer.answerImage);
+                          }}
+                        >
+                          <img
+                            src={answer.answerImage}
+                            alt=""
+                            className="max-w-xs rounded-lg transition-opacity group-hover:opacity-90"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-black/50 rounded-full p-2">
+                              <ZoomIn className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </button>
               );
             })}

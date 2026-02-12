@@ -39,7 +39,7 @@ interface QuestionForm {
   questionImage?: string;
   explanation: string;
   points: number;
-  answers: { id?: string; answer: string; isCorrect: boolean }[];
+  answers: { id?: string; answer: string; answerImage?: string; isCorrect: boolean }[];
 }
 
 const emptyQuestion: QuestionForm = {
@@ -48,8 +48,8 @@ const emptyQuestion: QuestionForm = {
   explanation: '',
   points: 10,
   answers: [
-    { answer: '', isCorrect: false },
-    { answer: '', isCorrect: false }
+    { answer: '', answerImage: undefined, isCorrect: false },
+    { answer: '', answerImage: undefined, isCorrect: false }
   ]
 };
 
@@ -72,7 +72,9 @@ function QuestionFormFields({
   isSaving = false
 }: QuestionFormFieldsProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingAnswerIndex, setUploadingAnswerIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const answerFileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,6 +111,45 @@ function QuestionFormFields({
     setCurrentQuestion({ ...currentQuestion, questionImage: undefined });
   };
 
+  const handleAnswerImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, answerIndex: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('მხოლოდ სურათის ატვირთვა შეიძლება');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('სურათი არ უნდა აღემატებოდეს 5MB-ს');
+      return;
+    }
+
+    setUploadingAnswerIndex(answerIndex);
+    try {
+      const response = await uploadApi.quizImage(file);
+      const imageUrl = response.data.file.url;
+      const newAnswers = [...currentQuestion.answers];
+      newAnswers[answerIndex] = { ...newAnswers[answerIndex], answerImage: imageUrl };
+      setCurrentQuestion({ ...currentQuestion, answers: newAnswers });
+      toast.success('სურათი აიტვირთა');
+    } catch (error) {
+      console.error('Answer image upload error:', error);
+      toast.error('სურათის ატვირთვა ვერ მოხერხდა');
+    } finally {
+      setUploadingAnswerIndex(null);
+      if (answerFileInputRefs.current[answerIndex]) {
+        answerFileInputRefs.current[answerIndex]!.value = '';
+      }
+    }
+  };
+
+  const handleRemoveAnswerImage = (answerIndex: number) => {
+    const newAnswers = [...currentQuestion.answers];
+    newAnswers[answerIndex] = { ...newAnswers[answerIndex], answerImage: undefined };
+    setCurrentQuestion({ ...currentQuestion, answers: newAnswers });
+  };
+
   const handleAnswerChange = (index: number, field: 'answer' | 'isCorrect', value: any) => {
     const newAnswers = [...currentQuestion.answers];
     if (field === 'isCorrect' && currentQuestion.type === QuestionType.SINGLE_CHOICE) {
@@ -122,7 +163,7 @@ function QuestionFormFields({
   const addAnswer = () => {
     setCurrentQuestion({
       ...currentQuestion,
-      answers: [...currentQuestion.answers, { answer: '', isCorrect: false }]
+      answers: [...currentQuestion.answers, { answer: '', answerImage: undefined, isCorrect: false }]
     });
   };
 
@@ -230,35 +271,76 @@ function QuestionFormFields({
             + დამატება
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {currentQuestion.answers.map((answer, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleAnswerChange(index, 'isCorrect', !answer.isCorrect)}
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                  answer.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                {answer.isCorrect && <CheckCircle className="w-3 h-3 text-white" />}
-              </button>
-              <input
-                type="text"
-                value={answer.answer}
-                onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
-                placeholder={`პასუხი ${index + 1}`}
-                className={`flex-1 min-w-0 px-2 sm:px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 ${
-                  answer.isCorrect ? 'border-green-200 bg-green-50' : 'border-gray-200'
-                }`}
-              />
-              {currentQuestion.answers.length > 2 && (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => removeAnswer(index)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 flex-shrink-0"
+                  onClick={() => handleAnswerChange(index, 'isCorrect', !answer.isCorrect)}
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    answer.isCorrect ? 'border-green-500 bg-green-500' : 'border-gray-300 hover:border-gray-400'
+                  }`}
                 >
-                  <X className="w-4 h-4" />
+                  {answer.isCorrect && <CheckCircle className="w-3 h-3 text-white" />}
                 </button>
+                <input
+                  type="text"
+                  value={answer.answer}
+                  onChange={(e) => handleAnswerChange(index, 'answer', e.target.value)}
+                  placeholder={answer.answerImage ? `ტექსტი (არასავალდებულო)` : `პასუხი ${index + 1}`}
+                  className={`flex-1 min-w-0 px-2 sm:px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 ${
+                    answer.isCorrect ? 'border-green-200 bg-green-50' : answer.answerImage ? 'border-gray-200 bg-gray-50' : 'border-gray-200'
+                  }`}
+                />
+                {/* Answer Image Upload Button */}
+                <input
+                  ref={(el) => { answerFileInputRefs.current[index] = el; }}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleAnswerImageUpload(e, index)}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => answerFileInputRefs.current[index]?.click()}
+                  disabled={uploadingAnswerIndex === index}
+                  className="p-1.5 text-gray-400 hover:text-accent-600 hover:bg-accent-50 rounded transition-colors disabled:opacity-50 flex-shrink-0"
+                  title="პასუხის სურათის დამატება"
+                >
+                  {uploadingAnswerIndex === index ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
+                </button>
+                {currentQuestion.answers.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => removeAnswer(index)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {/* Answer Image Preview */}
+              {answer.answerImage && (
+                <div className="ml-7 relative inline-block">
+                  <img
+                    src={answer.answerImage}
+                    alt={`პასუხის სურათი ${index + 1}`}
+                    className="max-w-[120px] sm:max-w-[150px] max-h-20 sm:max-h-24 rounded-lg border border-gray-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAnswerImage(index)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm"
+                    title="სურათის წაშლა"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               )}
             </div>
           ))}
@@ -509,8 +591,9 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
       answers: question.answers?.map((a: any) => ({
         id: a.id,
         answer: a.answer,
+        answerImage: a.answerImage || undefined,
         isCorrect: a.isCorrect
-      })) || [{ answer: '', isCorrect: false }, { answer: '', isCorrect: false }]
+      })) || [{ answer: '', answerImage: undefined, isCorrect: false }, { answer: '', answerImage: undefined, isCorrect: false }]
     });
     setShowQuestionForm(false);
     setExpandedQuestions(prev => prev.includes(question.id) ? prev : [...prev, question.id]);
@@ -521,9 +604,10 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
       toast.error('შეიყვანეთ კითხვა');
       return;
     }
-    const validAnswers = currentQuestion.answers.filter(a => a.answer.trim());
+    // პასუხი ვალიდურია თუ აქვს ტექსტი ან სურათი
+    const validAnswers = currentQuestion.answers.filter(a => a.answer.trim() || a.answerImage);
     if (validAnswers.length < 2) {
-      toast.error('მინიმუმ 2 პასუხი');
+      toast.error('მინიმუმ 2 პასუხი (ტექსტი ან სურათი)');
       return;
     }
     if (!validAnswers.some(a => a.isCorrect)) {
@@ -540,6 +624,7 @@ export default function FinalExamTab({ courseId, versionId }: FinalExamTabProps)
       answers: validAnswers.map((a, i) => ({
         id: a.id,
         answer: a.answer,
+        answerImage: a.answerImage,
         isCorrect: a.isCorrect,
         order: i
       }))
@@ -988,18 +1073,33 @@ function SortableQuestionItem({
           {isExpanded && (
             <div className="mt-3 sm:mt-4 ml-8 sm:ml-14 space-y-2">
               {question.answers?.map((a: any, aIndex: number) => (
-                <div
-                  key={a.id || aIndex}
-                  className={`flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm ${
-                    a.isCorrect ? 'bg-green-50 text-green-800' : 'bg-gray-50 text-gray-600'
-                  }`}
-                >
-                  {a.isCorrect ? (
-                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-                  ) : (
-                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                  )}
-                  <span className="line-clamp-1">{a.answer}</span>
+                <div key={a.id || aIndex} className="space-y-1.5">
+                  <div
+                    className={`flex items-start gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm ${
+                      a.isCorrect ? 'bg-green-50 text-green-800' : 'bg-gray-50 text-gray-600'
+                    }`}
+                  >
+                    <div className="mt-0.5">
+                      {a.isCorrect ? (
+                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {a.answer && <span className="line-clamp-2">{a.answer}</span>}
+                      {a.answerImage && (
+                        <img
+                          src={a.answerImage}
+                          alt={`პასუხის სურათი ${aIndex + 1}`}
+                          className={`${a.answer ? 'mt-1.5' : ''} max-w-[100px] sm:max-w-[120px] max-h-16 sm:max-h-20 rounded border border-gray-200`}
+                        />
+                      )}
+                      {!a.answer && !a.answerImage && (
+                        <span className="text-gray-400 italic">ცარიელი პასუხი</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
               {question.explanation && (

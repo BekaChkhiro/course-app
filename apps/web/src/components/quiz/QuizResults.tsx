@@ -333,28 +333,33 @@ const QuizResults: React.FC<QuizResultsProps> = ({ attemptId, onRetry }) => {
 
                       return (
                         <div key={answer.id} className={className}>
-                          <div className="flex items-center gap-2">
-                            {isCorrectAnswer && <Check className="w-3.5 h-3.5 text-green-600" />}
-                            {isUserAnswer && !isCorrectAnswer && <X className="w-3.5 h-3.5 text-red-600" />}
-                            <span>{answer.answer}</span>
-                          </div>
-                          {answer.answerImage && (
-                            <div
-                              className="mt-2 relative inline-block cursor-zoom-in group"
-                              onClick={() => setZoomedImage(answer.answerImage || null)}
-                            >
-                              <img
-                                src={answer.answerImage}
-                                alt=""
-                                className="max-w-[200px] rounded-lg transition-opacity group-hover:opacity-90"
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div className="bg-black/50 rounded-full p-1.5">
-                                  <ZoomIn className="w-3.5 h-3.5 text-white" />
-                                </div>
-                              </div>
+                          <div className="flex items-start gap-2">
+                            <div className="mt-0.5 flex-shrink-0">
+                              {isCorrectAnswer && <Check className="w-3.5 h-3.5 text-green-600" />}
+                              {isUserAnswer && !isCorrectAnswer && <X className="w-3.5 h-3.5 text-red-600" />}
+                              {!isCorrectAnswer && !isUserAnswer && <div className="w-3.5 h-3.5" />}
                             </div>
-                          )}
+                            <div className="flex-1 min-w-0">
+                              {answer.answer && <span>{answer.answer}</span>}
+                              {answer.answerImage && (
+                                <div
+                                  className={`${answer.answer ? 'mt-2' : ''} relative inline-block cursor-zoom-in group`}
+                                  onClick={() => setZoomedImage(answer.answerImage || null)}
+                                >
+                                  <img
+                                    src={answer.answerImage}
+                                    alt=""
+                                    className="max-w-[200px] rounded-lg transition-opacity group-hover:opacity-90"
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="bg-black/50 rounded-full p-1.5">
+                                      <ZoomIn className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
