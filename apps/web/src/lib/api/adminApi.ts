@@ -471,6 +471,13 @@ export const studentsApi = {
     adminApi.post(`/admin/students/${studentId}/resend-verification`),
 
   getAnalytics: () => adminApi.get('/admin/students/analytics/overview'),
+
+  // Course grant APIs (T3.2)
+  getAvailableCourses: (studentId: string) =>
+    adminApi.get(`/admin/students/${studentId}/available-courses`),
+
+  grantCourse: (studentId: string, data: { courseId: string; versionId?: string; note?: string }) =>
+    adminApi.post(`/admin/students/${studentId}/grant-course`, data),
 };
 
 // Promo Code APIs

@@ -43,9 +43,21 @@ const config: Config = {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(0)' },
         },
+        'fade-in-out': {
+          '0%': { opacity: '0', transform: 'scale(0.8)' },
+          '30%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'scale(1)' },
+        },
+        'bounce-in': {
+          '0%': { transform: 'scale(0.5)' },
+          '50%': { transform: 'scale(1.2)' },
+          '100%': { transform: 'scale(1)' },
+        },
       },
       animation: {
         'slide-in-right': 'slide-in-right 0.3s ease-out',
+        'fade-in-out': 'fade-in-out 0.5s ease-out forwards',
+        'bounce-in': 'bounce-in 0.3s ease-out',
       },
     },
   },

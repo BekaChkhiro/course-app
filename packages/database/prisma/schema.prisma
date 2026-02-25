@@ -154,6 +154,9 @@ model User {
   // Promo code usage tracking
   promoCodeUsages   PromoCodeUsage[]
 
+  // Admin granted purchases (T3.1)
+  adminGrantedPurchases Purchase[] @relation("AdminGrants")
+
   @@index([email])
   @@index([phone])
   @@index([verificationToken])
@@ -635,10 +638,14 @@ model Purchase {
     // BOG Payment fields (ახალი ველები)
     bogOrderId      String?       @unique  // BOG-ს შეკვეთის ID
     externalOrderId String?       @unique  // შენი სისტემის უნიკალური ID
-    paymentMethod   String?                // card, google_pay, apple_pay, etc.
+    paymentMethod   String?                // card, google_pay, apple_pay, ADMIN_GRANT
     transactionId   String?                // BOG transaction ID
     paymentDetails  Json?                  // სრული გადახდის დეტალები
     paidAt          DateTime?              // გადახდის დრო
+
+    // Admin grant fields (T3.1)
+    grantedByAdminId String?               // ადმინი რომელმაც გააქტიურა
+    grantNote        String?    @db.Text   // შენიშვნა გააქტიურებაზე
 
     // Legacy field (შეგიძლია წაშალო თუ Stripe არ გიყენია)
     stripePaymentId String?       @unique
@@ -651,12 +658,14 @@ model Purchase {
     course        Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
     courseVersion CourseVersion? @relation(fields: [courseVersionId], references: [id])
     promoCode     PromoCode?     @relation(fields: [promoCodeId], references: [id])
+    grantedByAdmin User?         @relation("AdminGrants", fields: [grantedByAdminId], references: [id], onDelete: SetNull)
 
     @@index([userId])
     @@index([courseId])
     @@index([status])
     @@index([bogOrderId])
     @@index([userId, courseId])
+    @@index([grantedByAdminId])
     @@map("purchases")
 
     // Relations

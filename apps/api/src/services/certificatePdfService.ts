@@ -113,82 +113,82 @@ export async function generateCertificatePDF(data: CertificateData): Promise<Buf
       // Main Content
       let currentY = 100;
 
-      // Logo text
-      doc.fontSize(18)
+      // Logo text - increased for mobile readability
+      doc.fontSize(24)
         .fillColor(primaryColor)
         .font('Helvetica-Bold')
         .text('KURSEBI', centerX - 100, currentY, { width: 200, align: 'center' });
-      
-      currentY += 20;
-      doc.fontSize(12)
+
+      currentY += 26;
+      doc.fontSize(16)
         .fillColor(primaryColor)
         .text('.ONLINE', centerX - 50, currentY, { width: 100, align: 'center' });
 
-      // Title - სერტიფიკატი in large red text
-      currentY += 50;
-      doc.fontSize(42)
+      // Title - სერტიფიკატი in large red text (increased for mobile)
+      currentY += 55;
+      doc.fontSize(52)
         .fillColor(accentColor)
         .font('Helvetica-Bold')
-        .text('სერტიფიკატი', centerX - 200, currentY, { width: 400, align: 'center' });
+        .text('სერტიფიკატი', centerX - 250, currentY, { width: 500, align: 'center' });
 
-      // Introductory phrase - ადასტურებს, რომ
-      currentY += 50;
-      doc.fontSize(14)
+      // Introductory phrase - ადასტურებს, რომ (increased for mobile)
+      currentY += 60;
+      doc.fontSize(18)
         .fillColor(primaryColor)
         .font('Helvetica')
         .text('ადასტურებს, რომ', centerX - 150, currentY, { width: 300, align: 'center' });
 
-      // Student Name - Large bold dark blue
-      currentY += 35;
-      doc.fontSize(32)
+      // Student Name - Large bold dark blue (increased for mobile)
+      currentY += 40;
+      doc.fontSize(40)
         .fillColor(primaryColor)
         .font('Helvetica-Bold')
-        .text(data.studentName, centerX - 250, currentY, { width: 500, align: 'center' });
+        .text(data.studentName, centerX - 300, currentY, { width: 600, align: 'center' });
 
-      // Completion statement
-      currentY += 50;
-      doc.fontSize(13)
+      // Completion statement (increased for mobile)
+      currentY += 55;
+      doc.fontSize(16)
         .fillColor(primaryColor)
         .font('Helvetica')
-        .text('წარმატებით დაასრულა ონლაინ პროგრამა, პლატფორმა', centerX - 250, currentY, { width: 500, align: 'center' });
-      
-      currentY += 20;
-      doc.fontSize(13)
+        .text('წარმატებით დაასრულა ონლაინ პროგრამა, პლატფორმა', centerX - 300, currentY, { width: 600, align: 'center' });
+
+      currentY += 24;
+      doc.fontSize(16)
         .fillColor(primaryColor)
         .font('Helvetica-Bold')
         .text('Kursebi.Online-ზე', centerX - 150, currentY, { width: 300, align: 'center' });
 
-      // Course Title - Large red text
-      currentY += 40;
-      doc.fontSize(28)
+      // Course Title - Large red text (increased for mobile)
+      currentY += 45;
+      doc.fontSize(36)
         .fillColor(accentColor)
         .font('Helvetica-Bold')
-        .text(data.courseTitle, centerX - 300, currentY, { width: 600, align: 'center' });
+        .text(data.courseTitle, centerX - 350, currentY, { width: 700, align: 'center' });
 
-      // Footer - Date and ID
-      const footerY = pageHeight - 80;
+      // Footer - Date and ID (increased for mobile readability)
+      const footerY = pageHeight - 90;
 
       // Date on left
-      doc.fontSize(11)
+      doc.fontSize(14)
         .fillColor(primaryColor)
-        .font('Helvetica')
+        .font('Helvetica-Bold')
         .text('თარიღი:', 80, footerY);
-      
-      doc.fontSize(11)
+
+      doc.fontSize(14)
         .fillColor(primaryColor)
         .font('Helvetica')
-        .text(formatGeorgianDate(data.issuedAt), 80, footerY + 18);
+        .text(formatGeorgianDate(data.issuedAt), 80, footerY + 22);
 
       // ID on right
-      doc.fontSize(11)
+      doc.fontSize(14)
         .fillColor(primaryColor)
-        .font('Helvetica')
-        .text('ID:', pageWidth - 200, footerY, { align: 'right' });
-      
-      doc.fontSize(11)
+        .font('Helvetica-Bold')
+        .text('ID:', pageWidth - 220, footerY, { align: 'right' });
+
+      doc.fontSize(14)
         .fillColor(primaryColor)
         .font('Courier')
-        .text(data.certificateNumber, pageWidth - 80, footerY + 18, { align: 'right' });
+        .text(data.certificateNumber, pageWidth - 80, footerY + 22, { align: 'right' });
 
       // Finalize PDF
       doc.end();

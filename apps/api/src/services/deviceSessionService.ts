@@ -15,6 +15,7 @@ export interface CreateDeviceSessionData {
   ipAddress: string;
   userAgent: string;
   userRole?: string;
+  rememberMe?: boolean;
 }
 
 // Custom error for device limit
@@ -49,9 +50,10 @@ export class DeviceSessionService {
       },
     });
 
-    // Generate refresh token
-    const refreshToken = TokenService.generateRefreshToken(data.userId);
-    const expiresAt = TokenService.getRefreshTokenExpiry();
+    // Generate refresh token with rememberMe option for extended expiry
+    const rememberMe = data.rememberMe || false;
+    const refreshToken = TokenService.generateRefreshToken(data.userId, undefined, rememberMe);
+    const expiresAt = TokenService.getRefreshTokenExpiry(rememberMe);
 
     // If device exists, update it
     if (existingSession) {
@@ -85,8 +87,8 @@ export class DeviceSessionService {
       throw new DeviceLimitError(activeDeviceCount, maxDevices);
     }
 
-    // Create new session - exclude userRole as it's not a DB field
-    const { userRole: _, ...sessionData } = data;
+    // Create new session - exclude userRole and rememberMe as they're not DB fields
+    const { userRole: _, rememberMe: __, ...sessionData } = data;
     const session = await db.deviceSession.create({
       data: {
         ...sessionData,

@@ -21,8 +21,10 @@ import {
   Smartphone,
   Tablet,
   Laptop,
+  Gift,
 } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
+import GrantCourseModal from '@/components/admin/students/GrantCourseModal';
 import { studentsApi } from '@/lib/api/adminApi';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
 
@@ -108,6 +110,7 @@ export default function StudentDetailsPage() {
     purchase: null,
   });
   const [refundReason, setRefundReason] = useState('');
+  const [grantCourseModal, setGrantCourseModal] = useState(false);
 
   // Fetch student details
   const { data, isLoading, error } = useQuery({
@@ -324,6 +327,15 @@ export default function StudentDetailsPage() {
                 <Send className="w-4 h-4" />
                 <span className="hidden sm:inline">ელფოსტა</span>
               </button>
+              {!student.deletedAt && (
+                <button
+                  onClick={() => setGrantCourseModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200"
+                >
+                  <Gift className="w-4 h-4" />
+                  <span className="hidden sm:inline">კურსის გააქტიურება</span>
+                </button>
+              )}
               {student.deletedAt ? (
                 <button
                   onClick={() => restoreMutation.mutate()}
@@ -614,6 +626,14 @@ export default function StudentDetailsPage() {
             </div>
           </div>
         )}
+
+        {/* Grant Course Modal */}
+        <GrantCourseModal
+          isOpen={grantCourseModal}
+          onClose={() => setGrantCourseModal(false)}
+          studentId={id as string}
+          studentName={`${student.name} ${student.surname}`}
+        />
       </div>
     </AdminLayout>
   );

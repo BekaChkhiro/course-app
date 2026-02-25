@@ -10,6 +10,8 @@ import {
   revokeDeviceSession,
   getStudentAnalytics,
   resendVerificationEmail,
+  grantCourseAccess,
+  getAvailableCoursesForGrant,
 } from '../controllers/adminStudents.controller';
 import { requireAuth, requireAdmin } from '../middleware/auth';
 
@@ -48,5 +50,11 @@ router.delete('/:studentId/devices/:sessionId', revokeDeviceSession);
 
 // Resend verification email
 router.post('/:studentId/resend-verification', resendVerificationEmail);
+
+// Grant course access to student (T3.1)
+router.post('/:studentId/grant-course', grantCourseAccess);
+
+// Get available courses for granting (T3.1)
+router.get('/:studentId/available-courses', getAvailableCoursesForGrant);
 
 export default router;

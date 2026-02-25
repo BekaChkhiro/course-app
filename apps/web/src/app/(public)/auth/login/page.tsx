@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/lib/api/authApi';
+
+const REMEMBERED_EMAIL_KEY = 'rememberedEmail';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,7 +18,20 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   });
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+    if (rememberedEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: rememberedEmail,
+        rememberMe: true,
+      }));
+    }
+  }, []);
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -76,12 +91,23 @@ export default function LoginPage() {
     }
 
     try {
-      await login(formData);
+      await login({
+        email: formData.email,
+        password: formData.password,
+        rememberMe: formData.rememberMe,
+      });
 
       const { user, error: loginError } = useAuthStore.getState();
 
       // Only redirect if login was successful (no error and user exists)
       if (!loginError && user) {
+        // Handle remember me - save or remove email from localStorage
+        if (formData.rememberMe) {
+          localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
+        } else {
+          localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+        }
+
         if (user.role === 'ADMIN') {
           router.push('/admin');
         } else {
@@ -305,6 +331,8 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={(e) => setFormData(prev => ({ ...prev, rememberMe: e.target.checked }))}
                   className="h-4 w-4 text-primary-900 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
                 />
                 <span className="ml-2 text-sm text-gray-600">

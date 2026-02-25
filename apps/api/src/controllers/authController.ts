@@ -9,6 +9,7 @@ import { parseDeviceInfo, getClientIp } from '../utils/deviceFingerprint';
 
 const BCRYPT_ROUNDS = 10;
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
+const COOKIE_MAX_AGE_EXTENDED = 90 * 24 * 60 * 60 * 1000; // 90 days for "Remember Me"
 
 export class AuthController {
   /**
@@ -107,7 +108,7 @@ export class AuthController {
    */
   static async login(req: AuthRequest, res: Response) {
     try {
-      const { email, password } = req.body;
+      const { email, password, rememberMe } = req.body;
 
       // Find user
       const user = await db.user.findUnique({
@@ -143,7 +144,7 @@ export class AuthController {
       const deviceInfo = parseDeviceInfo(req);
       const ipAddress = getClientIp(req);
 
-      // Create device session
+      // Create device session with rememberMe option for extended expiry
       const { session, refreshToken } = await DeviceSessionService.createSession({
         userId: user.id,
         deviceName: deviceInfo.deviceName,
@@ -153,17 +154,19 @@ export class AuthController {
         ipAddress,
         userAgent: deviceInfo.userAgent,
         userRole: user.role,
+        rememberMe: !!rememberMe,
       });
 
       // Generate access token
       const accessToken = TokenService.generateAccessToken(user.id, user.email);
 
-      // Set refresh token in HTTP-only cookie
+      // Set refresh token in HTTP-only cookie with extended expiry if rememberMe
+      const cookieMaxAge = rememberMe ? COOKIE_MAX_AGE_EXTENDED : COOKIE_MAX_AGE;
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: COOKIE_MAX_AGE,
+        maxAge: cookieMaxAge,
       });
 
       // Send new device login notification (optional)

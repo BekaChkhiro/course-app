@@ -30,7 +30,7 @@ export const validateRegistration = [
     .withMessage('Email is required')
     .isEmail()
     .withMessage('Invalid email format')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body('phone')
     .optional({ checkFalsy: true })
@@ -62,7 +62,7 @@ export const validateLogin = [
     .withMessage('Email is required')
     .isEmail()
     .withMessage('Invalid email format')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body('password').notEmpty().withMessage('Password is required'),
 ];
@@ -74,7 +74,7 @@ export const validateForgotPassword = [
     .withMessage('Email is required')
     .isEmail()
     .withMessage('Invalid email format')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 ];
 
 export const validateResetPassword = [
@@ -174,7 +174,7 @@ export const validateChangeEmail = [
     .withMessage('ახალი ელ-ფოსტა სავალდებულოა')
     .isEmail()
     .withMessage('არასწორი ელ-ფოსტის ფორმატი')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 ];
 
 // Middleware to handle validation errors

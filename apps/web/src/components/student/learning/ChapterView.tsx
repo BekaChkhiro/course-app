@@ -12,6 +12,93 @@ import AttachmentsPreview from './AttachmentsPreview';
 
 type ActiveTab = 'video' | 'theory' | 'materials' | 'assignment' | 'quiz';
 
+// Custom hook for swipe navigation
+function useSwipeNavigation(
+  onSwipeLeft: () => void,
+  onSwipeRight: () => void,
+  options: { enabled?: boolean; minSwipeDistance?: number; maxSwipeTime?: number } = {}
+) {
+  const { enabled = true, minSwipeDistance = 80, maxSwipeTime = 500 } = options;
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchStartTime = useRef(0);
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const [swipeProgress, setSwipeProgress] = useState(0);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!enabled) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
+    setSwipeDirection(null);
+    setSwipeProgress(0);
+  }, [enabled]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!enabled || touchStartX.current === 0) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartX.current;
+    const deltaY = currentY - touchStartY.current;
+
+    // Only consider horizontal swipes (ignore if vertical movement is larger)
+    if (Math.abs(deltaY) > Math.abs(deltaX) * 0.7) {
+      return;
+    }
+
+    // Calculate progress (0-1) based on swipe distance
+    const progress = Math.min(Math.abs(deltaX) / (minSwipeDistance * 2), 1);
+    setSwipeProgress(progress);
+
+    if (Math.abs(deltaX) > 30) {
+      setSwipeDirection(deltaX > 0 ? 'right' : 'left');
+    }
+  }, [enabled, minSwipeDistance]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!enabled || touchStartX.current === 0) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX.current;
+    const deltaY = touchEndY - touchStartY.current;
+    const touchDuration = Date.now() - touchStartTime.current;
+
+    // Reset state
+    touchStartX.current = 0;
+    touchStartY.current = 0;
+    setSwipeDirection(null);
+    setSwipeProgress(0);
+
+    // Check if it's a valid swipe
+    // 1. Horizontal distance must be greater than threshold
+    // 2. Vertical distance must be less than horizontal (to avoid scroll conflicts)
+    // 3. Swipe must be completed within time limit
+    if (
+      Math.abs(deltaX) >= minSwipeDistance &&
+      Math.abs(deltaY) < Math.abs(deltaX) * 0.7 &&
+      touchDuration <= maxSwipeTime
+    ) {
+      if (deltaX > 0) {
+        onSwipeRight(); // Swipe right = go to previous chapter
+      } else {
+        onSwipeLeft(); // Swipe left = go to next chapter
+      }
+    }
+  }, [enabled, minSwipeDistance, maxSwipeTime, onSwipeLeft, onSwipeRight]);
+
+  return {
+    handlers: {
+      onTouchStart: handleTouchStart,
+      onTouchMove: handleTouchMove,
+      onTouchEnd: handleTouchEnd,
+    },
+    swipeDirection,
+    swipeProgress,
+  };
+}
+
 interface ChapterViewProps {
   courseSlug: string;
   chapterId: string;
@@ -36,6 +123,45 @@ export default function ChapterView({
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<ActiveTab>('video');
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState<'left' | 'right' | null>(null);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isMobileDevice = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileDevice || (isTouchDevice && window.innerWidth < 1024));
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Swipe navigation handlers
+  const handleSwipeLeft = useCallback(() => {
+    if (hasNextChapter) {
+      setShowSwipeHint('left');
+      setTimeout(() => setShowSwipeHint(null), 300);
+      onNavigate('next');
+    }
+  }, [hasNextChapter, onNavigate]);
+
+  const handleSwipeRight = useCallback(() => {
+    if (hasPrevChapter) {
+      setShowSwipeHint('right');
+      setTimeout(() => setShowSwipeHint(null), 300);
+      onNavigate('prev');
+    }
+  }, [hasPrevChapter, onNavigate]);
+
+  const { handlers: swipeHandlers, swipeDirection, swipeProgress } = useSwipeNavigation(
+    handleSwipeLeft,
+    handleSwipeRight,
+    { enabled: isMobile, minSwipeDistance: 80, maxSwipeTime: 500 }
+  );
 
   // Fetch chapter data
   const { data, isLoading, error } = useQuery({
@@ -219,7 +345,58 @@ export default function ChapterView({
   const availableTabs = tabs.filter((t) => t.available);
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full relative"
+      {...(isMobile ? swipeHandlers : {})}
+    >
+      {/* Swipe Direction Indicators */}
+      {isMobile && swipeDirection && (
+        <>
+          {/* Left swipe indicator (next chapter) */}
+          {swipeDirection === 'left' && hasNextChapter && (
+            <div
+              className="fixed right-0 top-1/2 -translate-y-1/2 z-50 pointer-events-none transition-opacity duration-150"
+              style={{ opacity: swipeProgress }}
+            >
+              <div className="bg-accent-600 text-white px-3 py-4 rounded-l-xl shadow-lg flex items-center">
+                <span className="text-sm font-medium mr-2">შემდეგი</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          )}
+          {/* Right swipe indicator (previous chapter) */}
+          {swipeDirection === 'right' && hasPrevChapter && (
+            <div
+              className="fixed left-0 top-1/2 -translate-y-1/2 z-50 pointer-events-none transition-opacity duration-150"
+              style={{ opacity: swipeProgress }}
+            >
+              <div className="bg-gray-700 text-white px-3 py-4 rounded-r-xl shadow-lg flex items-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm font-medium ml-2">წინა</span>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Swipe Completion Feedback */}
+      {showSwipeHint && (
+        <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center">
+          <div className={`bg-black bg-opacity-30 rounded-full p-6 animate-ping`}>
+            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showSwipeHint === 'left' ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              )}
+            </svg>
+          </div>
+        </div>
+      )}
       {/* Chapter Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-14 z-10">
         <div className="flex items-start justify-between">
@@ -412,17 +589,26 @@ export default function ChapterView({
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="hidden sm:inline">Previous</span>
+            <span className="hidden sm:inline">წინა</span>
           </button>
 
           <div className="flex items-center space-x-4">
-            {/* Keyboard shortcut hints */}
+            {/* Keyboard shortcut hints (desktop) */}
             <div className="hidden md:flex items-center space-x-2 text-xs text-gray-400">
               <kbd className="px-1.5 py-0.5 bg-gray-100 rounded">K</kbd>
               <span>/</span>
               <kbd className="px-1.5 py-0.5 bg-gray-100 rounded">J</kbd>
               <span>Navigate</span>
             </div>
+            {/* Swipe hint (mobile) */}
+            {isMobile && (
+              <div className="md:hidden flex items-center space-x-1 text-xs text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                </svg>
+                <span>გადაასრიალე ნავიგაციისთვის</span>
+              </div>
+            )}
           </div>
 
           <button
@@ -434,7 +620,7 @@ export default function ChapterView({
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span className="hidden sm:inline">Next</span>
+            <span className="hidden sm:inline">შემდეგი</span>
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

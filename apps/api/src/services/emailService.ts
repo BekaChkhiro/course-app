@@ -2148,4 +2148,80 @@ ${BRAND.name} გუნდი
       metadata: { courseTitle, courseSlug, currentVersion, newVersion, discountPrice, regularPrice, hoursRemaining },
     });
   }
+
+  /**
+   * Send course granted email when admin manually activates course for student (T3.1)
+   */
+  static async sendCourseGrantedEmail(
+    email: string,
+    studentName: string,
+    courseTitle: string,
+    courseSlug: string,
+    adminNote?: string,
+    userId?: string
+  ): Promise<boolean> {
+    const courseUrl = `${getFrontendUrl()}/courses/${courseSlug}`;
+    const dashboardUrl = `${getFrontendUrl()}/dashboard`;
+
+    const content = `
+      <p>გამარჯობა <strong>${studentName}</strong>,</p>
+
+      <div class="success-box">
+        <p style="margin: 0; font-size: 18px; font-weight: 600;">🎉 გილოცავთ!</p>
+        <p style="margin: 10px 0 0 0;">თქვენ მოგენიჭათ წვდომა კურსზე:</p>
+      </div>
+
+      <div class="details-card" style="text-align: center;">
+        <h3 style="margin: 0 0 15px 0; color: ${BRAND.colors.primary};">${courseTitle}</h3>
+        <p style="margin: 0; color: ${BRAND.colors.gray[500]};">ახლავე შეგიძლიათ დაიწყოთ სწავლა!</p>
+      </div>
+
+      ${adminNote ? `
+      <div class="info-box">
+        <p style="margin: 0; font-weight: 600;">📝 შენიშვნა ადმინისტრაციისგან:</p>
+        <p style="margin: 10px 0 0 0;">${adminNote}</p>
+      </div>
+      ` : ''}
+
+      <div style="text-align: center; margin: 25px 0;">
+        <a href="${courseUrl}" class="button">კურსის დაწყება</a>
+        <a href="${dashboardUrl}" class="button button-secondary">დაფა</a>
+      </div>
+
+      <p style="color: ${BRAND.colors.gray[500]}; font-size: 14px; text-align: center;">
+        თუ გაქვთ შეკითხვები, დაგვიკავშირდით: ${BRAND.supportEmail}
+      </p>
+    `;
+
+    const html = createEmailTemplate({
+      title: 'კურსი გააქტიურდა!',
+      subtitle: courseTitle,
+      headerIcon: '🎓',
+      headerGradient: 'success',
+      content,
+    });
+
+    const text = `
+გამარჯობა ${studentName},
+
+გილოცავთ! თქვენ მოგენიჭათ წვდომა კურსზე: "${courseTitle}"
+
+${adminNote ? `შენიშვნა ადმინისტრაციისგან: ${adminNote}\n` : ''}
+ახლავე შეგიძლიათ დაიწყოთ სწავლა: ${courseUrl}
+
+თუ გაქვთ შეკითხვები, დაგვიკავშირდით: ${BRAND.supportEmail}
+
+${BRAND.name} გუნდი
+    `;
+
+    return this.sendEmail({
+      to: email,
+      subject: `🎓 კურსი "${courseTitle}" გააქტიურდა! - ${BRAND.name}`,
+      html,
+      text,
+      templateType: 'course_granted',
+      userId,
+      metadata: { courseTitle, courseSlug, adminNote },
+    });
+  }
 }

@@ -4,6 +4,7 @@ import { db } from '../config/database';
 import { DeviceSessionService } from '../services/deviceSessionService';
 import { EmailService } from '../services/emailService';
 import { TokenService } from '../services/tokenService';
+import { Decimal } from '@prisma/client/runtime/library';
 
 /**
  * Get all students with pagination, search, and filters
@@ -532,6 +533,200 @@ export const resendVerificationEmail = async (req: AuthRequest, res: Response) =
     });
   } catch (error: any) {
     console.error('Error resending verification email:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Grant course access to student (admin manual activation) - T3.1
+ * POST /api/admin/students/:studentId/grant-course
+ */
+export const grantCourseAccess = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params;
+    const { courseId, versionId, note } = req.body;
+    const adminId = req.user?.id;
+
+    if (!adminId) {
+      return res.status(401).json({ success: false, message: 'არაავტორიზებული მოთხოვნა' });
+    }
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: 'კურსის ID აუცილებელია' });
+    }
+
+    // Verify student exists
+    const student = await db.user.findFirst({
+      where: { id: studentId, role: 'STUDENT' },
+      select: { id: true, email: true, name: true },
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'სტუდენტი ვერ მოიძებნა' });
+    }
+
+    // Get course and determine version
+    const course = await db.course.findUnique({
+      where: { id: courseId },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        versions: {
+          where: { isActive: true },
+          select: { id: true, version: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'კურსი ვერ მოიძებნა' });
+    }
+
+    // Determine which version to grant access to
+    let targetVersionId = versionId;
+    if (!targetVersionId && course.versions.length > 0) {
+      targetVersionId = course.versions[0].id;
+    }
+
+    if (!targetVersionId) {
+      return res.status(400).json({ success: false, message: 'კურსს არ აქვს აქტიური ვერსია' });
+    }
+
+    // Check if student already has access to this course
+    const existingAccess = await db.userVersionAccess.findFirst({
+      where: {
+        userId: studentId,
+        courseVersion: {
+          courseId: courseId,
+        },
+      },
+    });
+
+    if (existingAccess) {
+      return res.status(400).json({
+        success: false,
+        message: 'სტუდენტს უკვე აქვს წვდომა ამ კურსზე',
+      });
+    }
+
+    // Create purchase record with ADMIN_GRANT payment method
+    const purchase = await db.purchase.create({
+      data: {
+        userId: studentId,
+        courseId: courseId,
+        courseVersionId: targetVersionId,
+        amount: new Decimal(0),
+        finalAmount: new Decimal(0),
+        status: 'COMPLETED',
+        paymentMethod: 'ADMIN_GRANT',
+        grantedByAdminId: adminId,
+        grantNote: note || null,
+        paidAt: new Date(),
+      },
+    });
+
+    // Create UserVersionAccess
+    await db.userVersionAccess.create({
+      data: {
+        userId: studentId,
+        courseVersionId: targetVersionId,
+        purchaseId: purchase.id,
+      },
+    });
+
+    // Send email notification to student
+    await EmailService.sendCourseGrantedEmail(
+      student.email,
+      student.name,
+      course.title,
+      course.slug,
+      note,
+      studentId
+    );
+
+    // Log activity
+    await db.activityLog.create({
+      data: {
+        userId: adminId,
+        activityType: 'course_granted',
+        resourceType: 'course',
+        resourceId: courseId,
+        metadata: {
+          studentId,
+          studentEmail: student.email,
+          courseTitle: course.title,
+          versionId: targetVersionId,
+          note: note || null,
+        },
+      },
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        purchase,
+        message: `კურსი "${course.title}" გააქტიურდა სტუდენტისთვის`,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error granting course access:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Get available courses for granting (courses student doesn't have access to) - T3.1
+ * GET /api/admin/students/:studentId/available-courses
+ */
+export const getAvailableCoursesForGrant = async (req: AuthRequest, res: Response) => {
+  try {
+    const { studentId } = req.params;
+
+    // Get courses student already has access to
+    const existingAccess = await db.userVersionAccess.findMany({
+      where: { userId: studentId },
+      select: {
+        courseVersion: {
+          select: { courseId: true },
+        },
+      },
+    });
+
+    const existingCourseIds = existingAccess.map((a) => a.courseVersion.courseId);
+
+    // Get all published courses that student doesn't have
+    const availableCourses = await db.course.findMany({
+      where: {
+        status: 'PUBLISHED',
+        id: { notIn: existingCourseIds },
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        thumbnail: true,
+        price: true,
+        versions: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            version: true,
+            title: true,
+          },
+          take: 1,
+        },
+      },
+      orderBy: { title: 'asc' },
+    });
+
+    return res.json({
+      success: true,
+      data: availableCourses,
+    });
+  } catch (error: any) {
+    console.error('Error fetching available courses:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -13,6 +13,7 @@ import QuizResults from '@/components/quiz/QuizResults';
 import CourseCompletionModal from '@/components/student/learning/CourseCompletionModal';
 import FinalExamSection from '@/components/student/learning/FinalExamSection';
 import FinalExamIntro from '@/components/student/learning/FinalExamIntro';
+import ReviewRequiredModal from '@/components/student/learning/ReviewRequiredModal';
 import UpgradeFloatingCard from '@/components/student/learning/UpgradeFloatingCard';
 import VersionSwitcher from '@/components/student/learning/VersionSwitcher';
 import VideoPlayer from '@/components/student/VideoPlayer';
@@ -940,6 +941,9 @@ export default function CourseLearningPage() {
   const [finalExamMode, setFinalExamMode] = useState<'idle' | 'playing' | 'results'>('idle');
   const [finalExamAttemptId, setFinalExamAttemptId] = useState<string | null>(null);
 
+  // Review Required Modal state (before final exam)
+  const [showReviewModal, setShowReviewModal] = useState(false);
+
   // Upgrade state
   const [isUpgrading, setIsUpgrading] = useState(false);
 
@@ -968,6 +972,16 @@ export default function CourseLearningPage() {
     queryFn: () => quizAttemptApi.getUserAttempts(finalExamId!),
     enabled: !!finalExamId,
   });
+
+  // Fetch review status for course (to check if user needs to review before exam)
+  const courseIdForReview = courseData?.data?.course?.id;
+  const { data: canReviewData } = useQuery({
+    queryKey: ['canReview', courseIdForReview],
+    queryFn: () => studentApiClient.canReview(courseIdForReview!),
+    enabled: !!courseIdForReview && !!finalExamId, // Only fetch if course has final exam
+  });
+
+  const hasExistingReview = canReviewData?.data?.hasExistingReview ?? false;
 
   const finalExamAttempts = finalExamAttemptsData?.data || [];
   const lastFinalExamAttempt = finalExamAttempts[0] ? {
@@ -1089,7 +1103,22 @@ export default function CourseLearningPage() {
       setFinalExamMode('results');
       return;
     }
+
+    // Check if user needs to submit a review first (before starting the exam)
+    if (!hasExistingReview) {
+      setShowReviewModal(true);
+      return;
+    }
+
     setShowFinalExamIntro(true);
+  };
+
+  // Handler for when review is submitted
+  const handleReviewSubmitted = () => {
+    setShowReviewModal(false);
+    // Now show the final exam intro
+    setShowFinalExamIntro(true);
+    toast.success('მადლობა შეფასებისთვის! ახლა შეგიძლიათ დაიწყოთ გამოცდა');
   };
 
   const handleStartFinalExam = () => {
@@ -1251,6 +1280,17 @@ export default function CourseLearningPage() {
           onStartExam={handleStartFinalExam}
           finalExam={courseData.data.finalExam}
           attempts={finalExamAttempts}
+        />
+      )}
+
+      {/* Review Required Modal (shown before final exam if user hasn't reviewed) */}
+      {courseData.data.finalExam && (
+        <ReviewRequiredModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onReviewSubmitted={handleReviewSubmitted}
+          courseId={courseData.data.course.id}
+          courseTitle={courseData.data.course.title}
         />
       )}
 

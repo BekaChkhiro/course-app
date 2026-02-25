@@ -49,6 +49,7 @@ export default function VideoPlayer({
   onCreateBookmark,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -61,7 +62,33 @@ export default function VideoPlayer({
   const [bookmarkTitle, setBookmarkTitle] = useState('');
   const [bookmarkDescription, setBookmarkDescription] = useState('');
   const [showControls, setShowControls] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Double-tap state for mobile skip
+  const lastTapRef = useRef<number>(0);
+  const lastTapXRef = useRef<number>(0);
+  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [skipAnimation, setSkipAnimation] = useState<{
+    show: boolean;
+    direction: 'left' | 'right';
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isMobileDevice = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileDevice || (isTouchDevice && window.innerWidth < 1024));
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // HLS instance ref
   const hlsRef = useRef<Hls | null>(null);
@@ -163,6 +190,70 @@ export default function VideoPlayer({
     };
   }, [video?.hlsMasterUrl, progress.lastPosition, onProgressUpdate]);
 
+  // Mobile fullscreen handling
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const videoEl = videoRef.current;
+    const container = containerRef.current;
+    if (!videoEl || !container) return;
+
+    // Request fullscreen on mobile when video starts playing
+    const handlePlay = () => {
+      // Check if already in fullscreen
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        return;
+      }
+
+      // Try to enter fullscreen
+      const enterFullscreen = async () => {
+        try {
+          // For iOS Safari - use webkit video fullscreen
+          if ((videoEl as any).webkitEnterFullscreen) {
+            // iOS Safari native video fullscreen
+            (videoEl as any).webkitEnterFullscreen();
+          } else if ((videoEl as any).webkitRequestFullscreen) {
+            await (videoEl as any).webkitRequestFullscreen();
+          } else if (container.requestFullscreen) {
+            await container.requestFullscreen();
+          } else if ((container as any).webkitRequestFullscreen) {
+            await (container as any).webkitRequestFullscreen();
+          }
+          setIsFullscreen(true);
+        } catch (error) {
+          // Fullscreen request may fail due to user gesture requirements
+          console.log('Fullscreen request failed:', error);
+        }
+      };
+
+      enterFullscreen();
+    };
+
+    videoEl.addEventListener('play', handlePlay);
+
+    // Handle fullscreen change events
+    const handleFullscreenChange = () => {
+      const isNowFullscreen =
+        !!document.fullscreenElement ||
+        !!(document as any).webkitFullscreenElement ||
+        !!(videoEl as any).webkitDisplayingFullscreen;
+      setIsFullscreen(isNowFullscreen);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    videoEl.addEventListener('webkitbeginfullscreen', handleFullscreenChange);
+    videoEl.addEventListener('webkitendfullscreen', handleFullscreenChange);
+
+    return () => {
+      videoEl.removeEventListener('play', handlePlay);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      videoEl.removeEventListener('webkitbeginfullscreen', handleFullscreenChange);
+      videoEl.removeEventListener('webkitendfullscreen', handleFullscreenChange);
+    };
+  }, [isMobile]);
+
   // Auto-save progress every 30 seconds
   useEffect(() => {
     if (isPlaying) {
@@ -201,6 +292,77 @@ export default function VideoPlayer({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [onProgressUpdate]);
+
+  // Track fullscreen state changes (for desktop)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const videoEl = videoRef.current;
+      const isNowFullscreen =
+        !!document.fullscreenElement ||
+        !!(document as any).webkitFullscreenElement ||
+        !!(videoEl && (videoEl as any).webkitDisplayingFullscreen);
+      setIsFullscreen(isNowFullscreen);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Handle landscape orientation for auto-fullscreen on mobile
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleOrientationChange = () => {
+      const videoEl = videoRef.current;
+      const container = containerRef.current;
+      if (!videoEl || !container) return;
+
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      const isVideoPlaying = !videoEl.paused && !videoEl.ended;
+
+      if (isLandscape && isVideoPlaying && !isFullscreen) {
+        // Auto-enter fullscreen when rotating to landscape while playing
+        const enterFullscreen = async () => {
+          try {
+            if ((videoEl as any).webkitEnterFullscreen) {
+              (videoEl as any).webkitEnterFullscreen();
+            } else if (container.requestFullscreen) {
+              await container.requestFullscreen();
+            } else if ((container as any).webkitRequestFullscreen) {
+              await (container as any).webkitRequestFullscreen();
+            }
+          } catch (error) {
+            console.log('Auto fullscreen on landscape failed:', error);
+          }
+        };
+        enterFullscreen();
+      }
+    };
+
+    // Use both orientationchange and resize for better compatibility
+    window.addEventListener('orientationchange', handleOrientationChange);
+    const mediaQuery = window.matchMedia('(orientation: landscape)');
+    mediaQuery.addEventListener('change', handleOrientationChange);
+
+    return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      mediaQuery.removeEventListener('change', handleOrientationChange);
+    };
+  }, [isMobile, isFullscreen]);
+
+  // Cleanup double-tap timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Hide controls after inactivity
   const handleMouseMove = useCallback(() => {
@@ -279,18 +441,137 @@ export default function VideoPlayer({
   };
 
   // Toggle fullscreen
-  const toggleFullscreen = () => {
-    const container = videoRef.current?.parentElement;
-    if (!container) return;
+  const toggleFullscreen = useCallback(() => {
+    const videoEl = videoRef.current;
+    const container = containerRef.current;
+    if (!container || !videoEl) return;
 
-    if (!document.fullscreenElement) {
-      container.requestFullscreen();
-      setIsFullscreen(true);
+    const isCurrentlyFullscreen =
+      !!document.fullscreenElement ||
+      !!(document as any).webkitFullscreenElement ||
+      !!(videoEl as any).webkitDisplayingFullscreen;
+
+    if (!isCurrentlyFullscreen) {
+      // Enter fullscreen
+      const enterFullscreen = async () => {
+        try {
+          // For iOS Safari - use webkit video fullscreen (best experience on iOS)
+          if (isMobile && (videoEl as any).webkitEnterFullscreen) {
+            (videoEl as any).webkitEnterFullscreen();
+          } else if (container.requestFullscreen) {
+            await container.requestFullscreen();
+          } else if ((container as any).webkitRequestFullscreen) {
+            await (container as any).webkitRequestFullscreen();
+          } else if ((videoEl as any).webkitEnterFullscreen) {
+            // Fallback for iOS
+            (videoEl as any).webkitEnterFullscreen();
+          }
+          setIsFullscreen(true);
+        } catch (error) {
+          console.log('Fullscreen request failed:', error);
+        }
+      };
+      enterFullscreen();
     } else {
-      document.exitFullscreen();
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((videoEl as any).webkitExitFullscreen) {
+        (videoEl as any).webkitExitFullscreen();
+      }
       setIsFullscreen(false);
     }
-  };
+  }, [isMobile]);
+
+  // Handle double-tap for 10-second skip (mobile)
+  const handleDoubleTap = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (!isMobile) return;
+
+      const now = Date.now();
+      const touch = e.changedTouches[0];
+      const tapX = touch.clientX;
+      const tapY = touch.clientY;
+      const container = containerRef.current;
+      const videoEl = videoRef.current;
+
+      if (!container || !videoEl) return;
+
+      const rect = container.getBoundingClientRect();
+      const relativeX = tapX - rect.left;
+      const screenWidth = rect.width;
+      const isLeftSide = relativeX < screenWidth / 2;
+
+      const DOUBLE_TAP_DELAY = 300; // ms
+
+      if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+        // Clear single tap timeout to prevent play/pause toggle
+        if (tapTimeoutRef.current) {
+          clearTimeout(tapTimeoutRef.current);
+          tapTimeoutRef.current = null;
+        }
+
+        // Double tap detected
+        const skipSeconds = 10;
+
+        if (isLeftSide) {
+          // Skip backward
+          videoEl.currentTime = Math.max(0, videoEl.currentTime - skipSeconds);
+          setSkipAnimation({
+            show: true,
+            direction: 'left',
+            x: relativeX,
+            y: tapY - rect.top,
+          });
+        } else {
+          // Skip forward (respect canSkipAhead)
+          const newTime = Math.min(duration, videoEl.currentTime + skipSeconds);
+          if (
+            progress.canSkipAhead ||
+            newTime <= (progress.watchPercentage / 100) * duration + 30
+          ) {
+            videoEl.currentTime = newTime;
+            setSkipAnimation({
+              show: true,
+              direction: 'right',
+              x: relativeX,
+              y: tapY - rect.top,
+            });
+          }
+        }
+
+        // Hide animation after delay
+        setTimeout(() => {
+          setSkipAnimation(null);
+        }, 500);
+
+        lastTapRef.current = 0; // Reset to prevent triple-tap issues
+      } else {
+        // First tap - wait to see if it's a double tap
+        lastTapRef.current = now;
+        lastTapXRef.current = tapX;
+
+        // Set timeout to handle single tap (show controls or toggle play)
+        tapTimeoutRef.current = setTimeout(() => {
+          setShowControls(true);
+          tapTimeoutRef.current = null;
+        }, DOUBLE_TAP_DELAY);
+      }
+    },
+    [isMobile, duration, progress.canSkipAhead, progress.watchPercentage]
+  );
+
+  // Handle video tap (for single tap play/pause on mobile)
+  const handleVideoTap = useCallback(
+    (_e: React.MouseEvent<HTMLVideoElement>) => {
+      // On mobile, single tap is handled by double-tap logic
+      if (isMobile) return;
+      togglePlay();
+    },
+    [isMobile]
+  );
 
   // Open bookmark modal
   const handleAddBookmark = () => {
@@ -351,12 +632,34 @@ export default function VideoPlayer({
         case 'arrowleft':
           e.preventDefault();
           videoEl.currentTime = Math.max(0, videoEl.currentTime - 10);
+          // Show visual feedback for keyboard seek
+          if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setSkipAnimation({
+              show: true,
+              direction: 'left',
+              x: rect.width * 0.25,
+              y: rect.height / 2,
+            });
+            setTimeout(() => setSkipAnimation(null), 500);
+          }
           break;
         case 'arrowright':
           e.preventDefault();
           const newTime = Math.min(duration, videoEl.currentTime + 10);
           if (progress.canSkipAhead || newTime <= (progress.watchPercentage / 100) * duration + 30) {
             videoEl.currentTime = newTime;
+            // Show visual feedback for keyboard seek
+            if (containerRef.current) {
+              const rect = containerRef.current.getBoundingClientRect();
+              setSkipAnimation({
+                show: true,
+                direction: 'right',
+                x: rect.width * 0.75,
+                y: rect.height / 2,
+              });
+              setTimeout(() => setSkipAnimation(null), 500);
+            }
           }
           break;
         case 'arrowup':
@@ -378,11 +681,13 @@ export default function VideoPlayer({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [duration, progress.canSkipAhead, progress.watchPercentage]);
+  }, [duration, progress.canSkipAhead, progress.watchPercentage, togglePlay, toggleFullscreen, toggleMute, handleAddBookmark]);
 
   if (!video) {
     return (
-      <div className="aspect-video bg-gray-900 rounded-xl flex items-center justify-center mx-6 mt-6">
+      <div className={`bg-gray-900 flex items-center justify-center ${
+        isMobile ? 'min-h-[50vh] mx-0 mt-0 rounded-none' : 'aspect-video rounded-xl mx-6 mt-6'
+      }`}>
         <div className="text-center text-white">
           <svg className="w-20 h-20 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -396,7 +701,9 @@ export default function VideoPlayer({
 
   if (!video.hlsMasterUrl) {
     return (
-      <div className="aspect-video bg-gray-900 rounded-xl flex items-center justify-center mx-6 mt-6">
+      <div className={`bg-gray-900 flex items-center justify-center ${
+        isMobile ? 'min-h-[50vh] mx-0 mt-0 rounded-none' : 'aspect-video rounded-xl mx-6 mt-6'
+      }`}>
         <div className="text-center text-white">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
           <p className="text-lg">Video is being processed...</p>
@@ -412,17 +719,17 @@ export default function VideoPlayer({
   // Render YouTube embed
   if (youtubeVideoId) {
     return (
-      <div className="px-6 py-6">
-        <div className="relative bg-black rounded-xl overflow-hidden">
+      <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
+        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl'}`}>
           <iframe
-            className="w-full aspect-video"
-            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1`}
+            className={`w-full ${isMobile ? 'min-h-[50vh] max-h-screen' : 'aspect-video'}`}
+            src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&playsinline=1`}
             title="Video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
           />
         </div>
-        <p className="text-sm text-gray-500 mt-2 text-center">
+        <p className={`text-sm text-gray-500 mt-2 text-center ${isMobile ? 'px-4' : ''}`}>
           YouTube ვიდეო - პროგრესის თვალყურის დევნება მიუწვდომელია
         </p>
       </div>
@@ -430,25 +737,80 @@ export default function VideoPlayer({
   }
 
   return (
-    <div className="px-6 py-6">
+    <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
       {/* Video Container */}
       <div
-        className="relative bg-black rounded-xl overflow-hidden group"
+        ref={containerRef}
+        className={`relative bg-black overflow-hidden group ${
+          isMobile
+            ? 'rounded-none w-full'
+            : 'rounded-xl'
+        } ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setShowControls(false)}
+        onTouchEnd={handleDoubleTap}
       >
         <video
           ref={videoRef}
-          className="w-full aspect-video cursor-pointer"
-          onClick={togglePlay}
+          className={`w-full cursor-pointer ${
+            isMobile
+              ? 'min-h-[50vh] max-h-screen object-contain'
+              : 'aspect-video'
+          } ${isFullscreen ? 'h-full object-contain' : ''}`}
+          onClick={handleVideoTap}
           playsInline
+          webkit-playsinline="true"
+          x-webkit-airplay="allow"
         />
 
+        {/* Double-tap Skip Animation Overlay */}
+        {skipAnimation && (
+          <div
+            className={`absolute pointer-events-none ${
+              skipAnimation.direction === 'left' ? 'left-0' : 'right-0'
+            } top-0 bottom-0 w-1/2 flex items-center justify-center animate-fade-in-out`}
+          >
+            <div className="flex flex-col items-center animate-bounce-in">
+              <div className="w-16 h-16 rounded-full bg-white bg-opacity-30 flex items-center justify-center backdrop-blur-sm">
+                {skipAnimation.direction === 'left' ? (
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-white text-lg font-bold mt-2 drop-shadow-lg">
+                {skipAnimation.direction === 'left' ? '-10' : '+10'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Play/Pause Overlay */}
-        {!isPlaying && (
+        {!isPlaying && !skipAnimation && (
           <div
             className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black bg-opacity-30"
-            onClick={togglePlay}
+            onClick={!isMobile ? togglePlay : undefined}
+            onTouchEnd={isMobile ? (e) => {
+              // On mobile, only toggle play on single tap in center area
+              const touch = e.changedTouches[0];
+              const container = containerRef.current;
+              if (!container) return;
+              const rect = container.getBoundingClientRect();
+              const relativeX = touch.clientX - rect.left;
+              const centerStart = rect.width * 0.33;
+              const centerEnd = rect.width * 0.67;
+              // Single tap in center area = play
+              if (relativeX > centerStart && relativeX < centerEnd) {
+                const now = Date.now();
+                if (now - lastTapRef.current > 300) {
+                  togglePlay();
+                }
+              }
+            } : undefined}
           >
             <div className="w-20 h-20 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
               <svg className="w-10 h-10 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">

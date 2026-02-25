@@ -32,9 +32,9 @@
 
 ## ფაზა 1: კრიტიკული პრობლემები (მაღალი პრიორიტეტი)
 
-### T1.1 - Email წერტილის ნორმალიზაციის გამორთვა
-- **სტატუსი**: `TODO`
-- **სირთულე**: დაბალი
+#### **T1.1**: Email წერტილის ნორმალიზაციის გამორთვა
+- [x] **Status**: DONE ✅
+- **Complexity**: Low
 - **ფაილები**:
   - `/apps/api/src/middleware/validation.ts`
 - **აღწერა**:
@@ -49,9 +49,9 @@
 
 ---
 
-### T1.2 - "დამახსოვრება" ფუნქციის იმპლემენტაცია
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
+#### **T1.2**: "დამახსოვრება" ფუნქციის იმპლემენტაცია
+- [x] **Status**: DONE ✅
+- **Complexity**: Medium
 - **ფაილები**:
   - `/apps/web/src/app/(public)/auth/login/page.tsx`
   - `/apps/web/src/store/authStore.ts`
@@ -83,9 +83,9 @@
 
 ---
 
-### T1.3 - მობილურზე ვიდეო Fullscreen გაფართოება
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
+#### **T1.3**: მობილურზე ვიდეო Fullscreen გაფართოება
+- [x] **Status**: DONE ✅
+- **Complexity**: Medium
 - **ფაილები**:
   - `/apps/web/src/components/student/learning/VideoPlayer.tsx`
 - **აღწერა**:
@@ -121,9 +121,9 @@
 
 ---
 
-### T1.4 - ვიდეოებს შორის Swipe ნავიგაცია
-- **სტატუსი**: `TODO`
-- **სირთულე**: მაღალი
+#### **T1.4**: ვიდეოებს შორის Swipe ნავიგაცია
+- [x] **Status**: DONE ✅
+- **Complexity**: High
 - **ფაილები**:
   - `/apps/web/src/components/student/learning/VideoPlayer.tsx`
   - `/apps/web/src/components/student/learning/ChapterView.tsx`
@@ -166,10 +166,10 @@
 
 ## ფაზა 2: საშუალო პრიორიტეტის პრობლემები
 
-### T2.1 - Double-tap გადახვევა (10 წამი)
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
-- **დამოკიდებულება**: T1.3
+#### **T2.1**: Double-tap გადახვევა (10 წამი)
+- [x] **Status**: DONE ✅
+- **Complexity**: Medium
+- **Dependencies**: T1.3
 - **ფაილები**:
   - `/apps/web/src/components/student/learning/VideoPlayer.tsx`
 - **აღწერა**:
@@ -209,9 +209,9 @@
 
 ---
 
-### T2.2 - კლავიატურით გადახვევა Desktop-ზე
-- **სტატუსი**: `TODO`
-- **სირთულე**: დაბალი
+#### **T2.2**: კლავიატურით გადახვევა Desktop-ზე
+- [x] **Status**: DONE ✅
+- **Complexity**: Low
 - **ფაილები**:
   - `/apps/web/src/components/student/learning/VideoPlayer.tsx`
 - **აღწერა**:
@@ -236,9 +236,9 @@
 
 ---
 
-### T2.3 - კურსის შეფასება გამოცდამდე
-- **სტატუსი**: `TODO`
-- **სირთულე**: მაღალი
+#### **T2.3**: კურსის შეფასება გამოცდამდე
+- [x] **Status**: DONE ✅
+- **Complexity**: High
 - **ფაილები**:
   - `/apps/web/src/components/student/learning/ChapterView.tsx`
   - `/apps/web/src/components/student/reviews/ReviewForm.tsx`
@@ -278,9 +278,9 @@
 
 ---
 
-### T2.4 - სერტიფიკატის PDF მობილურზე კითხვადობა
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
+#### **T2.4**: სერტიფიკატის PDF მობილურზე კითხვადობა
+- [x] **Status**: DONE ✅
+- **Complexity**: Medium
 - **ფაილები**:
   - `/apps/api/src/services/certificatePdfService.ts`
   - `/apps/web/src/components/certificate/CertificateDisplay.tsx`
@@ -312,9 +312,9 @@
 
 ## ფაზა 3: ადმინისტრაციული ფუნქციონალი
 
-### T3.1 - ადმინიდან კურსის მანუალური გააქტიურება (Backend)
-- **სტატუსი**: `TODO`
-- **სირთულე**: მაღალი
+#### **T3.1**: ადმინიდან კურსის მანუალური გააქტიურება (Backend)
+- [x] **Status**: DONE ✅
+- **Complexity**: High
 - **ფაილები**:
   - `/apps/api/src/controllers/adminStudents.controller.ts`
   - `/apps/api/src/routes/adminStudents.routes.ts`
@@ -380,10 +380,10 @@
 
 ---
 
-### T3.2 - ადმინიდან კურსის გააქტიურება (Frontend)
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
-- **დამოკიდებულება**: T3.1
+#### **T3.2**: ადმინიდან კურსის გააქტიურება (Frontend)
+- [x] **Status**: DONE ✅
+- **Complexity**: Medium
+- **Dependencies**: T3.1
 - **ფაილები**:
   - `/apps/web/src/app/(admin)/admin/students/[id]/page.tsx`
   - `/apps/web/src/components/admin/students/GrantCourseModal.tsx` (ახალი)
@@ -413,10 +413,10 @@
 
 ---
 
-### T3.3 - Email ნოტიფიკაცია კურსის გააქტიურებაზე
-- **სტატუსი**: `TODO`
-- **სირთულე**: დაბალი
-- **დამოკიდებულება**: T3.1
+#### **T3.3**: Email ნოტიფიკაცია კურსის გააქტიურებაზე
+- [x] **Status**: DONE ✅
+- **Complexity**: Low
+- **Dependencies**: T3.1
 - **ფაილები**:
   - `/apps/api/src/services/emailService.ts`
   - `/apps/api/src/templates/course-granted.tsx` (ახალი template)
@@ -446,10 +446,10 @@
 
 ## ფაზა 4: ტესტირება და დეპლოი
 
-### T4.1 - ინტეგრაციული ტესტირება
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
-- **დამოკიდებულება**: T1.*, T2.*, T3.*
+#### **T4.1**: ინტეგრაციული ტესტირება
+- [x] **Status**: DONE ✅
+- **Complexity**: Medium
+- **Dependencies**: T3.1, T3.2, T3.3
 - **აღწერა**:
   ყველა ცვლილების end-to-end ტესტირება.
 - **ტესტ-სცენარები**:
@@ -464,10 +464,10 @@
 
 ---
 
-### T4.2 - მობილური ტესტირება
-- **სტატუსი**: `TODO`
-- **სირთულე**: საშუალო
-- **დამოკიდებულება**: T4.1
+#### **T4.2**: მობილური ტესტირება
+- [ ] **Status**: IN_PROGRESS 🔄
+- **Complexity**: Medium
+- **Dependencies**: T4.1
 - **აღწერა**:
   სპეციფიკური მობილური device-ებზე ტესტირება.
 - **Device-ები**:
@@ -479,10 +479,10 @@
 
 ---
 
-### T4.3 - Production Deploy
-- **სტატუსი**: `TODO`
-- **სირთულე**: დაბალი
-- **დამოკიდებულება**: T4.1, T4.2
+#### **T4.3**: Production Deploy
+- [ ] **Status**: TODO
+- **Complexity**: Low
+- **Dependencies**: T4.1, T4.2
 - **აღწერა**:
   ცვლილებების production-ზე deploy.
 - **ნაბიჯები**:
@@ -531,11 +531,11 @@ UPDATE "Purchase" SET "paymentMethod" = 'BOG' WHERE "paymentMethod" IS NULL;
 
 | ფაზა | თასქები | დასრულებული | პროცენტი |
 |------|---------|-------------|----------|
-| ფაზა 1 | 4 | 0 | 0% |
-| ფაზა 2 | 4 | 0 | 0% |
-| ფაზა 3 | 3 | 0 | 0% |
-| ფაზა 4 | 3 | 0 | 0% |
-| **სულ** | **14** | **0** | **0%** |
+| ფაზა 1 | 4 | 4 | 100% | ✅
+| ფაზა 2 | 4 | 4 | 100% | ✅
+| ფაზა 3 | 3 | 3 | 100% | ✅
+| ფაზა 4 | 3 | 1 | 33% | 🔄
+| **სულ** | **14** | **12** | **86%** |
 
 ---
 
@@ -548,4 +548,6 @@ UPDATE "Purchase" SET "paymentMethod" = 'BOG' WHERE "paymentMethod" IS NULL;
 ---
 
 *შექმნილია: 2026-02-06*
+*ბოლო განახლება: 2026-02-25*
+*მიმდინარე ამოცანა: T4.2 (IN_PROGRESS)*
 *Plugin Version: 1.1.1*

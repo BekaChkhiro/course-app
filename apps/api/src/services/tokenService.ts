@@ -21,6 +21,7 @@ const getJwtRefreshSecret = () => {
 // Token expiration times
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = '30d'; // 30 days
+const REFRESH_TOKEN_EXPIRY_EXTENDED = '90d'; // 90 days for "Remember Me"
 
 export interface TokenPayload {
   userId: string;
@@ -49,8 +50,9 @@ export class TokenService {
 
   /**
    * Generate refresh token
+   * @param rememberMe - If true, use extended expiry (90 days instead of 30)
    */
-  static generateRefreshToken(userId: string, email?: string): string {
+  static generateRefreshToken(userId: string, email?: string, rememberMe: boolean = false): string {
     const payload: TokenPayload = { userId };
     if (email) {
       payload.email = email;
@@ -59,8 +61,11 @@ export class TokenService {
     // Add random nonce to ensure token uniqueness even when generated in same second
     const nonce = crypto.randomBytes(16).toString('hex');
 
+    // Use extended expiry for "Remember Me" sessions
+    const expiry = rememberMe ? REFRESH_TOKEN_EXPIRY_EXTENDED : REFRESH_TOKEN_EXPIRY;
+
     return jwt.sign({ ...payload, nonce }, getJwtRefreshSecret(), {
-      expiresIn: REFRESH_TOKEN_EXPIRY,
+      expiresIn: expiry,
     });
   }
 
@@ -112,10 +117,12 @@ export class TokenService {
 
   /**
    * Calculate token expiry date
+   * @param rememberMe - If true, use extended expiry (90 days instead of 30)
    */
-  static getRefreshTokenExpiry(): Date {
+  static getRefreshTokenExpiry(rememberMe: boolean = false): Date {
     const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 30); // 30 days
+    const days = rememberMe ? 90 : 30;
+    expiryDate.setDate(expiryDate.getDate() + days);
     return expiryDate;
   }
 

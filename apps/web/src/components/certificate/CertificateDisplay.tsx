@@ -33,21 +33,21 @@ export default function CertificateDisplay({
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* Main Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-8 sm:px-16 md:px-24 pt-2 sm:pt-3 md:pt-4 pb-16 sm:pb-24 md:pb-32 text-center">
+      {/* Main Content - Improved mobile readability */}
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 sm:px-12 md:px-24 pt-3 sm:pt-4 md:pt-6 pb-14 sm:pb-20 md:pb-28 text-center">
         {/* Logo Section */}
-        <div className="mb-3 sm:mb-4 md:mb-6">
+        <div className="mb-2 sm:mb-4 md:mb-6">
           <img
             src="/kursebi-logo.png"
             alt="KURSEBI .ONLINE"
-            className="h-8 sm:h-10 md:h-14 w-auto mx-auto"
+            className="h-10 sm:h-12 md:h-14 w-auto mx-auto"
           />
         </div>
 
         {/* Title - სერტიფიკატი in large red text */}
-        <h1 
-          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 md:mb-5" 
-          style={{ 
+        <h1
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2 sm:mb-3 md:mb-5"
+          style={{
             color: '#ff4d40',
             textShadow: '0 1px 2px rgba(0,0,0,0.1)'
           }}
@@ -56,9 +56,9 @@ export default function CertificateDisplay({
         </h1>
 
         {/* Introductory phrase - ადასტურებს, რომ */}
-        <p 
-          className="text-xs sm:text-sm md:text-base mb-3 sm:mb-4 md:mb-6" 
-          style={{ 
+        <p
+          className="text-sm sm:text-base md:text-lg mb-2 sm:mb-3 md:mb-5"
+          style={{
             color: '#0e3355',
             textShadow: '0 1px 2px rgba(255,255,255,0.8)'
           }}
@@ -67,9 +67,9 @@ export default function CertificateDisplay({
         </p>
 
         {/* Student Name - Large bold dark blue */}
-        <h2 
-          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4 md:mb-6 px-2 sm:px-3 md:px-4" 
-          style={{ 
+        <h2
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 md:mb-6 px-1 sm:px-2 md:px-4"
+          style={{
             color: '#0e3355',
             textShadow: '0 1px 2px rgba(255,255,255,0.8)'
           }}
@@ -78,9 +78,9 @@ export default function CertificateDisplay({
         </h2>
 
         {/* Completion statement */}
-        <p 
-          className="text-xs sm:text-sm md:text-base mb-2 sm:mb-2 md:mb-3 px-2 sm:px-3 md:px-0" 
-          style={{ 
+        <p
+          className="text-sm sm:text-base md:text-lg mb-1 sm:mb-2 md:mb-3 px-1 sm:px-2 md:px-0"
+          style={{
             color: '#0e3355',
             textShadow: '0 1px 2px rgba(255,255,255,0.8)'
           }}
@@ -90,9 +90,9 @@ export default function CertificateDisplay({
         </p>
 
         {/* Course Title - Large red text */}
-        <h3 
-          className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mt-2 sm:mt-3 md:mt-4 px-2 sm:px-3 md:px-4" 
-          style={{ 
+        <h3
+          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mt-1 sm:mt-2 md:mt-4 px-1 sm:px-2 md:px-4"
+          style={{
             color: '#ff4d40',
             textShadow: '0 1px 2px rgba(0,0,0,0.1)'
           }}
@@ -100,22 +100,22 @@ export default function CertificateDisplay({
           {courseName}
         </h3>
 
-        {/* Footer */}
-        <div className="absolute bottom-6 sm:bottom-10 md:bottom-16 left-0 right-0 flex justify-between px-8 sm:px-16 md:px-24">
+        {/* Footer - Improved mobile readability */}
+        <div className="absolute bottom-4 sm:bottom-8 md:bottom-14 left-0 right-0 flex justify-between px-6 sm:px-12 md:px-24">
           {/* Date on left */}
           <div className="text-left">
-            <p 
-              className="text-[10px] sm:text-xs md:text-sm font-medium mb-0.5 sm:mb-1" 
-              style={{ 
+            <p
+              className="text-xs sm:text-sm md:text-base font-semibold mb-0.5 sm:mb-1"
+              style={{
                 color: '#0e3355',
                 textShadow: '0 1px 2px rgba(255,255,255,0.8)'
               }}
             >
               თარიღი:
             </p>
-            <p 
-              className="text-[10px] sm:text-xs md:text-sm" 
-              style={{ 
+            <p
+              className="text-xs sm:text-sm md:text-base"
+              style={{
                 color: '#0e3355',
                 textShadow: '0 1px 2px rgba(255,255,255,0.8)'
               }}
@@ -126,18 +126,18 @@ export default function CertificateDisplay({
 
           {/* ID on right */}
           <div className="text-right">
-            <p 
-              className="text-[10px] sm:text-xs md:text-sm font-medium mb-0.5 sm:mb-1" 
-              style={{ 
+            <p
+              className="text-xs sm:text-sm md:text-base font-semibold mb-0.5 sm:mb-1"
+              style={{
                 color: '#0e3355',
                 textShadow: '0 1px 2px rgba(255,255,255,0.8)'
               }}
             >
               ID:
             </p>
-            <p 
-              className="text-[10px] sm:text-xs md:text-sm font-mono" 
-              style={{ 
+            <p
+              className="text-xs sm:text-sm md:text-base font-mono"
+              style={{
                 color: '#0e3355',
                 textShadow: '0 1px 2px rgba(255,255,255,0.8)'
               }}
