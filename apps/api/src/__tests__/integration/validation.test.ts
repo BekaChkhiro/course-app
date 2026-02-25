@@ -38,7 +38,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
       }
 
       // Email should be preserved with dots
-      expect(req.body.email).toBe('john.doe@gmail.com');
+      expect((req.body as any).email).toBe('john.doe@gmail.com');
     });
 
     it('should preserve multiple dots in email addresses', async () => {
@@ -57,7 +57,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.email).toBe('jane.marie.smith@gmail.com');
+      expect((req.body as any).email).toBe('jane.marie.smith@gmail.com');
     });
 
     it('should handle emails without dots correctly', async () => {
@@ -76,7 +76,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.email).toBe('bobjohnson@gmail.com');
+      expect((req.body as any).email).toBe('bobjohnson@gmail.com');
     });
 
     it('should preserve dots in non-Gmail addresses', async () => {
@@ -95,7 +95,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.email).toBe('test.user@outlook.com');
+      expect((req.body as any).email).toBe('test.user@outlook.com');
     });
 
     it('should lowercase the email address', async () => {
@@ -115,7 +115,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
       }
 
       // Email should be lowercased but dots preserved
-      expect(req.body.email).toBe('test.user@gmail.com');
+      expect((req.body as any).email).toBe('test.user@gmail.com');
     });
   });
 
@@ -133,7 +133,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.email).toBe('john.doe@gmail.com');
+      expect((req.body as any).email).toBe('john.doe@gmail.com');
     });
 
     it('should handle login with multiple dots', async () => {
@@ -149,7 +149,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.email).toBe('first.middle.last@gmail.com');
+      expect((req.body as any).email).toBe('first.middle.last@gmail.com');
     });
   });
 
@@ -166,7 +166,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.email).toBe('john.doe@gmail.com');
+      expect((req.body as any).email).toBe('john.doe@gmail.com');
     });
   });
 
@@ -183,7 +183,7 @@ describe('Email Validation - Dots Preservation (T1.1)', () => {
         await middleware(req as any, res as any, mockNext);
       }
 
-      expect(req.body.newEmail).toBe('new.email@gmail.com');
+      expect((req.body as any).newEmail).toBe('new.email@gmail.com');
     });
   });
 

@@ -83,13 +83,15 @@ export const createTestCourse = (overrides = {}) => ({
 });
 
 // Request mock helper
-export const mockRequest = (overrides = {}) => ({
-  body: {},
-  params: {},
-  query: {},
-  headers: {},
-  user: null,
-  userId: null,
+export const mockRequest = <T extends Record<string, any> = Record<string, any>>(
+  overrides: { body?: T; params?: Record<string, any>; query?: Record<string, any>; headers?: Record<string, any>; user?: any; userId?: string | null } = {}
+) => ({
+  body: {} as T,
+  params: {} as Record<string, any>,
+  query: {} as Record<string, any>,
+  headers: {} as Record<string, any>,
+  user: null as any,
+  userId: null as string | null,
   ip: '127.0.0.1',
   get: jest.fn(),
   ...overrides,
