@@ -782,7 +782,7 @@ export default function VideoPlayer({
     return (
       <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
         <div className={`bg-gray-900 flex items-center justify-center ${
-          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-4xl mx-auto'
+          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-3xl mx-auto'
         }`}>
           <div className="text-center text-white">
             <svg className="w-20 h-20 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -800,7 +800,7 @@ export default function VideoPlayer({
     return (
       <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
         <div className={`bg-gray-900 flex items-center justify-center ${
-          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-4xl mx-auto'
+          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-3xl mx-auto'
         }`}>
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
@@ -819,7 +819,7 @@ export default function VideoPlayer({
   if (youtubeVideoId) {
     return (
       <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
-        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl max-w-4xl mx-auto'}`}>
+        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl max-w-3xl mx-auto'}`}>
           <iframe
             className={`w-full ${isMobile ? 'min-h-[50vh] max-h-screen' : 'aspect-video'}`}
             src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&playsinline=1`}
@@ -843,19 +843,10 @@ export default function VideoPlayer({
         className={`relative bg-black overflow-hidden group ${
           isMobile
             ? 'rounded-none w-full'
-            : 'rounded-xl max-w-4xl mx-auto'
+            : 'rounded-xl max-w-3xl mx-auto'
         } ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setShowControls(false)}
-        onTouchStart={isMobile ? handlePinchStart : undefined}
-        onTouchMove={isMobile ? handlePinchMove : undefined}
-        onTouchEnd={(e) => {
-          if (isMobile) {
-            handlePinchEnd();
-            handleDoubleTap(e);
-          }
-        }}
-        style={{ touchAction: videoScale > 1 ? 'none' : 'pan-y' }}
       >
         <video
           ref={videoRef}
@@ -864,18 +855,32 @@ export default function VideoPlayer({
               ? 'min-h-[50vh] max-h-screen object-contain'
               : 'aspect-video'
           } ${isFullscreen ? 'h-full object-contain' : ''}`}
-          style={{
-            ...(isMobile && videoScale > 1 ? {
-              transform: `scale(${videoScale}) translate(${videoTranslate.x / videoScale}px, ${videoTranslate.y / videoScale}px)`,
-              transformOrigin: 'center center',
-            } : {}),
-            touchAction: 'none', // Prevent browser handling of touch on video
-          }}
+          style={isMobile && videoScale > 1 ? {
+            transform: `scale(${videoScale}) translate(${videoTranslate.x / videoScale}px, ${videoTranslate.y / videoScale}px)`,
+            transformOrigin: 'center center',
+          } : undefined}
           onClick={handleVideoTap}
           playsInline
           webkit-playsinline="true"
           x-webkit-airplay="allow"
         />
+
+        {/* Mobile Touch Overlay - handles pinch zoom and double tap */}
+        {isMobile && (
+          <div
+            className="absolute top-0 left-0 right-0"
+            style={{
+              touchAction: 'none',
+              bottom: '70px', // Leave space for controls
+            }}
+            onTouchStart={handlePinchStart}
+            onTouchMove={handlePinchMove}
+            onTouchEnd={(e) => {
+              handlePinchEnd();
+              handleDoubleTap(e);
+            }}
+          />
+        )}
 
         {/* Zoom Indicator */}
         {isMobile && videoScale > 1 && (
@@ -1067,7 +1072,7 @@ export default function VideoPlayer({
 
       {/* Bookmarks List */}
       {bookmarks.length > 0 && (
-        <div className={`mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden ${isMobile ? 'mx-4' : 'max-w-4xl mx-auto'}`}>
+        <div className={`mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden ${isMobile ? 'mx-4' : 'max-w-3xl mx-auto'}`}>
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h3 className="font-medium text-gray-900">Bookmarks</h3>
           </div>
