@@ -1005,6 +1005,22 @@ export default function VideoPlayer({
           {/* Control buttons */}
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center space-x-4">
+              {/* Skip Backward */}
+              <button
+                onClick={() => {
+                  const videoEl = videoRef.current;
+                  if (videoEl) {
+                    videoEl.currentTime = Math.max(0, videoEl.currentTime - 10);
+                  }
+                }}
+                className="hover:text-primary-400 transition-colors"
+                title="-10 წამი"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/>
+                </svg>
+              </button>
+
               {/* Play/Pause */}
               <button onClick={togglePlay} className="hover:text-primary-400 transition-colors">
                 {isPlaying ? (
@@ -1016,6 +1032,25 @@ export default function VideoPlayer({
                     <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
                   </svg>
                 )}
+              </button>
+
+              {/* Skip Forward */}
+              <button
+                onClick={() => {
+                  const videoEl = videoRef.current;
+                  if (videoEl) {
+                    const newTime = Math.min(duration, videoEl.currentTime + 10);
+                    if (progress.canSkipAhead || newTime <= (progress.watchPercentage / 100) * duration + 30) {
+                      videoEl.currentTime = newTime;
+                    }
+                  }
+                }}
+                className="hover:text-primary-400 transition-colors"
+                title="+10 წამი"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M11.5 8c2.65 0 5.05.99 6.9 2.6L22 7v9h-9l3.62-3.62c-1.39-1.16-3.16-1.88-5.12-1.88-3.54 0-6.55 2.31-7.6 5.5l-2.37-.78C2.92 11.03 6.85 8 11.5 8z"/>
+                </svg>
               </button>
 
               {/* Volume */}
