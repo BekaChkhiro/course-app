@@ -1013,7 +1013,15 @@ export default function VideoPlayer({
                     videoEl.currentTime = Math.max(0, videoEl.currentTime - 10);
                   }
                 }}
-                className="hover:text-primary-400 transition-colors"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const videoEl = videoRef.current;
+                  if (videoEl) {
+                    videoEl.currentTime = Math.max(0, videoEl.currentTime - 10);
+                  }
+                }}
+                className="hover:text-primary-400 transition-colors p-2 -m-2"
                 title="-10 წამი"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -1022,7 +1030,15 @@ export default function VideoPlayer({
               </button>
 
               {/* Play/Pause */}
-              <button onClick={togglePlay} className="hover:text-primary-400 transition-colors">
+              <button
+                onClick={togglePlay}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  togglePlay();
+                }}
+                className="hover:text-primary-400 transition-colors p-2 -m-2"
+              >
                 {isPlaying ? (
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
@@ -1045,7 +1061,18 @@ export default function VideoPlayer({
                     }
                   }
                 }}
-                className="hover:text-primary-400 transition-colors"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const videoEl = videoRef.current;
+                  if (videoEl) {
+                    const newTime = Math.min(duration, videoEl.currentTime + 10);
+                    if (progress.canSkipAhead || newTime <= (progress.watchPercentage / 100) * duration + 30) {
+                      videoEl.currentTime = newTime;
+                    }
+                  }
+                }}
+                className="hover:text-primary-400 transition-colors p-2 -m-2"
                 title="+10 წამი"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -1099,7 +1126,12 @@ export default function VideoPlayer({
               {/* Fullscreen */}
               <button
                 onClick={toggleFullscreen}
-                className="hover:text-primary-400 transition-colors"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleFullscreen();
+                }}
+                className="hover:text-primary-400 transition-colors p-2 -m-2"
                 title="Fullscreen (F)"
               >
                 {isFullscreen ? (
