@@ -76,6 +76,14 @@ export default function VideoPlayer({
     y: number;
   } | null>(null);
 
+  // Pinch-to-zoom state for mobile
+  const [videoScale, setVideoScale] = useState(1);
+  const [videoTranslate, setVideoTranslate] = useState({ x: 0, y: 0 });
+  const initialPinchDistanceRef = useRef<number | null>(null);
+  const initialScaleRef = useRef<number>(1);
+  const lastPanPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const isPinchingRef = useRef(false);
+
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
@@ -143,7 +151,7 @@ export default function VideoPlayer({
         }
       });
 
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.Events.ERROR, (_event, data) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
@@ -364,6 +372,79 @@ export default function VideoPlayer({
     };
   }, []);
 
+  // Pinch-to-zoom handling for mobile
+  const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handlePinchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      isPinchingRef.current = true;
+      initialPinchDistanceRef.current = getDistance(e.touches[0], e.touches[1]);
+      initialScaleRef.current = videoScale;
+    } else if (e.touches.length === 1 && videoScale > 1) {
+      // Start panning when zoomed in
+      lastPanPositionRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    }
+  }, [videoScale]);
+
+  const handlePinchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2 && initialPinchDistanceRef.current !== null) {
+      e.preventDefault();
+      const currentDistance = getDistance(e.touches[0], e.touches[1]);
+      const scale = (currentDistance / initialPinchDistanceRef.current) * initialScaleRef.current;
+      // Limit scale between 1x and 3x
+      const clampedScale = Math.min(Math.max(scale, 1), 3);
+      setVideoScale(clampedScale);
+
+      // Reset translation if scale is back to 1
+      if (clampedScale === 1) {
+        setVideoTranslate({ x: 0, y: 0 });
+      }
+    } else if (e.touches.length === 1 && videoScale > 1 && lastPanPositionRef.current) {
+      // Pan when zoomed in
+      e.preventDefault();
+      const deltaX = e.touches[0].clientX - lastPanPositionRef.current.x;
+      const deltaY = e.touches[0].clientY - lastPanPositionRef.current.y;
+
+      // Calculate max translation based on scale
+      const container = containerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const maxTranslateX = (rect.width * (videoScale - 1)) / 2;
+        const maxTranslateY = (rect.height * (videoScale - 1)) / 2;
+
+        setVideoTranslate(prev => ({
+          x: Math.min(Math.max(prev.x + deltaX, -maxTranslateX), maxTranslateX),
+          y: Math.min(Math.max(prev.y + deltaY, -maxTranslateY), maxTranslateY),
+        }));
+      }
+
+      lastPanPositionRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    }
+  }, [videoScale]);
+
+  const handlePinchEnd = useCallback(() => {
+    initialPinchDistanceRef.current = null;
+    lastPanPositionRef.current = null;
+    isPinchingRef.current = false;
+  }, []);
+
+  // Reset zoom on double tap when zoomed in
+  const resetZoom = useCallback(() => {
+    setVideoScale(1);
+    setVideoTranslate({ x: 0, y: 0 });
+  }, []);
+
   // Hide controls after inactivity
   const handleMouseMove = useCallback(() => {
     setShowControls(true);
@@ -489,9 +570,13 @@ export default function VideoPlayer({
   const handleDoubleTap = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       if (!isMobile) return;
+      // Ignore if was pinching (2+ fingers were involved)
+      if (isPinchingRef.current) return;
 
       const now = Date.now();
       const touch = e.changedTouches[0];
+      if (!touch) return;
+
       const tapX = touch.clientX;
       const tapY = touch.clientY;
       const container = containerRef.current;
@@ -502,7 +587,10 @@ export default function VideoPlayer({
       const rect = container.getBoundingClientRect();
       const relativeX = tapX - rect.left;
       const screenWidth = rect.width;
-      const isLeftSide = relativeX < screenWidth / 2;
+
+      // Use halves for skip, but center third for zoom reset when zoomed
+      const isLeftHalf = relativeX < screenWidth / 2;
+      const isCenter = relativeX > screenWidth / 3 && relativeX < (screenWidth * 2) / 3;
 
       const DOUBLE_TAP_DELAY = 300; // ms
 
@@ -514,10 +602,17 @@ export default function VideoPlayer({
         }
 
         // Double tap detected
+        // If zoomed in and double tap center, reset zoom instead of skip
+        if (videoScale > 1 && isCenter) {
+          resetZoom();
+          lastTapRef.current = 0;
+          return;
+        }
+
         const skipSeconds = 10;
 
-        if (isLeftSide) {
-          // Skip backward
+        if (isLeftHalf) {
+          // Skip backward (left half of screen)
           videoEl.currentTime = Math.max(0, videoEl.currentTime - skipSeconds);
           setSkipAnimation({
             show: true,
@@ -526,7 +621,7 @@ export default function VideoPlayer({
             y: tapY - rect.top,
           });
         } else {
-          // Skip forward (respect canSkipAhead)
+          // Skip forward (right half of screen, respect canSkipAhead)
           const newTime = Math.min(duration, videoEl.currentTime + skipSeconds);
           if (
             progress.canSkipAhead ||
@@ -560,7 +655,7 @@ export default function VideoPlayer({
         }, DOUBLE_TAP_DELAY);
       }
     },
-    [isMobile, duration, progress.canSkipAhead, progress.watchPercentage]
+    [isMobile, duration, progress.canSkipAhead, progress.watchPercentage, videoScale, resetZoom]
   );
 
   // Handle video tap (for single tap play/pause on mobile)
@@ -685,15 +780,17 @@ export default function VideoPlayer({
 
   if (!video) {
     return (
-      <div className={`bg-gray-900 flex items-center justify-center ${
-        isMobile ? 'min-h-[50vh] mx-0 mt-0 rounded-none' : 'aspect-video rounded-xl mx-6 mt-6'
-      }`}>
-        <div className="text-center text-white">
-          <svg className="w-20 h-20 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-lg">No video available for this chapter</p>
+      <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
+        <div className={`bg-gray-900 flex items-center justify-center ${
+          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-4xl mx-auto'
+        }`}>
+          <div className="text-center text-white">
+            <svg className="w-20 h-20 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-lg">No video available for this chapter</p>
+          </div>
         </div>
       </div>
     );
@@ -701,13 +798,15 @@ export default function VideoPlayer({
 
   if (!video.hlsMasterUrl) {
     return (
-      <div className={`bg-gray-900 flex items-center justify-center ${
-        isMobile ? 'min-h-[50vh] mx-0 mt-0 rounded-none' : 'aspect-video rounded-xl mx-6 mt-6'
-      }`}>
-        <div className="text-center text-white">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
-          <p className="text-lg">Video is being processed...</p>
-          <p className="text-sm text-gray-400 mt-2">Please check back later</p>
+      <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
+        <div className={`bg-gray-900 flex items-center justify-center ${
+          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-4xl mx-auto'
+        }`}>
+          <div className="text-center text-white">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
+            <p className="text-lg">Video is being processed...</p>
+            <p className="text-sm text-gray-400 mt-2">Please check back later</p>
+          </div>
         </div>
       </div>
     );
@@ -720,7 +819,7 @@ export default function VideoPlayer({
   if (youtubeVideoId) {
     return (
       <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
-        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl'}`}>
+        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl max-w-4xl mx-auto'}`}>
           <iframe
             className={`w-full ${isMobile ? 'min-h-[50vh] max-h-screen' : 'aspect-video'}`}
             src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&playsinline=1`}
@@ -744,24 +843,54 @@ export default function VideoPlayer({
         className={`relative bg-black overflow-hidden group ${
           isMobile
             ? 'rounded-none w-full'
-            : 'rounded-xl'
+            : 'rounded-xl max-w-4xl mx-auto'
         } ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setShowControls(false)}
-        onTouchEnd={handleDoubleTap}
+        onTouchStart={isMobile ? handlePinchStart : undefined}
+        onTouchMove={isMobile ? handlePinchMove : undefined}
+        onTouchEnd={(e) => {
+          if (isMobile) {
+            handlePinchEnd();
+            handleDoubleTap(e);
+          }
+        }}
+        style={{ touchAction: videoScale > 1 ? 'none' : 'pan-y' }}
       >
         <video
           ref={videoRef}
-          className={`w-full cursor-pointer ${
+          className={`w-full cursor-pointer transition-transform duration-100 ${
             isMobile
               ? 'min-h-[50vh] max-h-screen object-contain'
               : 'aspect-video'
           } ${isFullscreen ? 'h-full object-contain' : ''}`}
+          style={{
+            ...(isMobile && videoScale > 1 ? {
+              transform: `scale(${videoScale}) translate(${videoTranslate.x / videoScale}px, ${videoTranslate.y / videoScale}px)`,
+              transformOrigin: 'center center',
+            } : {}),
+            touchAction: 'none', // Prevent browser handling of touch on video
+          }}
           onClick={handleVideoTap}
           playsInline
           webkit-playsinline="true"
           x-webkit-airplay="allow"
         />
+
+        {/* Zoom Indicator */}
+        {isMobile && videoScale > 1 && (
+          <div className="absolute top-4 left-4 z-10">
+            <button
+              onClick={resetZoom}
+              className="bg-black bg-opacity-60 text-white px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm"
+            >
+              <span>{videoScale.toFixed(1)}x</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Double-tap Skip Animation Overlay */}
         {skipAnimation && (
@@ -938,7 +1067,7 @@ export default function VideoPlayer({
 
       {/* Bookmarks List */}
       {bookmarks.length > 0 && (
-        <div className="mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className={`mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden ${isMobile ? 'mx-4' : 'max-w-4xl mx-auto'}`}>
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h3 className="font-medium text-gray-900">Bookmarks</h3>
           </div>
