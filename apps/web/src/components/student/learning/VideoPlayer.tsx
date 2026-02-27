@@ -868,14 +868,26 @@ export default function VideoPlayer({
         {/* Mobile Touch Overlay - handles pinch zoom and double tap */}
         {isMobile && (
           <div
-            className="absolute top-0 left-0 right-0"
-            style={{
-              touchAction: 'none',
-              bottom: '70px', // Leave space for controls
+            className="absolute inset-0 z-20"
+            style={{ touchAction: 'none' }}
+            onTouchStart={(e) => {
+              // Don't handle if touching controls area (bottom 70px)
+              const rect = e.currentTarget.getBoundingClientRect();
+              const touchY = e.touches[0].clientY - rect.top;
+              if (touchY > rect.height - 70) return;
+              handlePinchStart(e);
             }}
-            onTouchStart={handlePinchStart}
-            onTouchMove={handlePinchMove}
+            onTouchMove={(e) => {
+              handlePinchMove(e);
+            }}
             onTouchEnd={(e) => {
+              // Don't handle if touching controls area
+              const rect = e.currentTarget.getBoundingClientRect();
+              const touch = e.changedTouches[0];
+              if (touch) {
+                const touchY = touch.clientY - rect.top;
+                if (touchY > rect.height - 70) return;
+              }
               handlePinchEnd();
               handleDoubleTap(e);
             }}
@@ -926,7 +938,7 @@ export default function VideoPlayer({
         {/* Play/Pause Overlay */}
         {!isPlaying && !skipAnimation && (
           <div
-            className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black bg-opacity-30"
+            className="absolute inset-0 z-30 flex items-center justify-center cursor-pointer bg-black bg-opacity-30"
             onClick={!isMobile ? togglePlay : undefined}
             onTouchEnd={isMobile ? (e) => {
               // On mobile, only toggle play on single tap in center area
@@ -971,7 +983,7 @@ export default function VideoPlayer({
 
         {/* Controls */}
         <div
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent px-4 py-4 transition-opacity duration-300 ${
+          className={`absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black to-transparent px-4 py-4 transition-opacity duration-300 ${
             showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
           }`}
         >
