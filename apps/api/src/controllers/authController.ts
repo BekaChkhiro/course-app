@@ -6,6 +6,7 @@ import { TokenService } from '../services/tokenService';
 import { DeviceSessionService, DeviceLimitError } from '../services/deviceSessionService';
 import { EmailService } from '../services/emailService';
 import { parseDeviceInfo, getClientIp } from '../utils/deviceFingerprint';
+import { findUserByEmail } from '../utils/emailUtils';
 
 const BCRYPT_ROUNDS = 10;
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -20,10 +21,8 @@ export class AuthController {
     try {
       const { name, surname, email, phone, password } = req.body;
 
-      // Check if user already exists
-      const existingUser = await db.user.findUnique({
-        where: { email },
-      });
+      // Check if user already exists (Gmail dot-insensitive)
+      const existingUser = await findUserByEmail(email);
 
       if (existingUser) {
         return res.status(409).json({
@@ -110,10 +109,8 @@ export class AuthController {
     try {
       const { email, password, rememberMe } = req.body;
 
-      // Find user
-      const user = await db.user.findUnique({
-        where: { email },
-      });
+      // Find user (Gmail dot-insensitive)
+      const user = await findUserByEmail(email);
 
       if (!user) {
         return res.status(401).json({
@@ -459,10 +456,8 @@ export class AuthController {
         });
       }
 
-      // Find user by email
-      const user = await db.user.findUnique({
-        where: { email },
-      });
+      // Find user by email (Gmail dot-insensitive)
+      const user = await findUserByEmail(email);
 
       // Always return success to prevent email enumeration
       if (!user) {
@@ -524,10 +519,8 @@ export class AuthController {
     try {
       const { email } = req.body;
 
-      // Find user
-      const user = await db.user.findUnique({
-        where: { email },
-      });
+      // Find user (Gmail dot-insensitive)
+      const user = await findUserByEmail(email);
 
       // Always return success to prevent email enumeration
       if (!user) {
@@ -895,10 +888,8 @@ export class AuthController {
         });
       }
 
-      // 4. Check if new email is unique
-      const existingUser = await db.user.findUnique({
-        where: { email: newEmail },
-      });
+      // 4. Check if new email is unique (Gmail dot-insensitive)
+      const existingUser = await findUserByEmail(newEmail);
 
       if (existingUser) {
         return res.status(409).json({
