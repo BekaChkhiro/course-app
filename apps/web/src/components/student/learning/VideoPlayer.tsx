@@ -1154,11 +1154,10 @@ export default function VideoPlayer({
       </div>
 
       {/* Mobile Fullscreen Button - Outside video container */}
-      {isMobile && !isFullscreen && (
-        <div className="flex justify-center mt-4 px-4">
+      {!isFullscreen && (
+        <div className="flex justify-center mt-4 px-4 lg:hidden">
           <button
-            onTouchEnd={(e) => {
-              e.preventDefault();
+            onClick={() => {
               const videoEl = videoRef.current;
               if (videoEl) {
                 if ((videoEl as any).webkitEnterFullscreen) {
