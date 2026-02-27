@@ -780,9 +780,9 @@ export default function VideoPlayer({
 
   if (!video) {
     return (
-      <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
+      <div className={`${isMobile ? 'px-0 py-0' : 'px-16 lg:px-24 py-6'}`}>
         <div className={`bg-gray-900 flex items-center justify-center ${
-          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-2xl mx-auto'
+          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl'
         }`}>
           <div className="text-center text-white">
             <svg className="w-20 h-20 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -798,9 +798,9 @@ export default function VideoPlayer({
 
   if (!video.hlsMasterUrl) {
     return (
-      <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
+      <div className={`${isMobile ? 'px-0 py-0' : 'px-16 lg:px-24 py-6'}`}>
         <div className={`bg-gray-900 flex items-center justify-center ${
-          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl max-w-2xl mx-auto'
+          isMobile ? 'min-h-[50vh] mx-0 rounded-none' : 'aspect-video rounded-xl'
         }`}>
           <div className="text-center text-white">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-4"></div>
@@ -818,8 +818,8 @@ export default function VideoPlayer({
   // Render YouTube embed
   if (youtubeVideoId) {
     return (
-      <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
-        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl max-w-2xl mx-auto'}`}>
+      <div className={`${isMobile ? 'px-0 py-0' : 'px-16 lg:px-24 py-6'}`}>
+        <div className={`relative bg-black overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl'}`}>
           <iframe
             className={`w-full ${isMobile ? 'min-h-[50vh] max-h-screen' : 'aspect-video'}`}
             src={`https://www.youtube.com/embed/${youtubeVideoId}?rel=0&modestbranding=1&playsinline=1`}
@@ -836,14 +836,14 @@ export default function VideoPlayer({
   }
 
   return (
-    <div className={`${isMobile ? 'px-0 py-0' : 'px-6 py-6'}`}>
+    <div className={`${isMobile ? 'px-0 py-0' : 'px-16 lg:px-24 py-6'}`}>
       {/* Video Container */}
       <div
         ref={containerRef}
         className={`relative bg-black overflow-hidden group ${
           isMobile
             ? 'rounded-none w-full'
-            : 'rounded-xl max-w-2xl mx-auto'
+            : 'rounded-xl'
         } ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}
         onMouseMove={handleMouseMove}
         onMouseLeave={() => setShowControls(false)}
@@ -1072,7 +1072,7 @@ export default function VideoPlayer({
 
       {/* Bookmarks List */}
       {bookmarks.length > 0 && (
-        <div className={`mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden ${isMobile ? 'mx-4' : 'max-w-2xl mx-auto'}`}>
+        <div className={`mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden ${isMobile ? 'mx-4' : ''}`}>
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
             <h3 className="font-medium text-gray-900">Bookmarks</h3>
           </div>
