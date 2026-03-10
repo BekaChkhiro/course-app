@@ -45,6 +45,21 @@ export default function VideoPlayer({
   const [, setCurrentQuality] = useState<string>('auto');
   const [, setAvailableQualities] = useState<Array<{ height: number; label: string }>>([]);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isMobileDevice = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isMobileDevice || (isTouchDevice && window.innerWidth < 1024));
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Initialize HLS.js for .m3u8 streams
   useEffect(() => {
@@ -177,18 +192,36 @@ export default function VideoPlayer({
 
   // Handle fullscreen
   const toggleFullscreen = useCallback(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container || !video) return;
 
     if (!isFullscreen) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
+      // Enter fullscreen
+      try {
+        // For iOS Safari - use webkit video fullscreen (best experience on iOS)
+        if (isMobile && (video as any).webkitEnterFullscreen) {
+          (video as any).webkitEnterFullscreen();
+        } else if (container.requestFullscreen) {
+          container.requestFullscreen();
+        } else if ((container as any).webkitRequestFullscreen) {
+          (container as any).webkitRequestFullscreen();
+        } else if ((video as any).webkitEnterFullscreen) {
+          // Fallback for iOS
+          (video as any).webkitEnterFullscreen();
+        }
+      } catch (error) {
+        console.log('Fullscreen request failed:', error);
       }
     } else {
+      // Exit fullscreen
       if (document.exitFullscreen) {
         document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
       }
     }
-  }, [isFullscreen]);
+  }, [isFullscreen, isMobile]);
 
   // Handle playback rate
   const handlePlaybackRate = useCallback((rate: number) => {
@@ -274,12 +307,30 @@ export default function VideoPlayer({
 
   // Fullscreen change listener
   useEffect(() => {
+    const video = videoRef.current;
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isNowFullscreen =
+        !!document.fullscreenElement ||
+        !!(document as any).webkitFullscreenElement ||
+        !!(video && (video as any).webkitDisplayingFullscreen);
+      setIsFullscreen(isNowFullscreen);
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    if (video) {
+      video.addEventListener('webkitbeginfullscreen', handleFullscreenChange);
+      video.addEventListener('webkitendfullscreen', handleFullscreenChange);
+    }
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      if (video) {
+        video.removeEventListener('webkitbeginfullscreen', handleFullscreenChange);
+        video.removeEventListener('webkitendfullscreen', handleFullscreenChange);
+      }
+    };
   }, []);
 
   // Reset state when src changes
@@ -607,6 +658,30 @@ export default function VideoPlayer({
       {title && showControls && (
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent pt-4 pb-8 px-4">
           <h3 className="text-white font-medium truncate">{title}</h3>
+        </div>
+      )}
+
+      {/* Mobile Fullscreen Button - inside container for mobile */}
+      {isMobile && !isFullscreen && (
+        <div className="absolute bottom-20 left-0 right-0 flex justify-center z-40 pointer-events-none">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleFullscreen();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleFullscreen();
+            }}
+            className="pointer-events-auto flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-full font-medium active:bg-primary-700 shadow-lg touch-manipulation"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+            სრულ ეკრანზე
+          </button>
         </div>
       )}
     </div>
