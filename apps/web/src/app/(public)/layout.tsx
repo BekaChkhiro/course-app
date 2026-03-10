@@ -1,4 +1,11 @@
+import { Metadata } from 'next';
 import { Header, Footer, WhatsAppButton } from '@/components/public';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
 
 export default function PublicLayout({
   children,
