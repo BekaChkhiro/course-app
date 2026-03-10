@@ -26,15 +26,17 @@ interface CourseData {
 
 async function getCourse(slug: string): Promise<CourseData | null> {
   try {
-    const response = await fetch(`${API_URL}/api/courses/${slug}`, {
+    const response = await fetch(`${API_URL}/api/public/courses/${slug}`, {
       next: { revalidate: 60 }, // Cache for 1 minute
+      cache: 'no-store', // Disable cache for fresh data
     });
 
     if (!response.ok) return null;
 
     const data = await response.json();
     return data.data || null;
-  } catch {
+  } catch (error) {
+    console.error('Error fetching course for metadata:', error);
     return null;
   }
 }
