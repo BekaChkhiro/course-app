@@ -1067,53 +1067,78 @@ export default function VideoPlayer({
           </div>
         </div>
 
-        {/* Mobile Zoom Controls - rendered last for highest stacking priority */}
-        {isMobile && (
-          <div
-            className="absolute top-4 right-4 z-50 flex items-center gap-2"
-            style={{ touchAction: 'manipulation' }}
-          >
-            {videoScale > 1 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  resetZoom();
-                }}
-                className="bg-black bg-opacity-60 text-white px-3 py-2 rounded-full text-xs font-medium"
-              >
-                {videoScale.toFixed(1)}x ✕
-              </button>
-            )}
+      </div>
+
+      {/* Mobile Buttons - Outside video container */}
+      {isMobile && (
+        <div className="flex justify-center gap-3 mt-4 px-4 lg:hidden">
+          {/* Zoom Button */}
+          {videoScale <= 1 ? (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleZoomOut();
-              }}
-              disabled={videoScale <= 1}
-              className="bg-black bg-opacity-60 text-white w-11 h-11 rounded-full flex items-center justify-center disabled:opacity-30 active:bg-opacity-80"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-              </svg>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleZoomIn();
-              }}
-              disabled={videoScale >= 3}
-              className="bg-black bg-opacity-60 text-white w-11 h-11 rounded-full flex items-center justify-center disabled:opacity-30 active:bg-opacity-80"
+              onClick={handleZoomIn}
+              className="flex items-center gap-2 bg-gray-100 text-gray-700 px-5 py-3 rounded-xl font-medium active:bg-gray-200 border border-gray-200"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
               </svg>
+              გადიდება
             </button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleZoomOut}
+                className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-medium active:bg-gray-200 border border-gray-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                </svg>
+              </button>
+              <button
+                onClick={resetZoom}
+                className="bg-primary-100 text-primary-700 px-4 py-3 rounded-xl text-sm font-semibold active:bg-primary-200 border border-primary-200"
+              >
+                {videoScale.toFixed(1)}x
+              </button>
+              <button
+                onClick={handleZoomIn}
+                disabled={videoScale >= 3}
+                className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-medium active:bg-gray-200 border border-gray-200 disabled:opacity-30"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                </svg>
+              </button>
+            </div>
+          )}
 
-      {/* Mobile Fullscreen Button - Outside video container */}
-      {!isFullscreen && (
+          {/* Fullscreen Button */}
+          {!isFullscreen && (
+            <button
+              onClick={() => {
+                const videoEl = videoRef.current;
+                if (videoEl) {
+                  if ((videoEl as any).webkitEnterFullscreen) {
+                    (videoEl as any).webkitEnterFullscreen();
+                  } else if ((videoEl as any).webkitRequestFullscreen) {
+                    (videoEl as any).webkitRequestFullscreen();
+                  } else if (videoEl.requestFullscreen) {
+                    videoEl.requestFullscreen();
+                  }
+                }
+              }}
+              className="flex items-center gap-2 bg-primary-600 text-white px-5 py-3 rounded-xl font-medium active:bg-primary-700"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+              სრულ ეკრანზე ნახვა
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Desktop Fullscreen - kept separate */}
+      {!isMobile && !isFullscreen && (
         <div className="flex justify-center mt-4 px-4 lg:hidden">
           <button
             onClick={() => {
