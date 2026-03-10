@@ -157,10 +157,13 @@ export default function ChapterView({
     }
   }, [hasPrevChapter, onNavigate]);
 
+  // Disable swipe navigation on video tab to avoid conflict with video touch controls
+  const swipeEnabled = isMobile && activeTab !== 'video';
+
   const { handlers: swipeHandlers, swipeDirection, swipeProgress } = useSwipeNavigation(
     handleSwipeLeft,
     handleSwipeRight,
-    { enabled: isMobile, minSwipeDistance: 80, maxSwipeTime: 500 }
+    { enabled: swipeEnabled, minSwipeDistance: 80, maxSwipeTime: 500 }
   );
 
   // Fetch chapter data
@@ -347,10 +350,10 @@ export default function ChapterView({
   return (
     <div
       className="flex flex-col h-full relative"
-      {...(isMobile ? swipeHandlers : {})}
+      {...(swipeEnabled ? swipeHandlers : {})}
     >
       {/* Swipe Direction Indicators */}
-      {isMobile && swipeDirection && (
+      {swipeEnabled && swipeDirection && (
         <>
           {/* Left swipe indicator (next chapter) */}
           {swipeDirection === 'left' && hasNextChapter && (
