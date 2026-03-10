@@ -79,9 +79,6 @@ export default function VideoPlayer({
   // Pinch-to-zoom state for mobile
   const [videoScale, setVideoScale] = useState(1);
   const [videoTranslate, setVideoTranslate] = useState({ x: 0, y: 0 });
-  const initialPinchDistanceRef = useRef<number | null>(null);
-  const initialScaleRef = useRef<number>(1);
-  const lastPanPositionRef = useRef<{ x: number; y: number } | null>(null);
   const isPinchingRef = useRef(false);
 
   // Detect mobile device
@@ -372,113 +369,20 @@ export default function VideoPlayer({
     };
   }, []);
 
-  // Pinch-to-zoom handling for mobile
-  const getDistance = (t1: Touch, t2: Touch) => {
-    const dx = t1.clientX - t2.clientX;
-    const dy = t1.clientY - t2.clientY;
-    return Math.sqrt(dx * dx + dy * dy);
-  };
+  // Zoom controls for mobile (button-based instead of pinch)
+  const handleZoomIn = useCallback(() => {
+    setVideoScale(prev => Math.min(prev + 0.5, 3));
+  }, []);
 
-  // Use refs for latest values so native listeners always see current state
-  const videoScaleRef = useRef(videoScale);
-  videoScaleRef.current = videoScale;
-
-  // Native touch event listeners with { passive: false } for proper preventDefault
-  const touchOverlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const overlay = touchOverlayRef.current;
-    if (!overlay || !isMobile) return;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      // Don't handle if touching controls area (bottom 70px)
-      const rect = overlay.getBoundingClientRect();
-      const touchY = e.touches[0].clientY - rect.top;
-      if (touchY > rect.height - 70) return;
-
-      // Stop propagation to prevent ChapterView swipe handlers from firing
-      e.stopPropagation();
-
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        isPinchingRef.current = true;
-        initialPinchDistanceRef.current = getDistance(e.touches[0], e.touches[1]);
-        initialScaleRef.current = videoScaleRef.current;
-      } else if (e.touches.length === 1 && videoScaleRef.current > 1) {
-        // Start panning when zoomed in
-        lastPanPositionRef.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-        };
+  const handleZoomOut = useCallback(() => {
+    setVideoScale(prev => {
+      const newScale = Math.max(prev - 0.5, 1);
+      if (newScale === 1) {
+        setVideoTranslate({ x: 0, y: 0 });
       }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && initialPinchDistanceRef.current !== null) {
-        e.preventDefault();
-        e.stopPropagation();
-        const currentDistance = getDistance(e.touches[0], e.touches[1]);
-        const scale = (currentDistance / initialPinchDistanceRef.current) * initialScaleRef.current;
-        const clampedScale = Math.min(Math.max(scale, 1), 3);
-        setVideoScale(clampedScale);
-
-        if (clampedScale === 1) {
-          setVideoTranslate({ x: 0, y: 0 });
-        }
-      } else if (e.touches.length === 1 && videoScaleRef.current > 1 && lastPanPositionRef.current) {
-        // Pan when zoomed in - prevent scroll and swipe
-        e.preventDefault();
-        e.stopPropagation();
-        const deltaX = e.touches[0].clientX - lastPanPositionRef.current.x;
-        const deltaY = e.touches[0].clientY - lastPanPositionRef.current.y;
-
-        const container = containerRef.current;
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const maxTranslateX = (rect.width * (videoScaleRef.current - 1)) / 2;
-          const maxTranslateY = (rect.height * (videoScaleRef.current - 1)) / 2;
-
-          setVideoTranslate(prev => ({
-            x: Math.min(Math.max(prev.x + deltaX, -maxTranslateX), maxTranslateX),
-            y: Math.min(Math.max(prev.y + deltaY, -maxTranslateY), maxTranslateY),
-          }));
-        }
-
-        lastPanPositionRef.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-        };
-      }
-      // When videoScale === 1 and single finger: don't preventDefault,
-      // let the browser handle native vertical scrolling
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      // Don't handle if touching controls area
-      const rect = overlay.getBoundingClientRect();
-      const touch = e.changedTouches[0];
-      if (touch) {
-        const touchY = touch.clientY - rect.top;
-        if (touchY > rect.height - 70) return;
-      }
-
-      e.stopPropagation();
-      initialPinchDistanceRef.current = null;
-      lastPanPositionRef.current = null;
-      isPinchingRef.current = false;
-    };
-
-    // { passive: false } is critical - allows preventDefault() to work on touch events
-    overlay.addEventListener('touchstart', handleTouchStart, { passive: false });
-    overlay.addEventListener('touchmove', handleTouchMove, { passive: false });
-    overlay.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-    return () => {
-      overlay.removeEventListener('touchstart', handleTouchStart);
-      overlay.removeEventListener('touchmove', handleTouchMove);
-      overlay.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isMobile]);
+      return newScale;
+    });
+  }, []);
 
   // Reset zoom on double tap when zoomed in
   const resetZoom = useCallback(() => {
@@ -906,14 +810,12 @@ export default function VideoPlayer({
           x-webkit-airplay="allow"
         />
 
-        {/* Mobile Touch Overlay - handles pinch zoom and double tap */}
+        {/* Mobile Touch Overlay - handles double tap for skip */}
         {isMobile && (
           <div
-            ref={touchOverlayRef}
             className="absolute inset-0 z-20"
-            style={{ touchAction: videoScale > 1 ? 'none' : 'pan-y' }}
+            style={{ touchAction: 'pan-y' }}
             onTouchEnd={(e) => {
-              // Double-tap handling stays as React event (doesn't need preventDefault)
               const rect = e.currentTarget.getBoundingClientRect();
               const touch = e.changedTouches[0];
               if (touch) {
@@ -925,20 +827,48 @@ export default function VideoPlayer({
           />
         )}
 
-        {/* Zoom Indicator */}
-        {isMobile && videoScale > 1 && (
-          <div className="absolute top-4 left-4 z-40">
+        {/* Mobile Zoom Controls */}
+        {isMobile && (
+          <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+            {videoScale > 1 && (
+              <button
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  resetZoom();
+                }}
+                onClick={resetZoom}
+                className="bg-black bg-opacity-60 text-white px-2.5 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm"
+              >
+                {videoScale.toFixed(1)}x ✕
+              </button>
+            )}
             <button
               onTouchEnd={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                resetZoom();
+                handleZoomOut();
               }}
-              className="bg-black bg-opacity-60 text-white px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 backdrop-blur-sm"
+              onClick={handleZoomOut}
+              disabled={videoScale <= 1}
+              className="bg-black bg-opacity-60 text-white w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm disabled:opacity-30 active:bg-opacity-80"
             >
-              <span>{videoScale.toFixed(1)}x</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+              </svg>
+            </button>
+            <button
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleZoomIn();
+              }}
+              onClick={handleZoomIn}
+              disabled={videoScale >= 3}
+              className="bg-black bg-opacity-60 text-white w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm disabled:opacity-30 active:bg-opacity-80"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
               </svg>
             </button>
           </div>
