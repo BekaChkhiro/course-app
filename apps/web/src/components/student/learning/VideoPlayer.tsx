@@ -811,17 +811,12 @@ export default function VideoPlayer({
         />
 
         {/* Mobile Touch Overlay - handles double tap for skip */}
+        {/* Note: bottom-20 (80px) leaves space for controls bar */}
         {isMobile && (
           <div
-            className="absolute inset-0 z-20"
+            className="absolute top-0 left-0 right-0 bottom-20 z-20"
             style={{ touchAction: 'pan-y' }}
             onTouchEnd={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const touch = e.changedTouches[0];
-              if (touch) {
-                const touchY = touch.clientY - rect.top;
-                if (touchY > rect.height - 70) return;
-              }
               handleDoubleTap(e);
             }}
           />
@@ -855,9 +850,10 @@ export default function VideoPlayer({
         )}
 
         {/* Play/Pause Overlay */}
+        {/* Note: bottom-20 (80px) leaves space for controls bar to receive touch events */}
         {!isPlaying && !skipAnimation && (
           <div
-            className="absolute inset-0 z-30 flex items-center justify-center cursor-pointer bg-black bg-opacity-30"
+            className="absolute top-0 left-0 right-0 bottom-20 z-30 flex items-center justify-center cursor-pointer bg-black bg-opacity-30"
             onClick={!isMobile ? togglePlay : undefined}
             onTouchEnd={isMobile ? (e) => {
               // On mobile, only toggle play on single tap in center area
@@ -902,8 +898,8 @@ export default function VideoPlayer({
 
         {/* Controls */}
         <div
-          className={`absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black to-transparent px-4 py-4 transition-opacity duration-300 ${
-            showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
+          className={`absolute bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-black to-transparent px-4 py-4 transition-opacity duration-300 ${
+            showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
           {/* Progress bar */}
@@ -1116,19 +1112,16 @@ export default function VideoPlayer({
       {!isFullscreen && (
         <div className="flex justify-center mt-4 px-4 lg:hidden">
           <button
-            onClick={() => {
-              const videoEl = videoRef.current;
-              if (videoEl) {
-                if ((videoEl as any).webkitEnterFullscreen) {
-                  (videoEl as any).webkitEnterFullscreen();
-                } else if ((videoEl as any).webkitRequestFullscreen) {
-                  (videoEl as any).webkitRequestFullscreen();
-                } else if (videoEl.requestFullscreen) {
-                  videoEl.requestFullscreen();
-                }
-              }
+            onClick={(e) => {
+              e.preventDefault();
+              toggleFullscreen();
             }}
-            className="flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-medium active:bg-primary-700"
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleFullscreen();
+            }}
+            className="flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-medium active:bg-primary-700 touch-manipulation"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
