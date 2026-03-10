@@ -373,71 +373,112 @@ export default function VideoPlayer({
   }, []);
 
   // Pinch-to-zoom handling for mobile
-  const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
-    const dx = touch1.clientX - touch2.clientX;
-    const dy = touch1.clientY - touch2.clientY;
+  const getDistance = (t1: Touch, t2: Touch) => {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  const handlePinchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      isPinchingRef.current = true;
-      initialPinchDistanceRef.current = getDistance(e.touches[0], e.touches[1]);
-      initialScaleRef.current = videoScale;
-    } else if (e.touches.length === 1 && videoScale > 1) {
-      // Start panning when zoomed in
-      lastPanPositionRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-    }
-  }, [videoScale]);
+  // Use refs for latest values so native listeners always see current state
+  const videoScaleRef = useRef(videoScale);
+  videoScaleRef.current = videoScale;
 
-  const handlePinchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && initialPinchDistanceRef.current !== null) {
-      e.preventDefault();
-      const currentDistance = getDistance(e.touches[0], e.touches[1]);
-      const scale = (currentDistance / initialPinchDistanceRef.current) * initialScaleRef.current;
-      // Limit scale between 1x and 3x
-      const clampedScale = Math.min(Math.max(scale, 1), 3);
-      setVideoScale(clampedScale);
+  // Native touch event listeners with { passive: false } for proper preventDefault
+  const touchOverlayRef = useRef<HTMLDivElement>(null);
 
-      // Reset translation if scale is back to 1
-      if (clampedScale === 1) {
-        setVideoTranslate({ x: 0, y: 0 });
+  useEffect(() => {
+    const overlay = touchOverlayRef.current;
+    if (!overlay || !isMobile) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // Don't handle if touching controls area (bottom 70px)
+      const rect = overlay.getBoundingClientRect();
+      const touchY = e.touches[0].clientY - rect.top;
+      if (touchY > rect.height - 70) return;
+
+      // Stop propagation to prevent ChapterView swipe handlers from firing
+      e.stopPropagation();
+
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        isPinchingRef.current = true;
+        initialPinchDistanceRef.current = getDistance(e.touches[0], e.touches[1]);
+        initialScaleRef.current = videoScaleRef.current;
+      } else if (e.touches.length === 1 && videoScaleRef.current > 1) {
+        // Start panning when zoomed in
+        lastPanPositionRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
       }
-    } else if (e.touches.length === 1 && videoScale > 1 && lastPanPositionRef.current) {
-      // Pan when zoomed in
-      e.preventDefault();
-      const deltaX = e.touches[0].clientX - lastPanPositionRef.current.x;
-      const deltaY = e.touches[0].clientY - lastPanPositionRef.current.y;
+    };
 
-      // Calculate max translation based on scale
-      const container = containerRef.current;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        const maxTranslateX = (rect.width * (videoScale - 1)) / 2;
-        const maxTranslateY = (rect.height * (videoScale - 1)) / 2;
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialPinchDistanceRef.current !== null) {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
+        const scale = (currentDistance / initialPinchDistanceRef.current) * initialScaleRef.current;
+        const clampedScale = Math.min(Math.max(scale, 1), 3);
+        setVideoScale(clampedScale);
 
-        setVideoTranslate(prev => ({
-          x: Math.min(Math.max(prev.x + deltaX, -maxTranslateX), maxTranslateX),
-          y: Math.min(Math.max(prev.y + deltaY, -maxTranslateY), maxTranslateY),
-        }));
+        if (clampedScale === 1) {
+          setVideoTranslate({ x: 0, y: 0 });
+        }
+      } else if (e.touches.length === 1 && videoScaleRef.current > 1 && lastPanPositionRef.current) {
+        // Pan when zoomed in - prevent scroll and swipe
+        e.preventDefault();
+        e.stopPropagation();
+        const deltaX = e.touches[0].clientX - lastPanPositionRef.current.x;
+        const deltaY = e.touches[0].clientY - lastPanPositionRef.current.y;
+
+        const container = containerRef.current;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const maxTranslateX = (rect.width * (videoScaleRef.current - 1)) / 2;
+          const maxTranslateY = (rect.height * (videoScaleRef.current - 1)) / 2;
+
+          setVideoTranslate(prev => ({
+            x: Math.min(Math.max(prev.x + deltaX, -maxTranslateX), maxTranslateX),
+            y: Math.min(Math.max(prev.y + deltaY, -maxTranslateY), maxTranslateY),
+          }));
+        }
+
+        lastPanPositionRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      }
+      // When videoScale === 1 and single finger: don't preventDefault,
+      // let the browser handle native vertical scrolling
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      // Don't handle if touching controls area
+      const rect = overlay.getBoundingClientRect();
+      const touch = e.changedTouches[0];
+      if (touch) {
+        const touchY = touch.clientY - rect.top;
+        if (touchY > rect.height - 70) return;
       }
 
-      lastPanPositionRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-    }
-  }, [videoScale]);
+      e.stopPropagation();
+      initialPinchDistanceRef.current = null;
+      lastPanPositionRef.current = null;
+      isPinchingRef.current = false;
+    };
 
-  const handlePinchEnd = useCallback(() => {
-    initialPinchDistanceRef.current = null;
-    lastPanPositionRef.current = null;
-    isPinchingRef.current = false;
-  }, []);
+    // { passive: false } is critical - allows preventDefault() to work on touch events
+    overlay.addEventListener('touchstart', handleTouchStart, { passive: false });
+    overlay.addEventListener('touchmove', handleTouchMove, { passive: false });
+    overlay.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+    return () => {
+      overlay.removeEventListener('touchstart', handleTouchStart);
+      overlay.removeEventListener('touchmove', handleTouchMove);
+      overlay.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobile]);
 
   // Reset zoom on double tap when zoomed in
   const resetZoom = useCallback(() => {
@@ -868,27 +909,17 @@ export default function VideoPlayer({
         {/* Mobile Touch Overlay - handles pinch zoom and double tap */}
         {isMobile && (
           <div
+            ref={touchOverlayRef}
             className="absolute inset-0 z-20"
-            style={{ touchAction: 'none' }}
-            onTouchStart={(e) => {
-              // Don't handle if touching controls area (bottom 70px)
-              const rect = e.currentTarget.getBoundingClientRect();
-              const touchY = e.touches[0].clientY - rect.top;
-              if (touchY > rect.height - 70) return;
-              handlePinchStart(e);
-            }}
-            onTouchMove={(e) => {
-              handlePinchMove(e);
-            }}
+            style={{ touchAction: videoScale > 1 ? 'none' : 'pan-y' }}
             onTouchEnd={(e) => {
-              // Don't handle if touching controls area
+              // Double-tap handling stays as React event (doesn't need preventDefault)
               const rect = e.currentTarget.getBoundingClientRect();
               const touch = e.changedTouches[0];
               if (touch) {
                 const touchY = touch.clientY - rect.top;
                 if (touchY > rect.height - 70) return;
               }
-              handlePinchEnd();
               handleDoubleTap(e);
             }}
           />
