@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
 import CoursePageClient from './CoursePageClient';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://kursebi.ge';
+// Server-side API URL (can be internal URL for better performance)
+const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://kursebi.online';
 
 interface CourseData {
   id: string;
@@ -25,18 +26,25 @@ interface CourseData {
 }
 
 async function getCourse(slug: string): Promise<CourseData | null> {
+  const url = `${API_URL}/api/public/courses/${slug}`;
+
   try {
-    const response = await fetch(`${API_URL}/api/public/courses/${slug}`, {
-      next: { revalidate: 60 }, // Cache for 1 minute
-      cache: 'no-store', // Disable cache for fresh data
+    const response = await fetch(url, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`Failed to fetch course: ${response.status} ${response.statusText}`);
+      return null;
+    }
 
     const data = await response.json();
     return data.data || null;
   } catch (error) {
-    console.error('Error fetching course for metadata:', error);
+    console.error(`Error fetching course metadata from ${url}:`, error);
     return null;
   }
 }
