@@ -12,6 +12,8 @@ interface InstructorData {
   profession: string;
   bio: string | null;
   avatar: string | null;
+  metaTitle?: string;
+  metaDescription?: string;
   courses: Array<{
     id: string;
     title: string;
@@ -58,13 +60,18 @@ export async function generateMetadata({
   }
 
   const fullName = `${instructor.firstName} ${instructor.lastName}`;
-  const description = instructor.bio
-    ? instructor.bio.slice(0, 160)
-    : `${fullName} - ${instructor.profession}. ${instructor.courses?.length || 0} კურსი კურსები ონლაინ პლატფორმაზე.`;
+
+  // Use custom meta title/description if provided, otherwise fallback to generated ones
+  const metaTitle = instructor.metaTitle || fullName;
+  const metaDescription = instructor.metaDescription || (
+    instructor.bio
+      ? instructor.bio.slice(0, 160)
+      : `${fullName} - ${instructor.profession}. ${instructor.courses?.length || 0} კურსი კურსები ონლაინ პლატფორმაზე.`
+  );
 
   return {
-    title: fullName,
-    description,
+    title: metaTitle,
+    description: metaDescription,
     keywords: [
       fullName,
       instructor.profession,

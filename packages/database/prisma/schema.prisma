@@ -173,6 +173,11 @@ model Category {
   icon        String?
   order       Int      @default(0)
   parentId    String? // For hierarchical categories
+
+  // SEO metadata
+  metaTitle       String?
+  metaDescription String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1906,6 +1911,11 @@ model Instructor {
   linkedin    String?
   order       Int      @default(0)
   isActive    Boolean  @default(true)
+
+  // SEO metadata
+  metaTitle       String?
+  metaDescription String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

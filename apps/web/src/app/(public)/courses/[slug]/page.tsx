@@ -13,6 +13,8 @@ interface CourseData {
   description?: string;
   thumbnail?: string;
   price: number;
+  metaTitle?: string;
+  metaDescription?: string;
   category?: {
     name: string;
     slug: string;
@@ -68,19 +70,23 @@ export async function generateMetadata({
     };
   }
 
-  const description = course.shortDescription
-    ? stripHtml(course.shortDescription).slice(0, 160)
-    : course.description
-    ? stripHtml(course.description).slice(0, 160)
-    : 'ონლაინ კურსი კურსები ონლაინ პლატფორმაზე';
+  // Use custom meta title/description if provided, otherwise fallback to generated ones
+  const metaTitle = course.metaTitle || course.title;
+  const metaDescription = course.metaDescription || (
+    course.shortDescription
+      ? stripHtml(course.shortDescription).slice(0, 160)
+      : course.description
+      ? stripHtml(course.description).slice(0, 160)
+      : 'ონლაინ კურსი კურსები ონლაინ პლატფორმაზე'
+  );
 
   const instructorName = course.instructor
     ? `${course.instructor.firstName} ${course.instructor.lastName}`
     : undefined;
 
   return {
-    title: course.title,
-    description,
+    title: metaTitle,
+    description: metaDescription,
     keywords: [
       course.title,
       course.category?.name,
