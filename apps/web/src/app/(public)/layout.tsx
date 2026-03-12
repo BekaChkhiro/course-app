@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { Header, Footer, WhatsAppButton } from '@/components/public';
+import { Header, Footer } from '@/components/public';
 
 export const metadata: Metadata = {
   alternates: {
@@ -17,7 +17,6 @@ export default function PublicLayout({
       <Header />
       <main className="flex-grow">{children}</main>
       <Footer />
-      <WhatsAppButton />
     </div>
   );
 }
