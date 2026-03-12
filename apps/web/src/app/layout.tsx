@@ -103,6 +103,12 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
+        {/* Tidio Chat Widget */}
+        <Script
+          id="tidio-chat"
+          src="//code.tidio.co/pghqt1ogrs5afpw6cb4blxo3ivscwysi.js"
+          strategy="lazyOnload"
+        />
       </head>
       <body className={roboto.className}>
         <Providers>{children}</Providers>
