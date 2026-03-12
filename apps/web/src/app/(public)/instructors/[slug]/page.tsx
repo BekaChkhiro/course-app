@@ -82,7 +82,7 @@ export async function generateMetadata({
     authors: [{ name: fullName }],
     openGraph: {
       title: `${fullName} - ${instructor.profession}`,
-      description,
+      description: metaDescription,
       url: `${BASE_URL}/instructors/${instructor.slug}`,
       siteName: 'კურსები ონლაინ',
       images: instructor.avatar
@@ -108,7 +108,7 @@ export async function generateMetadata({
     twitter: {
       card: 'summary',
       title: `${fullName} - ${instructor.profession}`,
-      description,
+      description: metaDescription,
       images: instructor.avatar ? [instructor.avatar] : [`${BASE_URL}/kursebi-logo.png`],
     },
     alternates: {
