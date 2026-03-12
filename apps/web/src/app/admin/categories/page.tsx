@@ -452,7 +452,9 @@ function CategoryModal({
     description: '',
     icon: '',
     parentId: '',
-    order: 0
+    order: 0,
+    metaTitle: '',
+    metaDescription: ''
   });
 
   // Update form data when category changes
@@ -464,7 +466,9 @@ function CategoryModal({
         description: category.description || '',
         icon: category.icon || '',
         parentId: category.parent?.id || '',
-        order: category.order || 0
+        order: category.order || 0,
+        metaTitle: (category as any).metaTitle || '',
+        metaDescription: (category as any).metaDescription || ''
       });
     } else {
       setFormData({
@@ -473,7 +477,9 @@ function CategoryModal({
         description: '',
         icon: '',
         parentId: '',
-        order: 0
+        order: 0,
+        metaTitle: '',
+        metaDescription: ''
       });
     }
   }, [category]);
@@ -607,6 +613,69 @@ function CategoryModal({
             </div>
           </div>
         )}
+
+        {/* SEO Section */}
+        <div className="pt-4 border-t">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">SEO მეტადატა</h3>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta Title
+                <span className="text-xs text-gray-500 ml-1">(რეკომენდებული: 50-60 სიმბოლო)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.metaTitle}
+                onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
+                placeholder="თუ ცარიელია, გამოიყენება კატეგორიის სახელი"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              />
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-xs text-gray-500">
+                  {formData.metaTitle ? `${formData.metaTitle.length} სიმბოლო` : 'ცარიელი'}
+                </span>
+                {formData.metaTitle && (
+                  <span className={`text-xs font-medium ${
+                    formData.metaTitle.length > 60 ? 'text-red-500' :
+                    formData.metaTitle.length > 50 ? 'text-green-500' :
+                    'text-gray-500'
+                  }`}>
+                    {formData.metaTitle.length}/60
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta Description
+                <span className="text-xs text-gray-500 ml-1">(რეკომენდებული: 120-160 სიმბოლო)</span>
+              </label>
+              <textarea
+                value={formData.metaDescription}
+                onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                rows={3}
+                placeholder="თუ ცარიელია, გამოიყენება კატეგორიის აღწერა"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              />
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-xs text-gray-500">
+                  {formData.metaDescription ? `${formData.metaDescription.length} სიმბოლო` : 'ცარიელი'}
+                </span>
+                {formData.metaDescription && (
+                  <span className={`text-xs font-medium ${
+                    formData.metaDescription.length > 160 ? 'text-red-500' :
+                    formData.metaDescription.length > 120 ? 'text-green-500' :
+                    'text-gray-500'
+                  }`}>
+                    {formData.metaDescription.length}/160
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <ModalFooter>
           <button
