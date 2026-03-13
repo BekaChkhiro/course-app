@@ -137,6 +137,8 @@ export const getInstructorBySlug = async (req: Request, res: Response) => {
         email: instructor.email,
         facebook: instructor.facebook,
         linkedin: instructor.linkedin,
+        metaTitle: instructor.metaTitle,
+        metaDescription: instructor.metaDescription,
         courses
       }
     });
@@ -174,7 +176,7 @@ export const getInstructorById = async (req: Request, res: Response) => {
 // Create instructor
 export const createInstructor = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive } = req.body;
+    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive, metaTitle, metaDescription } = req.body;
 
     if (!firstName || !lastName || !slug || !profession) {
       return res.status(400).json({ error: 'First name, last name, slug, and profession are required' });
@@ -211,7 +213,9 @@ export const createInstructor = async (req: Request, res: Response) => {
         facebook: facebook || null,
         linkedin: linkedin || null,
         order: instructorOrder,
-        isActive: isActive ?? true
+        isActive: isActive ?? true,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null
       }
     });
 
@@ -229,7 +233,7 @@ export const createInstructor = async (req: Request, res: Response) => {
 export const updateInstructor = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive } = req.body;
+    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive, metaTitle, metaDescription } = req.body;
 
     const existingInstructor = await prisma.instructor.findUnique({
       where: { id }
@@ -262,7 +266,9 @@ export const updateInstructor = async (req: Request, res: Response) => {
         ...(facebook !== undefined && { facebook }),
         ...(linkedin !== undefined && { linkedin }),
         ...(order !== undefined && { order }),
-        ...(isActive !== undefined && { isActive })
+        ...(isActive !== undefined && { isActive }),
+        ...(metaTitle !== undefined && { metaTitle }),
+        ...(metaDescription !== undefined && { metaDescription })
       }
     });
 

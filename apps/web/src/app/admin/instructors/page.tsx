@@ -48,6 +48,8 @@ type Instructor = {
   _count: {
     courses: number;
   };
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 };
 
 // Sortable Instructor Item Component
@@ -555,8 +557,8 @@ function InstructorModal({
           facebook: instructor.facebook || '',
           linkedin: instructor.linkedin || '',
           isActive: instructor.isActive ?? true,
-          metaTitle: (instructor as any).metaTitle || '',
-          metaDescription: (instructor as any).metaDescription || ''
+          metaTitle: instructor.metaTitle || '',
+          metaDescription: instructor.metaDescription || ''
         });
       } else {
         // Reset form for new instructor

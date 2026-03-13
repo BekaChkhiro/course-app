@@ -85,7 +85,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
 // Create category
 export const createCategory = async (req: Request, res: Response) => {
   try {
-    const { name, slug, description, icon, parentId, order } = req.body;
+    const { name, slug, description, icon, parentId, order, metaTitle, metaDescription } = req.body;
 
     // Check if slug already exists
     const existingCategory = await prisma.category.findUnique({
@@ -114,7 +114,9 @@ export const createCategory = async (req: Request, res: Response) => {
         description,
         icon,
         parentId,
-        order: order || 0
+        order: order || 0,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null
       },
       include: {
         parent: { select: { id: true, name: true } },
@@ -136,7 +138,7 @@ export const createCategory = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, slug, description, icon, parentId, order } = req.body;
+    const { name, slug, description, icon, parentId, order, metaTitle, metaDescription } = req.body;
 
     // Check if category exists
     const existingCategory = await prisma.category.findUnique({
@@ -190,7 +192,9 @@ export const updateCategory = async (req: Request, res: Response) => {
         ...(description !== undefined && { description }),
         ...(icon !== undefined && { icon }),
         ...(parentId !== undefined && { parentId }),
-        ...(order !== undefined && { order })
+        ...(order !== undefined && { order }),
+        ...(metaTitle !== undefined && { metaTitle }),
+        ...(metaDescription !== undefined && { metaDescription })
       },
       include: {
         parent: { select: { id: true, name: true } },

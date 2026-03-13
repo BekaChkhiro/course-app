@@ -36,6 +36,8 @@ type Category = {
   order: number;
   parent: { id: string; name: string } | null;
   _count: { courses: number; children: number };
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 };
 
 // Sortable Category Item Component
@@ -467,8 +469,8 @@ function CategoryModal({
         icon: category.icon || '',
         parentId: category.parent?.id || '',
         order: category.order || 0,
-        metaTitle: (category as any).metaTitle || '',
-        metaDescription: (category as any).metaDescription || ''
+        metaTitle: category.metaTitle || '',
+        metaDescription: category.metaDescription || ''
       });
     } else {
       setFormData({
