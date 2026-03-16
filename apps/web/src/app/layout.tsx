@@ -75,8 +75,10 @@ export default function RootLayout({
   return (
     <html lang="ka">
       <head>
-        {/* Preconnect to R2 storage for faster image loading */}
-        <link rel="preconnect" href="https://pub-127e61ff74f84adea4c690cc17c555af.r2.dev" />
+        {/* Preconnect to API for faster data fetching */}
+        <link rel="preconnect" href="https://api.kursebi.online" />
+        <link rel="dns-prefetch" href="https://api.kursebi.online" />
+        {/* DNS prefetch for R2 storage (images load after initial render) */}
         <link rel="dns-prefetch" href="https://pub-127e61ff74f84adea4c690cc17c555af.r2.dev" />
 
         {/* Meta Pixel Code - Delayed load for better mobile performance */}

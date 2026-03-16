@@ -50,6 +50,13 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Optimize package imports for tree-shaking
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{member}}',
+    },
+  },
+  swcMinify: true,
   // Cache headers for static assets
   async headers() {
     return [
