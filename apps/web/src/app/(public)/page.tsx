@@ -106,8 +106,8 @@ const PopularCoursesSection = () => {
           </div>
         ) : displayedCourses.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {displayedCourses.map((course: any) => (
-              <CourseCard key={course.id} course={course} />
+            {displayedCourses.map((course: any, index: number) => (
+              <CourseCard key={course.id} course={course} priority={index === 0} />
             ))}
           </div>
         ) : (
@@ -121,7 +121,7 @@ const PopularCoursesSection = () => {
 };
 
 // Course Card Component with Hover Syllabus and Demo Video
-const CourseCard = ({ course }: { course: any }) => {
+const CourseCard = ({ course, priority = false }: { course: any; priority?: boolean }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
@@ -143,6 +143,7 @@ const CourseCard = ({ course }: { course: any }) => {
                     src={course.thumbnail}
                     alt={course.title}
                     fill
+                    priority={priority}
                     className="object-cover transition-all duration-300 group-hover:scale-105"
                   />
                 ) : (
