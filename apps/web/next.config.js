@@ -18,7 +18,19 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'pub-127e61ff74f84adea4c690cc17c555af.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: 'kursebi.online',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.kursebi.online',
       },
       {
         protocol: 'http',
