@@ -76,7 +76,7 @@ export default function RootLayout({
     <html lang="ka">
       <head>
         {/* Preconnect to API for faster data fetching */}
-        <link rel="preconnect" href="https://api.kursebi.online" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.kursebi.online" crossOrigin="use-credentials" />
         <link rel="dns-prefetch" href="https://api.kursebi.online" />
         {/* DNS prefetch for R2 storage (images load after initial render) */}
         <link rel="dns-prefetch" href="https://pub-127e61ff74f84adea4c690cc17c555af.r2.dev" />
