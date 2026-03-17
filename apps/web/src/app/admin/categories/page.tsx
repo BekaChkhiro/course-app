@@ -38,6 +38,7 @@ type Category = {
   _count: { courses: number; children: number };
   metaTitle?: string | null;
   metaDescription?: string | null;
+  metaKeywords?: string | null;
 };
 
 // Sortable Category Item Component
@@ -456,7 +457,8 @@ function CategoryModal({
     parentId: '',
     order: 0,
     metaTitle: '',
-    metaDescription: ''
+    metaDescription: '',
+    metaKeywords: ''
   });
 
   // Update form data when category changes
@@ -470,7 +472,8 @@ function CategoryModal({
         parentId: category.parent?.id || '',
         order: category.order || 0,
         metaTitle: category.metaTitle || '',
-        metaDescription: category.metaDescription || ''
+        metaDescription: category.metaDescription || '',
+        metaKeywords: category.metaKeywords || ''
       });
     } else {
       setFormData({
@@ -481,7 +484,8 @@ function CategoryModal({
         parentId: '',
         order: 0,
         metaTitle: '',
-        metaDescription: ''
+        metaDescription: '',
+        metaKeywords: ''
       });
     }
   }, [category]);
@@ -675,6 +679,20 @@ function CategoryModal({
                   </span>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta Keywords
+                <span className="text-xs text-gray-500 ml-1">(მძიმით გამოყოფილი)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.metaKeywords}
+                onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
+                placeholder="მაგ: ონლაინ კურსები, სწავლა, განათლება"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              />
             </div>
           </div>
         </div>

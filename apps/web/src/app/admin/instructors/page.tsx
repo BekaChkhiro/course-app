@@ -50,6 +50,7 @@ type Instructor = {
   };
   metaTitle?: string | null;
   metaDescription?: string | null;
+  metaKeywords?: string | null;
 };
 
 // Sortable Instructor Item Component
@@ -539,7 +540,8 @@ function InstructorModal({
     linkedin: '',
     isActive: true,
     metaTitle: '',
-    metaDescription: ''
+    metaDescription: '',
+    metaKeywords: ''
   });
 
   // Update form data when modal opens or instructor changes
@@ -558,7 +560,8 @@ function InstructorModal({
           linkedin: instructor.linkedin || '',
           isActive: instructor.isActive ?? true,
           metaTitle: instructor.metaTitle || '',
-          metaDescription: instructor.metaDescription || ''
+          metaDescription: instructor.metaDescription || '',
+          metaKeywords: instructor.metaKeywords || ''
         });
       } else {
         // Reset form for new instructor
@@ -574,7 +577,8 @@ function InstructorModal({
           linkedin: '',
           isActive: true,
           metaTitle: '',
-          metaDescription: ''
+          metaDescription: '',
+          metaKeywords: ''
         });
       }
     }
@@ -626,7 +630,8 @@ function InstructorModal({
       linkedin: formData.linkedin.trim() || null,
       isActive: formData.isActive,
       metaTitle: formData.metaTitle.trim() || null,
-      metaDescription: formData.metaDescription.trim() || null
+      metaDescription: formData.metaDescription.trim() || null,
+      metaKeywords: formData.metaKeywords.trim() || null
     };
 
     if (instructor) {
@@ -871,6 +876,20 @@ function InstructorModal({
                   </span>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta Keywords
+                <span className="text-xs text-gray-500 ml-1">(მძიმით გამოყოფილი)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.metaKeywords}
+                onChange={(e) => setFormData({ ...formData, metaKeywords: e.target.value })}
+                placeholder="მაგ: ლექტორი, ინსტრუქტორი, კურსის ავტორი"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent-600 text-sm"
+              />
             </div>
           </div>
         </div>

@@ -15,6 +15,7 @@ interface CourseData {
   price: number;
   metaTitle?: string;
   metaDescription?: string;
+  metaKeywords?: string;
   category?: {
     name: string;
     slug: string;
@@ -87,13 +88,15 @@ export async function generateMetadata({
   return {
     title: metaTitle,
     description: metaDescription,
-    keywords: [
-      course.title,
-      course.category?.name,
-      instructorName,
-      'ონლაინ კურსი',
-      'სწავლა',
-    ].filter(Boolean) as string[],
+    keywords: course.metaKeywords
+      ? course.metaKeywords.split(',').map((k) => k.trim())
+      : [
+          course.title,
+          course.category?.name,
+          instructorName,
+          'ონლაინ კურსი',
+          'სწავლა',
+        ].filter(Boolean) as string[],
     authors: instructorName ? [{ name: instructorName }] : undefined,
     openGraph: {
       title: course.title,

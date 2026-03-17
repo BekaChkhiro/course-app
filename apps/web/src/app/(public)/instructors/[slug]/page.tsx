@@ -14,6 +14,7 @@ interface InstructorData {
   avatar: string | null;
   metaTitle?: string;
   metaDescription?: string;
+  metaKeywords?: string;
   courses: Array<{
     id: string;
     title: string;
@@ -72,13 +73,15 @@ export async function generateMetadata({
   return {
     title: metaTitle,
     description: metaDescription,
-    keywords: [
-      fullName,
-      instructor.profession,
-      'ლექტორი',
-      'ინსტრუქტორი',
-      'ონლაინ კურსები',
-    ],
+    keywords: instructor.metaKeywords
+      ? instructor.metaKeywords.split(',').map((k) => k.trim())
+      : [
+          fullName,
+          instructor.profession,
+          'ლექტორი',
+          'ინსტრუქტორი',
+          'ონლაინ კურსები',
+        ],
     authors: [{ name: fullName }],
     openGraph: {
       title: `${fullName} - ${instructor.profession}`,

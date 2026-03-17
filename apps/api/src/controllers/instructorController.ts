@@ -139,6 +139,7 @@ export const getInstructorBySlug = async (req: Request, res: Response) => {
         linkedin: instructor.linkedin,
         metaTitle: instructor.metaTitle,
         metaDescription: instructor.metaDescription,
+        metaKeywords: instructor.metaKeywords,
         courses
       }
     });
@@ -176,7 +177,7 @@ export const getInstructorById = async (req: Request, res: Response) => {
 // Create instructor
 export const createInstructor = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive, metaTitle, metaDescription } = req.body;
+    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive, metaTitle, metaDescription, metaKeywords } = req.body;
 
     if (!firstName || !lastName || !slug || !profession) {
       return res.status(400).json({ error: 'First name, last name, slug, and profession are required' });
@@ -215,7 +216,8 @@ export const createInstructor = async (req: Request, res: Response) => {
         order: instructorOrder,
         isActive: isActive ?? true,
         metaTitle: metaTitle || null,
-        metaDescription: metaDescription || null
+        metaDescription: metaDescription || null,
+        metaKeywords: metaKeywords || null
       }
     });
 
@@ -233,7 +235,7 @@ export const createInstructor = async (req: Request, res: Response) => {
 export const updateInstructor = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive, metaTitle, metaDescription } = req.body;
+    const { firstName, lastName, slug, profession, bio, avatar, email, facebook, linkedin, order, isActive, metaTitle, metaDescription, metaKeywords } = req.body;
 
     const existingInstructor = await prisma.instructor.findUnique({
       where: { id }
@@ -268,7 +270,8 @@ export const updateInstructor = async (req: Request, res: Response) => {
         ...(order !== undefined && { order }),
         ...(isActive !== undefined && { isActive }),
         ...(metaTitle !== undefined && { metaTitle }),
-        ...(metaDescription !== undefined && { metaDescription })
+        ...(metaDescription !== undefined && { metaDescription }),
+        ...(metaKeywords !== undefined && { metaKeywords })
       }
     });
 
