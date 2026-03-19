@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@types/types', '@types/utils'],
+  // Required for containerized deployments (Railway, Docker)
+  output: 'standalone',
   // Disable ESLint and TypeScript checks during production build
   eslint: {
     ignoreDuringBuilds: true,
@@ -10,9 +12,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
     optimizeCss: true,
   },
   images: {
@@ -57,9 +56,26 @@ const nextConfig = {
     },
   },
   swcMinify: true,
-  // Cache headers for static assets
+  // Cache headers
   async headers() {
     return [
+      // Prevent caching HTML pages to avoid stale deployment issues
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'accept',
+            value: '(.*text/html.*)',
+          },
+        ],
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/_next/static/:path*',
         headers: [
