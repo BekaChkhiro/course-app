@@ -42,7 +42,7 @@ export default function CoursesPage() {
   // Fetch courses
   const { data: coursesData, isLoading } = useQuery({
     queryKey: ['courses'],
-    queryFn: () => courseApi.getAll().then(res => res.data)
+    queryFn: () => courseApi.getAll({ limit: 1000 }).then(res => res.data)
   });
 
   // Fetch categories
