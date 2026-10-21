@@ -8,6 +8,7 @@ import { studentApiClient, ChapterProgress, ChapterForLearning } from '@/lib/api
 import { useAuthStore } from '@/store/authStore';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useSwipeGesture } from '@/hooks/useSwipeGesture';
+import { useHideChatWidget } from '@/hooks/useHideChatWidget';
 import QuizPlayer from '@/components/quiz/QuizPlayer';
 import QuizResults from '@/components/quiz/QuizResults';
 import CourseCompletionModal from '@/components/student/learning/CourseCompletionModal';
@@ -1035,6 +1036,9 @@ export default function CourseLearningPage() {
       toast.error(error.response?.data?.message || 'პროგრესის წაშლა ვერ მოხერხდა');
     },
   });
+
+  // Chat widget overlaps the player and the chapter navigation footer
+  useHideChatWidget();
 
   // Set initial chapter when course data loads
   useEffect(() => {
