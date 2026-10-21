@@ -702,11 +702,12 @@ function ChapterContent({
       <div className="flex-1 overflow-y-auto p-4 pb-20">
         {/* Video Tab */}
         {activeTab === 'video' && chapter.video && (
-          <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 230px)' }}>
+          // Size container to the remaining space so the player (and its controls) always fits vertically
+          <div className="h-full min-h-[200px] flex items-center justify-center [container-type:size]">
             {chapter.video.hlsMasterUrl ? (
               // Check if it's a YouTube URL
               isYouTube ? (
-                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-h-full">
+                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[min(1200px,calc(100cqh*16/9))]">
                   <iframe
                     className="w-full h-full"
                     src={`https://www.youtube.com/embed/${getYouTubeVideoId(chapter.video.hlsMasterUrl)}?rel=0&modestbranding=1`}
@@ -717,7 +718,7 @@ function ChapterContent({
                 </div>
               ) : videoUrl ? (
                 // Use R2 public URL directly for better streaming
-                <div className="w-full max-w-[1200px]">
+                <div className="w-full max-w-[min(1200px,calc(100cqh*16/9))]">
                   <VideoPlayer
                     key={chapter.video?.id || chapter.id}
                     src={videoUrl}
@@ -737,7 +738,7 @@ function ChapterContent({
                 </div>
               ) : (
                 // Video not available
-                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[1200px] flex items-center justify-center text-white">
+                <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[min(1200px,calc(100cqh*16/9))] flex items-center justify-center text-white">
                   <div className="text-center">
                     <svg className="w-16 h-16 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -748,7 +749,7 @@ function ChapterContent({
                 </div>
               )
             ) : (
-              <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-h-full flex items-center justify-center text-white">
+              <div className="bg-black rounded-xl overflow-hidden aspect-video w-full max-w-[min(1200px,calc(100cqh*16/9))] flex items-center justify-center text-white">
                 <div className="text-center">
                   <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
