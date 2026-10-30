@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authApi, User, LoginData, RegisterData } from '@/lib/api/authApi';
+import { authApi, User, LoginData, RegisterData, LimitDevice } from '@/lib/api/authApi';
 
 // Translate error messages to Georgian
 const translateError = (message: string): string => {
@@ -41,10 +41,12 @@ interface AuthState {
   error: string | null;
   errorCode: string | null; // შეცდომის კოდი (მაგ. DEVICE_LIMIT_REACHED, EMAIL_NOT_VERIFIED)
   unverifiedEmail: string | null; // ელ-ფოსტა რომელიც არ არის ვერიფიცირებული
+  deviceLimit: { devices: LimitDevice[]; replaceToken: string } | null; // ლიმიტზე - მოწყობილობები ჩასანაცვლებლად
   isInitialized: boolean; // ტოკენის ვალიდაცია დასრულებულია?
 
   // Actions
   login: (data: LoginData) => Promise<void>;
+  replaceDevice: (sessionId: string, rememberMe?: boolean) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   fetchProfile: () => Promise<void>;
@@ -62,10 +64,11 @@ export const useAuthStore = create<AuthState>()(
       error: null,
       errorCode: null,
       unverifiedEmail: null,
+      deviceLimit: null,
       isInitialized: false,
 
       login: async (data: LoginData) => {
-        set({ isLoading: true, error: null, errorCode: null, unverifiedEmail: null });
+        set({ isLoading: true, error: null, errorCode: null, unverifiedEmail: null, deviceLimit: null });
         try {
           const response = await authApi.login(data);
 
@@ -85,14 +88,63 @@ export const useAuthStore = create<AuthState>()(
             error.response?.data?.message || error.message || 'Login failed';
           const errorCode = error.response?.data?.code || null;
           const unverifiedEmail = error.response?.data?.data?.email || null;
+          const limitData = error.response?.data?.data;
+          const deviceLimit =
+            errorCode === 'DEVICE_LIMIT_REACHED' && limitData?.replaceToken
+              ? { devices: limitData.devices || [], replaceToken: limitData.replaceToken }
+              : null;
           const errorMessage = translateError(rawMessage);
           set({
             error: errorMessage,
             errorCode,
             unverifiedEmail,
+            deviceLimit,
             isLoading: false,
             isAuthenticated: false,
             user: null,
+          });
+          throw error;
+        }
+      },
+
+      replaceDevice: async (sessionId: string, rememberMe?: boolean) => {
+        const deviceLimit = get().deviceLimit;
+        if (!deviceLimit) return;
+
+        set({ isLoading: true });
+        try {
+          const response = await authApi.replaceDevice({
+            replaceToken: deviceLimit.replaceToken,
+            sessionId,
+            rememberMe,
+          });
+
+          if (response.success) {
+            set({
+              user: response.data.user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+              errorCode: null,
+              deviceLimit: null,
+            });
+          } else {
+            throw new Error(response.message || 'Login failed');
+          }
+        } catch (error: any) {
+          const rawMessage =
+            error.response?.data?.message || error.message || 'Login failed';
+          const errorCode = error.response?.data?.code || null;
+          const limitData = error.response?.data?.data;
+          set({
+            error: translateError(rawMessage),
+            errorCode,
+            // Still at the limit (e.g. another device logged in meanwhile) - show the fresh list
+            deviceLimit:
+              errorCode === 'DEVICE_LIMIT_REACHED' && limitData?.replaceToken
+                ? { devices: limitData.devices || [], replaceToken: limitData.replaceToken }
+                : null,
+            isLoading: false,
           });
           throw error;
         }
@@ -216,7 +268,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      clearError: () => set({ error: null, errorCode: null, unverifiedEmail: null }),
+      clearError: () => set({ error: null, errorCode: null, unverifiedEmail: null, deviceLimit: null }),
 
       setUser: (user: User | null) =>
         set({ user, isAuthenticated: !!user }),

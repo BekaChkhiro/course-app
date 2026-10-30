@@ -136,7 +136,7 @@ describe('Remember Me Functionality (T1.2)', () => {
     it('should create session with 30d expiry when rememberMe is false', async () => {
       // Mock no existing session
       (db.deviceSession.findFirst as jest.Mock).mockResolvedValue(null);
-      (db.deviceSession.count as jest.Mock).mockResolvedValue(0);
+      (db.deviceSession.findMany as jest.Mock).mockResolvedValue([]);
       (db.deviceSession.create as jest.Mock).mockImplementation(({ data }) =>
         Promise.resolve({ id: 'session-1', ...data })
       );
@@ -160,7 +160,7 @@ describe('Remember Me Functionality (T1.2)', () => {
 
     it('should create session with 90d expiry when rememberMe is true', async () => {
       (db.deviceSession.findFirst as jest.Mock).mockResolvedValue(null);
-      (db.deviceSession.count as jest.Mock).mockResolvedValue(0);
+      (db.deviceSession.findMany as jest.Mock).mockResolvedValue([]);
       (db.deviceSession.create as jest.Mock).mockImplementation(({ data }) =>
         Promise.resolve({ id: 'session-1', ...data })
       );
@@ -189,6 +189,7 @@ describe('Remember Me Functionality (T1.2)', () => {
         deviceFingerprint: 'fingerprint-123',
       };
       (db.deviceSession.findFirst as jest.Mock).mockResolvedValue(existingSession);
+      (db.deviceSession.findMany as jest.Mock).mockResolvedValue([]);
       (db.deviceSession.update as jest.Mock).mockImplementation(({ data }) =>
         Promise.resolve({ ...existingSession, ...data })
       );
@@ -211,7 +212,7 @@ describe('Remember Me Functionality (T1.2)', () => {
 
     it('should not include rememberMe in database fields', async () => {
       (db.deviceSession.findFirst as jest.Mock).mockResolvedValue(null);
-      (db.deviceSession.count as jest.Mock).mockResolvedValue(0);
+      (db.deviceSession.findMany as jest.Mock).mockResolvedValue([]);
       (db.deviceSession.create as jest.Mock).mockImplementation(({ data }) =>
         Promise.resolve({ id: 'session-1', ...data })
       );

@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import { authApi } from '@/lib/api/authApi';
+import { formatLastActive } from '@/utils/formatLastActive';
 
 const REMEMBERED_EMAIL_KEY = 'rememberedEmail';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, errorCode, unverifiedEmail, clearError } = useAuthStore();
+  const { login, replaceDevice, isLoading, error, errorCode, unverifiedEmail, deviceLimit, clearError } =
+    useAuthStore();
+  const [replacingSessionId, setReplacingSessionId] = useState<string | null>(null);
   const [isResendingEmail, setIsResendingEmail] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
@@ -97,27 +100,43 @@ export default function LoginPage() {
         rememberMe: formData.rememberMe,
       });
 
-      const { user, error: loginError } = useAuthStore.getState();
-
-      // Only redirect if login was successful (no error and user exists)
-      if (!loginError && user) {
-        // Handle remember me - save or remove email from localStorage
-        if (formData.rememberMe) {
-          localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
-        } else {
-          localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-        }
-
-        if (user.role === 'ADMIN') {
-          router.push('/admin');
-        } else {
-          router.push('/dashboard');
-        }
-      }
+      redirectAfterLogin();
     } catch (err: any) {
       // Error is already set in the store, but we can also set a local error
       console.error('Login failed:', err);
       // Don't redirect on error - stay on the page to show the error
+    }
+  };
+
+  const redirectAfterLogin = () => {
+    const { user, error: loginError } = useAuthStore.getState();
+
+    // Only redirect if login was successful (no error and user exists)
+    if (!loginError && user) {
+      // Handle remember me - save or remove email from localStorage
+      if (formData.rememberMe) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
+      } else {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      }
+
+      if (user.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
+    }
+  };
+
+  const handleReplaceDevice = async (sessionId: string) => {
+    setReplacingSessionId(sessionId);
+    try {
+      await replaceDevice(sessionId, formData.rememberMe);
+      redirectAfterLogin();
+    } catch (err) {
+      console.error('Replace device failed:', err);
+    } finally {
+      setReplacingSessionId(null);
     }
   };
 
@@ -230,19 +249,35 @@ export default function LoginPage() {
                     <p className="mt-1 text-sm text-amber-700">
                       {error}
                     </p>
-                    <div className="mt-3">
-                      <Link
-                        href="/dashboard/devices"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        მოწყობილობების მართვა
-                      </Link>
-                    </div>
                   </div>
                 </div>
+                {deviceLimit && deviceLimit.devices.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {deviceLimit.devices.map((device) => (
+                      <li
+                        key={device.id}
+                        className="flex items-center justify-between gap-3 rounded-lg bg-white border border-amber-200 px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {device.deviceName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            ბოლო აქტივობა: {formatLastActive(device.lastActiveAt)}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleReplaceDevice(device.id)}
+                          disabled={isLoading}
+                          className="flex-shrink-0 whitespace-nowrap px-3 py-1.5 bg-amber-600 text-white text-xs font-medium rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                        >
+                          {replacingSessionId === device.id ? '...' : 'გამოსვლა'}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ) : error && (
               <div className="rounded-xl bg-red-50 border border-red-100 p-4">

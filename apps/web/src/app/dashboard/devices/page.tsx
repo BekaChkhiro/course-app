@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import StudentLayout from '@/components/student/StudentLayout';
+import { formatLastActive } from '@/utils/formatLastActive';
 
 // OS-based device icons
 const getDeviceIcon = (deviceType: string, os?: string) => {
@@ -67,21 +68,6 @@ const getDeviceIcon = (deviceType: string, os?: string) => {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
     </svg>
   );
-};
-
-const formatLastActive = (lastActiveAt: string) => {
-  const date = new Date(lastActiveAt);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (minutes < 1) return 'ახლახანს';
-  if (minutes < 60) return `${minutes} წუთის წინ`;
-  if (hours < 24) return `${hours} საათის წინ`;
-  if (days === 1) return 'გუშინ';
-  return `${days} დღის წინ`;
 };
 
 // Device card component

@@ -121,6 +121,14 @@ export interface ChangePasswordData {
   confirmPassword: string;
 }
 
+export interface LimitDevice {
+  id: string;
+  deviceName: string;
+  deviceType: string;
+  browser?: string;
+  lastActiveAt: string;
+}
+
 export interface Device {
   id: string;
   deviceName: string;
@@ -147,6 +155,24 @@ export const authApi = {
     const fingerprint = getDeviceFingerprint();
     const deviceId = getDeviceId();
     const response = await apiClient.post('/auth/login', {
+      ...data,
+      ...fingerprint,
+      deviceId,
+    });
+
+    // Save access token
+    if (response.data.success && response.data.data.accessToken) {
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+    }
+
+    return response.data;
+  },
+
+  // Sign out one device and log in on this one (device limit reached)
+  replaceDevice: async (data: { replaceToken: string; sessionId: string; rememberMe?: boolean }) => {
+    const fingerprint = getDeviceFingerprint();
+    const deviceId = getDeviceId();
+    const response = await apiClient.post('/auth/login/replace-device', {
       ...data,
       ...fingerprint,
       deviceId,

@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth';
 import {
   validateRegistration,
   validateLogin,
+  validateReplaceDevice,
   validateForgotPassword,
   validateResetPassword,
   validateEmailVerification,
@@ -42,6 +43,15 @@ router.post(
   validateLogin,
   handleValidationErrors,
   AuthController.login
+);
+
+// POST /api/auth/login/replace-device - Sign out one device and log in (device limit reached)
+router.post(
+  '/login/replace-device',
+  loginLimiter,
+  validateReplaceDevice,
+  handleValidationErrors,
+  AuthController.replaceDevice
 );
 
 // POST /api/auth/refresh - Refresh access token

@@ -67,6 +67,11 @@ export const validateLogin = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+export const validateReplaceDevice = [
+  body('replaceToken').isString().notEmpty().withMessage('Replace token is required'),
+  body('sessionId').isString().notEmpty().withMessage('Session ID is required'),
+];
+
 export const validateForgotPassword = [
   body('email')
     .trim()

@@ -2,6 +2,11 @@ import crypto from 'crypto';
 import { Request } from 'express';
 import UAParser from 'ua-parser-js';
 
+export const DEVICE_ID_COOKIE = 'device_id';
+
+// UUID from the frontend or a sha256 hex fingerprint
+const DEVICE_ID_PATTERN = /^[a-zA-Z0-9-]{16,128}$/;
+
 export interface DeviceInfo {
   deviceName: string;
   deviceType: 'mobile' | 'tablet' | 'desktop';
@@ -17,6 +22,12 @@ export interface DeviceInfo {
  * If deviceId is provided from frontend (localStorage), use it instead
  */
 export function generateDeviceFingerprint(req: Request): string {
+  // Device ID cookie set on a previous login survives localStorage being cleared
+  const cookieDeviceId = req.cookies?.[DEVICE_ID_COOKIE];
+  if (typeof cookieDeviceId === 'string' && DEVICE_ID_PATTERN.test(cookieDeviceId)) {
+    return cookieDeviceId;
+  }
+
   // Check if deviceId is provided from frontend (localStorage-based)
   // This is more stable than browser fingerprinting
   if (req.body.deviceId && typeof req.body.deviceId === 'string') {

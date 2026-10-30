@@ -41,6 +41,7 @@ import './workers/videoProcessor'
 
 // Import refund job service
 import { startRefundCheckJob } from './services/refundJobService'
+import { startDeviceSessionCleanupJob } from './services/deviceSessionService'
 
 // Validate required environment variables
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
@@ -195,6 +196,9 @@ app.listen(PORT, () => {
 
   // Start refund check background job
   startRefundCheckJob()
+
+  // Start daily cleanup of expired device sessions
+  startDeviceSessionCleanupJob()
 })
 
 export default app

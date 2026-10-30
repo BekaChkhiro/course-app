@@ -1,16 +1,111 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { DeviceSession, User } from '@prisma/client';
 import { db } from '../config/database';
 import { AuthRequest } from '../middleware/auth';
 import { TokenService } from '../services/tokenService';
 import { DeviceSessionService, DeviceLimitError } from '../services/deviceSessionService';
 import { EmailService } from '../services/emailService';
-import { parseDeviceInfo, getClientIp } from '../utils/deviceFingerprint';
+import { parseDeviceInfo, getClientIp, DEVICE_ID_COOKIE } from '../utils/deviceFingerprint';
 import { findUserByEmail } from '../utils/emailUtils';
 
 const BCRYPT_ROUNDS = 10;
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 const COOKIE_MAX_AGE_EXTENDED = 90 * 24 * 60 * 60 * 1000; // 90 days for "Remember Me"
+const DEVICE_ID_COOKIE_MAX_AGE = 2 * 365 * 24 * 60 * 60 * 1000; // 2 years
+
+/**
+ * Build device session data for a login request
+ */
+function buildSessionData(req: AuthRequest, user: User, rememberMe: boolean) {
+  const deviceInfo = parseDeviceInfo(req);
+
+  return {
+    userId: user.id,
+    deviceName: deviceInfo.deviceName,
+    deviceType: deviceInfo.deviceType,
+    deviceFingerprint: deviceInfo.fingerprint,
+    browser: deviceInfo.browser,
+    ipAddress: getClientIp(req),
+    userAgent: deviceInfo.userAgent,
+    userRole: user.role,
+    rememberMe,
+  };
+}
+
+/**
+ * Set auth cookies and send the successful login response
+ */
+function sendLoginSuccess(
+  res: Response,
+  user: User,
+  session: DeviceSession,
+  refreshToken: string,
+  rememberMe: boolean
+) {
+  // Generate access token
+  const accessToken = TokenService.generateAccessToken(user.id, user.email);
+
+  // Set refresh token in HTTP-only cookie with extended expiry if rememberMe
+  const cookieMaxAge = rememberMe ? COOKIE_MAX_AGE_EXTENDED : COOKIE_MAX_AGE;
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: cookieMaxAge,
+  });
+
+  // Keep the device ID in a long-lived cookie too, so the device is still recognized
+  // when the browser's localStorage is cleared
+  res.cookie(DEVICE_ID_COOKIE, session.deviceFingerprint, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: DEVICE_ID_COOKIE_MAX_AGE,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Login successful',
+    data: {
+      accessToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        avatar: user.avatar,
+      },
+      sessionId: session.id,
+    },
+  });
+}
+
+/**
+ * Send the device limit response with the user's devices and a token to replace one of them
+ */
+function sendDeviceLimitReached(res: Response, error: DeviceLimitError, userId: string) {
+  return res.status(403).json({
+    success: false,
+    message: `მოწყობილობების ლიმიტი ამოიწურა. თქვენ უკვე გაქვთ ${error.maxDevices} აქტიური მოწყობილობა. ახალი მოწყობილობიდან შესასვლელად, აირჩიეთ რომელი მოწყობილობიდან გამოხვიდეთ.`,
+    code: error.code,
+    data: {
+      activeDevices: error.activeDevices,
+      maxDevices: error.maxDevices,
+      devices: error.sessions.map((s) => ({
+        id: s.id,
+        deviceName: s.deviceName,
+        deviceType: s.deviceType,
+        browser: s.browser,
+        lastActiveAt: s.lastActiveAt,
+      })),
+      replaceToken: TokenService.generateDeviceReplaceToken(userId),
+    },
+  });
+}
 
 export class AuthController {
   /**
@@ -137,81 +232,76 @@ export class AuthController {
         });
       }
 
-      // Parse device information
-      const deviceInfo = parseDeviceInfo(req);
-      const ipAddress = getClientIp(req);
+      const sessionData = buildSessionData(req, user, !!rememberMe);
 
-      // Create device session with rememberMe option for extended expiry
-      const { session, refreshToken } = await DeviceSessionService.createSession({
-        userId: user.id,
-        deviceName: deviceInfo.deviceName,
-        deviceType: deviceInfo.deviceType,
-        deviceFingerprint: deviceInfo.fingerprint,
-        browser: deviceInfo.browser,
-        ipAddress,
-        userAgent: deviceInfo.userAgent,
-        userRole: user.role,
-        rememberMe: !!rememberMe,
-      });
-
-      // Generate access token
-      const accessToken = TokenService.generateAccessToken(user.id, user.email);
-
-      // Set refresh token in HTTP-only cookie with extended expiry if rememberMe
-      const cookieMaxAge = rememberMe ? COOKIE_MAX_AGE_EXTENDED : COOKIE_MAX_AGE;
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: cookieMaxAge,
-      });
-
-      // Send new device login notification (optional)
-      // Uncomment if you want to notify users of new device logins
-      // try {
-      //   await EmailService.sendNewDeviceLoginEmail(user.email, user.name, {
-      //     deviceName: deviceInfo.deviceName,
-      //     deviceType: deviceInfo.deviceType,
-      //     browser: deviceInfo.browser,
-      //     ipAddress,
-      //   });
-      // } catch (error) {
-      //   console.error('Failed to send new device email:', error);
-      // }
-
-      return res.status(200).json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          accessToken,
-          user: {
-            id: user.id,
-            name: user.name,
-            surname: user.surname,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-            emailVerified: user.emailVerified,
-            avatar: user.avatar,
-          },
-          sessionId: session.id,
-        },
-      });
+      try {
+        const { session, refreshToken } = await DeviceSessionService.createSession(sessionData);
+        return sendLoginSuccess(res, user, session, refreshToken, !!rememberMe);
+      } catch (error) {
+        if (error instanceof DeviceLimitError) {
+          return sendDeviceLimitReached(res, error, user.id);
+        }
+        throw error;
+      }
     } catch (error) {
-      // Handle device limit error
-      if (error instanceof DeviceLimitError) {
-        return res.status(403).json({
+      console.error('Login error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Login failed',
+      });
+    }
+  }
+
+  /**
+   * Sign out one device and log in on the current one (when the device limit is reached)
+   * POST /api/auth/login/replace-device
+   */
+  static async replaceDevice(req: AuthRequest, res: Response) {
+    try {
+      const { replaceToken, sessionId, rememberMe } = req.body;
+
+      let userId: string;
+      try {
+        userId = TokenService.verifyDeviceReplaceToken(replaceToken).userId;
+      } catch {
+        return res.status(401).json({
           success: false,
-          message: `მოწყობილობების ლიმიტი ამოიწურა. თქვენ უკვე გაქვთ ${error.maxDevices} აქტიური მოწყობილობა. ახალი მოწყობილობიდან შესასვლელად, ჯერ გამოდით ერთ-ერთი არსებული მოწყობილობიდან.`,
-          code: error.code,
-          data: {
-            activeDevices: error.activeDevices,
-            maxDevices: error.maxDevices,
-          },
+          message: 'სესიის ვადა ამოიწურა, გთხოვთ თავიდან შეხვიდეთ',
+          code: 'REPLACE_TOKEN_EXPIRED',
         });
       }
 
-      console.error('Login error:', error);
+      const user = await db.user.findUnique({ where: { id: userId } });
+
+      if (!user || !user.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: 'Account is deactivated',
+        });
+      }
+
+      const sessionData = buildSessionData(req, user, !!rememberMe);
+
+      try {
+        const { session, refreshToken } = await DeviceSessionService.replaceSession(
+          sessionId,
+          sessionData
+        );
+        return sendLoginSuccess(res, user, session, refreshToken, !!rememberMe);
+      } catch (error) {
+        if (error instanceof DeviceLimitError) {
+          return sendDeviceLimitReached(res, error, user.id);
+        }
+        if ((error as Error).message === 'Device session not found') {
+          return res.status(404).json({
+            success: false,
+            message: 'მოწყობილობა ვერ მოიძებნა',
+          });
+        }
+        throw error;
+      }
+    } catch (error) {
+      console.error('Replace device error:', error);
       return res.status(500).json({
         success: false,
         message: 'Login failed',

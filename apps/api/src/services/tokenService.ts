@@ -18,8 +18,12 @@ const getJwtRefreshSecret = () => {
   return secret;
 };
 
+// Separate key so a device replace token can never be used as an access token
+const getDeviceReplaceSecret = () => `${getJwtSecret()}:device-replace`;
+
 // Token expiration times
 const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
+const DEVICE_REPLACE_TOKEN_EXPIRY = '10m'; // 10 minutes
 const REFRESH_TOKEN_EXPIRY = '30d'; // 30 days
 const REFRESH_TOKEN_EXPIRY_EXTENDED = '90d'; // 90 days for "Remember Me"
 
@@ -98,6 +102,33 @@ export class TokenService {
       return jwt.verify(token, getJwtRefreshSecret()) as TokenPayload;
     } catch (error) {
       throw new Error('Invalid or expired refresh token');
+    }
+  }
+
+  /**
+   * Generate device replace token - issued after a correct password when the
+   * device limit is reached, lets the user sign out one device and log in
+   */
+  static generateDeviceReplaceToken(userId: string): string {
+    return jwt.sign({ userId, purpose: 'device-replace' }, getDeviceReplaceSecret(), {
+      expiresIn: DEVICE_REPLACE_TOKEN_EXPIRY,
+    });
+  }
+
+  /**
+   * Verify device replace token
+   */
+  static verifyDeviceReplaceToken(token: string): TokenPayload {
+    try {
+      const payload = jwt.verify(token, getDeviceReplaceSecret()) as TokenPayload & {
+        purpose?: string;
+      };
+      if (payload.purpose !== 'device-replace') {
+        throw new Error('Invalid token purpose');
+      }
+      return { userId: payload.userId };
+    } catch (error) {
+      throw new Error('Invalid or expired device replace token');
     }
   }
 
